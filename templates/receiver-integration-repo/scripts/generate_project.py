@@ -133,7 +133,7 @@ CONTEXT_BUDGET = {
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Generate a sample project from agent_base.")
+    parser = argparse.ArgumentParser(description="Generate a sample project from harness-foundry.")
     parser.add_argument("--spec", required=True, help="Path to project generation spec JSON")
     parser.add_argument("--output-root", required=True, help="Directory where the project will be created")
     parser.add_argument("--force", action="store_true", help="Overwrite the target directory if it exists")

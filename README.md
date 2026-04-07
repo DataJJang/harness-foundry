@@ -1,6 +1,6 @@
-# agent_base
+# harness-foundry
 
-`agent_base`는 새 프로젝트를 시작하거나 기존 저장소에 AI 작업 규칙을 이식할 때 사용하는 `프로젝트 생성 킷 + 규칙 템플릿 + agentic engineering base pack`이다.
+`harness-foundry`는 새 프로젝트를 시작하거나 기존 저장소에 AI 작업 규칙을 이식할 때 사용하는 `프로젝트 생성 킷 + 규칙 템플릿 + agentic engineering base pack`이다.
 
 이 패키지는 단순 scaffold 모음이 아니라 아래를 한 세트로 제공한다.
 

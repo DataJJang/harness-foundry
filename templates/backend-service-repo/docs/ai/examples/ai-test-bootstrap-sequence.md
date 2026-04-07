@@ -2,7 +2,7 @@
 
 ## Summary
 
-이 문서는 `agent_base`로 `ai-test`라는 샘플 프로젝트를 실제로 생성할 때 어떤 질문이 오가고, 어떤 선택이 spec으로 정규화되며, 최종적으로 어떤 scaffold가 생성되는지 예시로 보여준다.
+이 문서는 `harness-foundry`로 `ai-test`라는 샘플 프로젝트를 실제로 생성할 때 어떤 질문이 오가고, 어떤 선택이 spec으로 정규화되며, 최종적으로 어떤 scaffold가 생성되는지 예시로 보여준다.
 
 ## Scenario
 

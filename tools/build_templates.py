@@ -93,7 +93,7 @@ def build_template(
     exclude_globs: list[str],
     check_only: bool,
 ) -> tuple[bool, list[str]]:
-    with tempfile.TemporaryDirectory(prefix=f"agent_base_{template_name}_") as tmpdir:
+    with tempfile.TemporaryDirectory(prefix=f"harness-foundry_{template_name}_") as tmpdir:
         tmp_root = Path(tmpdir) / template_name
         tmp_root.mkdir(parents=True, exist_ok=True)
         copy_tree_filtered(source_dir, tmp_root, exclude_globs)
