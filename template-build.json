@@ -1,0 +1,146 @@
+{
+  "base_source_dir": "source",
+  "template_output_dir": "templates",
+  "exclude_globs": [
+    ".agent-base/repository-inventory.sample.json",
+    "examples",
+    "examples/**",
+    "examples/specs/**",
+    "scaffolds",
+    "scaffolds/**",
+    "scripts/__pycache__",
+    "scripts/__pycache__/**",
+    "**/__pycache__",
+    "**/__pycache__/**",
+    ".DS_Store"
+  ],
+  "templates": {
+    "api-repo": {
+      "keep_cursor_rules": [
+        "00-base.mdc",
+        "20-api.mdc"
+      ],
+      "keep_github_instructions": [
+        "api.instructions.md"
+      ]
+    },
+    "backend-service-repo": {
+      "keep_cursor_rules": [
+        "00-base.mdc",
+        "20-api.mdc",
+        "21-backend-service.mdc"
+      ],
+      "keep_github_instructions": [
+        "api.instructions.md",
+        "backend-service.instructions.md"
+      ]
+    },
+    "batch-repo": {
+      "keep_cursor_rules": [
+        "00-base.mdc",
+        "30-batch.mdc"
+      ],
+      "keep_github_instructions": [
+        "batch.instructions.md"
+      ]
+    },
+    "batch-worker-repo": {
+      "keep_cursor_rules": [
+        "00-base.mdc",
+        "30-batch.mdc",
+        "31-batch-worker.mdc"
+      ],
+      "keep_github_instructions": [
+        "batch.instructions.md",
+        "batch-worker.instructions.md"
+      ]
+    },
+    "frontend-repo": {
+      "keep_cursor_rules": [
+        "00-base.mdc",
+        "10-frontend.mdc"
+      ],
+      "keep_github_instructions": [
+        "frontend.instructions.md"
+      ]
+    },
+    "game-repo": {
+      "keep_cursor_rules": [
+        "00-base.mdc",
+        "14-game.mdc"
+      ],
+      "keep_github_instructions": [
+        "game.instructions.md"
+      ]
+    },
+    "library-tooling-repo": {
+      "keep_cursor_rules": [
+        "00-base.mdc",
+        "16-library-tooling.mdc"
+      ],
+      "keep_github_instructions": [
+        "library-tooling.instructions.md"
+      ]
+    },
+    "mobile-app-repo": {
+      "keep_cursor_rules": [
+        "00-base.mdc",
+        "13-mobile-app.mdc"
+      ],
+      "keep_github_instructions": [
+        "mobile-app.instructions.md"
+      ]
+    },
+    "mockup-local-repo": {
+      "keep_cursor_rules": [
+        "00-base.mdc",
+        "15-mockup-local.mdc"
+      ],
+      "keep_github_instructions": [
+        "mockup-local.instructions.md"
+      ]
+    },
+    "pwa-repo": {
+      "keep_cursor_rules": [
+        "00-base.mdc",
+        "10-frontend.mdc",
+        "12-pwa.mdc"
+      ],
+      "keep_github_instructions": [
+        "frontend.instructions.md",
+        "pwa.instructions.md"
+      ]
+    },
+    "receiver-integration-repo": {
+      "keep_cursor_rules": [
+        "00-base.mdc",
+        "40-receiver.mdc",
+        "41-receiver-integration.mdc"
+      ],
+      "keep_github_instructions": [
+        "receiver.instructions.md",
+        "receiver-integration.instructions.md"
+      ]
+    },
+    "receiver-repo": {
+      "keep_cursor_rules": [
+        "00-base.mdc",
+        "40-receiver.mdc"
+      ],
+      "keep_github_instructions": [
+        "receiver.instructions.md"
+      ]
+    },
+    "web-app-repo": {
+      "keep_cursor_rules": [
+        "00-base.mdc",
+        "10-frontend.mdc",
+        "11-web-app.mdc"
+      ],
+      "keep_github_instructions": [
+        "frontend.instructions.md",
+        "web-app.instructions.md"
+      ]
+    }
+  }
+}

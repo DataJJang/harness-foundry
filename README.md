@@ -78,7 +78,15 @@ extended roles:
   - generator, scaffold, 공통 규칙, 역할 문서, prompt, 예시가 여기서 관리된다
 - `templates/`
   - 실제 저장소 루트에 바로 복사 가능한 완성형 템플릿
+  - `source/`와 `template-build.json`에서 생성되는 generated artifact다
   - 프로젝트 패밀리 템플릿과 runtime role 템플릿이 함께 있다
+- `template-build.json`
+  - template별 keep/prune 규칙
+  - 어떤 `.cursor` rule과 `.github` instruction을 남길지 선언한다
+- `template_overlays/`
+  - 공통 베이스만으로 표현할 수 없는 template별 차이를 두는 선택형 overlay
+- `tools/build_templates.py`
+  - `source/`를 바탕으로 `templates/*`를 다시 생성하는 maintenance script
 - `checklists/`
   - 도입, 유지보수, 드리프트 점검용 체크리스트
 
@@ -203,7 +211,21 @@ python3 ./source/scripts/project_bootstrap_cli.py \
 - 템플릿 복사 후에는 반드시 repo-local 명령과 환경 설정으로 보정
 - 템플릿 복사 후에는 local pre-commit hook와 실패 학습 루프를 저장소 운영 기준에 맞게 활성화
 - multi-agent로 진행할 때는 역할별 입력, 출력, handoff artifact를 명시한다
-- 규칙 변경은 `source/`를 먼저 수정하고 `templates/*`를 다시 동기화한다
+- 규칙 변경은 `source/`와 `template-build.json`을 먼저 수정하고 `tools/build_templates.py`로 `templates/*`를 다시 생성한다
+
+## Template Authoring 원칙
+
+- `templates/*`는 배포 산출물이며 직접 수정하지 않는다
+- 공통 규칙, 문서, 스크립트는 항상 `source/`에서 수정한다
+- 템플릿별 차이는 먼저 `template-build.json`의 keep/prune 규칙으로 해결한다
+- 그래도 표현할 수 없는 차이만 `template_overlays/<template-name>/`에 둔다
+
+재생성 예시:
+
+```bash
+python3 ./tools/build_templates.py
+python3 ./tools/build_templates.py --check
+```
 
 ## 이 패키지가 다루지 않는 것
 

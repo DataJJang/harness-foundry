@@ -23,6 +23,7 @@
 - [ ] `python3 scripts/install_git_hooks.py`로 local pre-commit gate를 설치했다
 - [ ] `.agent-base/pre-commit-config.json`을 저장소 실정에 맞게 검토했다
 - [ ] path-specific instruction과 Cursor rule이 실제 경로 구조와 맞는지 확인했다
+- [ ] 템플릿이 generated artifact임을 이해했고, 장기 유지보수는 `source/` 기준으로 진행하기로 했다
 - [ ] 공통 권장값에서 벗어나는 항목이 있으면 repo-local 오버레이 문서에 이유를 기록했다
 - [ ] 첫 프롬프트 실행 예시와 첫 검증 체크리스트가 실제 저장소 기준으로 읽히는지 확인했다
 
