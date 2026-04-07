@@ -1,5 +1,7 @@
 # Project Bootstrap
 
+짧은 진입 가이드가 필요하면 먼저 [`start-bootstrap.md`](./start-bootstrap.md)를 읽고, 이 문서는 bootstrap deep path에서 사용한다.
+
 ## 1. 목적
 
 이 문서는 `agent_base` 템플릿으로 새 저장소를 시작할 때 Agent가 어떤 순서로 사용자와 대화하고, 어떤 선택을 확정한 뒤, 어떤 문서를 생성해야 하는지 정의한다.

@@ -46,8 +46,8 @@
 
 | 항목 | JSON key | 설명 |
 | --- | --- | --- |
-| 필수 agent 역할 | `requiredAgentRoles` | 프로젝트에 반드시 필요한 역할 목록 |
-| 선택 agent 역할 | `optionalAgentRoles` | 있으면 품질과 속도가 좋아지는 역할 목록 |
+| 필수 agent 역할 | `requiredAgentRoles` | 기본적으로 먼저 확정하는 core 역할 목록 |
+| 선택 agent 역할 | `optionalAgentRoles` | 조건이 생길 때 추가하는 extended 또는 conditional 역할 목록 |
 | 역할별 specialization | `roleSpecializations` | `runtime-engineer: game` 같은 specialization |
 | handoff 순서 | `agentWorkflowOrder` | orchestrator부터 validator까지의 기본 순서 |
 | 역할 override | `agentRoleOverrides` | 저장소별 예외 역할 정의 |
@@ -55,6 +55,7 @@
 자동 파생 규칙:
 
 - `projectFamily`, `runtimeRoles`, `projectNature`, `datastore`, `schemaOwnership`, `securityProfile`, `deploymentType`를 기준으로 role set을 추천한다.
+- 기본은 core roles를 먼저 채우고, 위험/운영/전환 조건이 생길 때 optional 역할을 확장한다.
 - DB를 소유하면 `data-steward`를 필수로 올린다.
 - `production` 또는 인증/인가가 있으면 `security-reviewer`를 필수로 올린다.
 - `deploymentType != local-only`이면 `release-manager`를 기본 optional로 올린다.

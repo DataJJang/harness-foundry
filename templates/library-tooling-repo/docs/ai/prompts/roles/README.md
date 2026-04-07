@@ -9,17 +9,20 @@
 - 입력, 출력, handoff 대상, 완료 기준을 함께 적는다.
 - multi-agent 작업이면 `orchestrator` prompt를 먼저 사용한다.
 
-## Prompt Files
+## Core Role Prompt Files
 
 - [`orchestrator.md`](./orchestrator.md)
-- [`product-analyst.md`](./product-analyst.md)
-- [`solution-architect.md`](./solution-architect.md)
 - [`bootstrap-planner.md`](./bootstrap-planner.md)
 - [`runtime-engineer.md`](./runtime-engineer.md)
 - [`data-steward.md`](./data-steward.md)
 - [`security-reviewer.md`](./security-reviewer.md)
 - [`qa-validator.md`](./qa-validator.md)
 - [`docs-operator.md`](./docs-operator.md)
+
+## Extended Role Prompt Files
+
+- [`product-analyst.md`](./product-analyst.md)
+- [`solution-architect.md`](./solution-architect.md)
 - [`release-manager.md`](./release-manager.md)
 - [`failure-curator.md`](./failure-curator.md)
 - [`legacy-analyst.md`](./legacy-analyst.md)

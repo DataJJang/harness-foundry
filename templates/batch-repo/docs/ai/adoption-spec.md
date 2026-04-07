@@ -20,7 +20,7 @@
 | cutover / rollback | `cutoverStrategy`, `rollbackStrategy` | 전환 및 복귀 기준 |
 | legacy 예외 | `legacyExceptions` | 당장 유지해야 하는 예외 |
 | known risks | `knownRisks` | 이미 알려진 위험 |
-| 역할 세트 | `requiredAgentRoles`, `optionalAgentRoles` | adoption에 필요한 역할 |
+| 역할 세트 | `requiredAgentRoles`, `optionalAgentRoles` | adoption에 필요한 core/extended 역할 |
 
 ## 3. 예시
 

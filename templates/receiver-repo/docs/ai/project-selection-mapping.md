@@ -52,15 +52,15 @@
 
 ## 4.1 프로젝트 패밀리별 추천 agent 역할
 
-| projectFamily | 필수 역할 | 선택 역할 |
+| projectFamily | core roles | extended roles |
 | --- | --- | --- |
-| `game` | `orchestrator`, `product-analyst`, `bootstrap-planner`, `runtime-engineer[game]`, `qa-validator`, `docs-operator` | `solution-architect`, `release-manager`, `failure-curator` |
-| `web-app` | `orchestrator`, `product-analyst`, `bootstrap-planner`, `runtime-engineer[frontend]`, `qa-validator`, `docs-operator` | `solution-architect`, `security-reviewer`, `release-manager`, `failure-curator` |
-| `pwa` | `orchestrator`, `product-analyst`, `bootstrap-planner`, `runtime-engineer[frontend]`, `security-reviewer`, `qa-validator`, `docs-operator` | `solution-architect`, `release-manager`, `failure-curator` |
-| `mobile-app` | `orchestrator`, `product-analyst`, `runtime-engineer[mobile]`, `qa-validator`, `docs-operator` | `security-reviewer`, `release-manager`, `failure-curator` |
-| `backend-service` | `orchestrator`, `product-analyst`, `solution-architect`, `bootstrap-planner`, `runtime-engineer[api]`, `data-steward`, `security-reviewer`, `qa-validator`, `docs-operator` | `release-manager`, `failure-curator` |
-| `batch-worker` | `orchestrator`, `solution-architect`, `runtime-engineer[batch]`, `data-steward`, `qa-validator`, `docs-operator` | `security-reviewer`, `release-manager`, `failure-curator` |
-| `receiver-integration` | `orchestrator`, `solution-architect`, `runtime-engineer[receiver]`, `data-steward`, `security-reviewer`, `qa-validator`, `docs-operator` | `release-manager`, `failure-curator` |
+| `game` | `orchestrator`, `bootstrap-planner`, `runtime-engineer[game]`, `qa-validator`, `docs-operator` | `product-analyst`, `solution-architect`, `release-manager`, `failure-curator` |
+| `web-app` | `orchestrator`, `bootstrap-planner`, `runtime-engineer[frontend]`, `qa-validator`, `docs-operator` | `product-analyst`, `solution-architect`, `security-reviewer`, `release-manager`, `failure-curator` |
+| `pwa` | `orchestrator`, `bootstrap-planner`, `runtime-engineer[frontend]`, `security-reviewer`, `qa-validator`, `docs-operator` | `product-analyst`, `solution-architect`, `release-manager`, `failure-curator` |
+| `mobile-app` | `orchestrator`, `runtime-engineer[mobile]`, `qa-validator`, `docs-operator` | `product-analyst`, `security-reviewer`, `release-manager`, `failure-curator` |
+| `backend-service` | `orchestrator`, `bootstrap-planner`, `runtime-engineer[api]`, `data-steward`, `security-reviewer`, `qa-validator`, `docs-operator` | `product-analyst`, `solution-architect`, `release-manager`, `failure-curator` |
+| `batch-worker` | `orchestrator`, `runtime-engineer[batch]`, `data-steward`, `qa-validator`, `docs-operator` | `solution-architect`, `security-reviewer`, `release-manager`, `failure-curator` |
+| `receiver-integration` | `orchestrator`, `runtime-engineer[receiver]`, `data-steward`, `security-reviewer`, `qa-validator`, `docs-operator` | `solution-architect`, `release-manager`, `failure-curator` |
 | `mockup-local` | `orchestrator`, `bootstrap-planner`, `runtime-engineer[frontend or game]`, `docs-operator` | `qa-validator`, `failure-curator` |
 | `library-tooling` | `orchestrator`, `runtime-engineer[tooling]`, `qa-validator`, `docs-operator` | `solution-architect`, `failure-curator` |
 
@@ -68,6 +68,7 @@
 
 - `orchestrator`는 multi-agent 흐름이면 항상 필요하다.
 - bootstrap CLI와 generator는 이 문서의 패밀리별 매핑을 기준으로 `requiredAgentRoles`, `optionalAgentRoles`, `roleSpecializations`, `agentWorkflowOrder`를 자동 보정한다.
+- 기본은 core roles만 먼저 확정하고, extended roles는 조건이 생길 때만 추가한다.
 - DB schema, migration, seed, data correction을 소유하면 `data-steward`를 필수로 둔다.
 - 인증, 권한, 보안 설정, 외부 공개 API, production 배포가 있으면 `security-reviewer`를 필수로 둔다.
 - 실제 공유 전달이나 운영 영향이 있는 변경이면 `docs-operator`와 `qa-validator`를 필수로 둔다.

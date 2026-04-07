@@ -7,8 +7,11 @@ alwaysApply: true
 
 - Use `AGENTS.md` as the canonical repository entrypoint.
 - Use `docs/ai/README.md` as the detailed system of record.
-- When the repository is new or the structure is still fluid, read `docs/ai/project-bootstrap.md` first.
+- Read `docs/ai/context-profiles.md` before loading deep guidance.
+- When the repository is new or the structure is still fluid, read `docs/ai/start-bootstrap.md` first.
+- When the repository already exists or migration is involved, read `docs/ai/start-adoption.md` first.
 - Fix `projectFamily`, `projectNature`, and `runtimeRole[]` before finalizing major structure.
+- Confirm core roles first and add extended roles only when needed.
 - Use `docs/ai/project-generation-spec.md`, `docs/ai/project-family-map.md`, and `docs/ai/project-selection-mapping.md` when bootstrapping or reshaping a repository.
 - Use `docs/ai/stack-matrix.md` before changing language, framework, runtime, or build defaults.
 - Follow the nearest existing pattern before introducing new structure.

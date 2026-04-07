@@ -32,12 +32,13 @@
 
 ## 읽는 순서
 
-1. 프로젝트 bootstrap 인터뷰 계열 프롬프트
+1. `bootstrap` 또는 `adoption` 시작 프롬프트 중 하나
 2. 프로젝트 패밀리 또는 런타임 역할별 마스터 프롬프트
 3. 산출물 유형별 프롬프트
-4. 역할별 specialist 프롬프트
-5. 필요 시 저장소 또는 조직 특화 프롬프트
-6. `examples/` 아래 복사형 실행 예시
+4. core role specialist 프롬프트
+5. 필요 시 extended role 프롬프트
+6. 필요 시 저장소 또는 조직 특화 프롬프트
+7. `examples/` 아래 복사형 실행 예시
 
 ## 새 프로젝트 시작 시 권장 프롬프트 순서
 
@@ -45,9 +46,9 @@
 2. [`project-spec-finalizer.md`](./project-spec-finalizer.md)로 인터뷰 결과를 정규화된 spec으로 확정한다.
 3. [`scaffold-planning.md`](./scaffold-planning.md)으로 템플릿, 구조, 첫 산출물 계획을 만든다.
 4. [`project-generator-run.md`](./project-generator-run.md)으로 generator 실행 패키지를 정리한다.
-5. [`../roles/README.md`](../roles/README.md)와 [`roles/README.md`](./roles/README.md), `checklists/agent-role-selection.md`로 역할 세트를 확정한다.
+5. [`../roles/README.md`](../roles/README.md)와 [`roles/README.md`](./roles/README.md), `checklists/agent-role-selection.md`로 core roles를 먼저 확정한다.
 6. generator가 남긴 `.agent-base/agent-role-plan.json`을 확인해 필수 역할과 specialization을 실제 실행 흐름에 반영한다.
-7. 필요한 경우 런타임 역할별 마스터 프롬프트와 역할별 specialist 프롬프트를 추가로 사용한다.
+7. 필요한 경우 extended roles를 추가하고 역할별 specialist 프롬프트를 확장한다.
 8. `build-guide.md`를 이용해 첫 로컬 구축 문서를 만든다.
 9. `test-plan.md`로 첫 검증 계획을 만든다.
 10. DB를 소유하는 저장소면 `examples/database-review.md` 또는 `impact-analysis.md`를 사용해 DB change 기준을 확정한다.
@@ -81,20 +82,27 @@
 - [`batch.md`](./batch.md)
 - [`receiver.md`](./receiver.md)
 
-## 역할별 specialist 프롬프트
+## Core Role Specialist 프롬프트
 
-- [`roles/README.md`](./roles/README.md)
 - [`roles/orchestrator.md`](./roles/orchestrator.md)
-- [`roles/product-analyst.md`](./roles/product-analyst.md)
-- [`roles/solution-architect.md`](./roles/solution-architect.md)
 - [`roles/bootstrap-planner.md`](./roles/bootstrap-planner.md)
 - [`roles/runtime-engineer.md`](./roles/runtime-engineer.md)
 - [`roles/data-steward.md`](./roles/data-steward.md)
 - [`roles/security-reviewer.md`](./roles/security-reviewer.md)
 - [`roles/qa-validator.md`](./roles/qa-validator.md)
 - [`roles/docs-operator.md`](./roles/docs-operator.md)
+
+## Extended Role Specialist 프롬프트
+
+- [`roles/product-analyst.md`](./roles/product-analyst.md)
+- [`roles/solution-architect.md`](./roles/solution-architect.md)
 - [`roles/release-manager.md`](./roles/release-manager.md)
 - [`roles/failure-curator.md`](./roles/failure-curator.md)
+- [`roles/legacy-analyst.md`](./roles/legacy-analyst.md)
+- [`roles/migration-planner.md`](./roles/migration-planner.md)
+- [`roles/compatibility-reviewer.md`](./roles/compatibility-reviewer.md)
+- [`roles/refactor-guardian.md`](./roles/refactor-guardian.md)
+- [`roles/cutover-manager.md`](./roles/cutover-manager.md)
 
 ## 산출물 유형별 프롬프트
 

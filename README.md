@@ -47,15 +47,20 @@
 
 구현과 검증, 문서화를 명확히 분리하기 위해 역할 기반 흐름을 지원한다.
 
+core roles:
+
 - `orchestrator`
-- `product-analyst`
-- `solution-architect`
 - `bootstrap-planner`
 - `runtime-engineer`
-- `data-steward`
-- `security-reviewer`
 - `qa-validator`
 - `docs-operator`
+- `data-steward`
+- `security-reviewer`
+
+extended roles:
+
+- `product-analyst`
+- `solution-architect`
 - `release-manager`
 - `failure-curator`
 - `legacy-analyst`
@@ -79,21 +84,45 @@
 
 ## 시작 순서
 
-1. [`source/AGENTS.md`](./source/AGENTS.md)를 읽는다.
-2. [`source/docs/ai/project-bootstrap.md`](./source/docs/ai/project-bootstrap.md)로 인터뷰 절차를 따른다.
-2-1. 기존 저장소라면 [`source/docs/ai/project-adoption.md`](./source/docs/ai/project-adoption.md)부터 읽는다.
-3. 가능하면 [`source/docs/ai/project-bootstrap-cli.md`](./source/docs/ai/project-bootstrap-cli.md)와 `source/scripts/project_bootstrap_cli.py`로 인터뷰와 spec 생성을 한 번에 수행한다.
-4. [`source/docs/ai/project-generation-spec.md`](./source/docs/ai/project-generation-spec.md)로 생성 spec을 검토한다.
-4-1. 기존 저장소라면 `source/scripts/analyze_repository.py`와 [`source/docs/ai/adoption-spec.md`](./source/docs/ai/adoption-spec.md)로 현재 상태를 inventory/spec으로 정리한다.
-5. [`source/docs/ai/project-family-map.md`](./source/docs/ai/project-family-map.md)과 [`source/docs/ai/project-selection-mapping.md`](./source/docs/ai/project-selection-mapping.md)으로 템플릿, runtime role, 추천 agent 역할 세트를 정한다.
-6. [`source/docs/ai/roles/README.md`](./source/docs/ai/roles/README.md)와 [`source/checklists/agent-role-selection.md`](./source/checklists/agent-role-selection.md)로 역할과 handoff 책임을 정한다.
-7. [`source/docs/ai/stack-matrix.md`](./source/docs/ai/stack-matrix.md), [`source/docs/ai/database-rules.md`](./source/docs/ai/database-rules.md)를 기준으로 기술 스택과 DB 기준을 확정한다.
-8. [`source/docs/ai/project-generator.md`](./source/docs/ai/project-generator.md)와 [`source/docs/ai/token-substitution.md`](./source/docs/ai/token-substitution.md)를 읽고 generator를 실행한다.
-8-1. generator는 `.agent-base/agent-role-plan.json`을 같이 만들어 required/optional 역할과 workflow order를 남긴다.
-9. 생성된 샘플 저장소 안에서 `python3 scripts/install_git_hooks.py`를 실행한다.
-10. 생성된 샘플 저장소 안에서 `.agent-base/pre-commit-config.json`의 preset profile을 실제 명령 체계에 맞게 보정한다.
-11. 생성된 샘플 저장소 안에서 `command-catalog`, `architecture-map`, `project-creation`, `first-delivery`를 실제 프로젝트에 맞게 보정한다.
-12. 역할 기반 분업을 할 경우 `agent-handoff`, `agent-completion-review`, `agent-failure-review` 체크리스트를 같이 사용한다.
+### 새 프로젝트 bootstrap
+
+1. [`source/AGENTS.md`](./source/AGENTS.md)
+2. [`source/docs/ai/context-profiles.md`](./source/docs/ai/context-profiles.md)
+3. [`source/docs/ai/start-bootstrap.md`](./source/docs/ai/start-bootstrap.md)
+4. [`source/docs/ai/project-selection-mapping.md`](./source/docs/ai/project-selection-mapping.md)
+5. [`source/docs/ai/roles/README.md`](./source/docs/ai/roles/README.md)
+
+그 다음에만 deep path로 확장한다.
+
+- [`source/docs/ai/project-bootstrap-cli.md`](./source/docs/ai/project-bootstrap-cli.md)
+- [`source/docs/ai/project-generation-spec.md`](./source/docs/ai/project-generation-spec.md)
+- [`source/docs/ai/project-generator.md`](./source/docs/ai/project-generator.md)
+- [`source/docs/ai/stack-matrix.md`](./source/docs/ai/stack-matrix.md)
+- 필요 시 [`source/docs/ai/database-rules.md`](./source/docs/ai/database-rules.md)
+
+### 기존 저장소 adoption / migration
+
+1. [`source/AGENTS.md`](./source/AGENTS.md)
+2. [`source/docs/ai/context-profiles.md`](./source/docs/ai/context-profiles.md)
+3. [`source/docs/ai/start-adoption.md`](./source/docs/ai/start-adoption.md)
+4. [`source/docs/ai/repository-inventory.md`](./source/docs/ai/repository-inventory.md)
+5. [`source/docs/ai/project-selection-mapping.md`](./source/docs/ai/project-selection-mapping.md)
+6. [`source/docs/ai/roles/README.md`](./source/docs/ai/roles/README.md)
+
+그 다음에만 migration deep path로 확장한다.
+
+- [`source/docs/ai/project-adoption.md`](./source/docs/ai/project-adoption.md)
+- [`source/docs/ai/adoption-spec.md`](./source/docs/ai/adoption-spec.md)
+- [`source/docs/ai/migration-strategy.md`](./source/docs/ai/migration-strategy.md)
+- [`source/docs/ai/compatibility-matrix.md`](./source/docs/ai/compatibility-matrix.md)
+- [`source/docs/ai/parity-validation.md`](./source/docs/ai/parity-validation.md)
+
+## Context Loading 원칙
+
+- 시작할 때는 필요한 문서만 읽는다.
+- 먼저 `core roles`만 확정한다.
+- `extended roles`는 migration, cutover, release, repeated failure 같은 조건이 생길 때만 추가한다.
+- simple 작업에는 bootstrap/adoption 문맥을 동시에 얹지 않는다.
 
 ## Agentic Workflow 예시
 

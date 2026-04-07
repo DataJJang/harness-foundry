@@ -1,5 +1,7 @@
 # Project Adoption
 
+짧은 진입 가이드가 필요하면 먼저 [`start-adoption.md`](./start-adoption.md)를 읽고, 이 문서는 adoption deep path에서 사용한다.
+
 ## 1. 목적
 
 이 문서는 기존 저장소를 `agent_base` 하네스 안으로 편입할 때의 기본 순서를 정의한다.
