@@ -17,6 +17,12 @@ TEMPLATES_DIR = ROOT.parent / "templates"
 SCAFFOLDS_DIR = ROOT / "scaffolds"
 VERSION_FILE = REPO_ROOT / "VERSION"
 
+CONSTRAINT_MODES = {
+    "recommended-baseline",
+    "fixed-target",
+    "legacy-maintenance",
+}
+
 TEMPLATE_BY_FAMILY = {
     "game": "game-repo",
     "web-app": "web-app-repo",
@@ -446,6 +452,107 @@ def detect_foundry_provenance() -> dict:
     }
 
 
+def default_hard_constraints() -> dict:
+    return {
+        "operatingEnvironment": "",
+        "operatingSystemVersion": "",
+        "runtimeVersionPolicy": "",
+        "frameworkVersionPolicy": "",
+        "containerAllowed": None,
+        "blockCurrentBaselineScaffold": False,
+        "notes": [],
+    }
+
+
+def normalize_hard_constraints(value: object) -> dict:
+    normalized = default_hard_constraints()
+    if not isinstance(value, dict):
+        return normalized
+
+    for key in ["operatingEnvironment", "operatingSystemVersion", "runtimeVersionPolicy", "frameworkVersionPolicy"]:
+        candidate = value.get(key)
+        if candidate:
+            normalized[key] = str(candidate).strip()
+
+    container_allowed = value.get("containerAllowed")
+    if isinstance(container_allowed, bool):
+        normalized["containerAllowed"] = container_allowed
+
+    normalized["blockCurrentBaselineScaffold"] = bool(value.get("blockCurrentBaselineScaffold", False))
+
+    notes = value.get("notes", [])
+    if isinstance(notes, list):
+        normalized["notes"] = unique([str(item).strip() for item in notes if str(item).strip()])
+    elif isinstance(notes, str) and notes.strip():
+        normalized["notes"] = [notes.strip()]
+    return normalized
+
+
+def normalize_constraint_mode(value: object) -> str:
+    candidate = str(value or "").strip() or "recommended-baseline"
+    return candidate if candidate in CONSTRAINT_MODES else "recommended-baseline"
+
+
+def parse_major_version(value: object) -> int | None:
+    match = re.search(r"\d+", str(value or ""))
+    if not match:
+        return None
+    return int(match.group(0))
+
+
+def scaffold_constraint_reasons(spec: dict) -> list[str]:
+    reasons: list[str] = []
+    hard_constraints = normalize_hard_constraints(spec.get("hardConstraints"))
+    family = spec["projectFamily"]
+    language = str(spec["language"]).lower()
+    framework = str(spec["framework"]).lower()
+    runtime_major = parse_major_version(spec.get("runtimeVersion"))
+    runtime_policy_major = parse_major_version(hard_constraints["runtimeVersionPolicy"])
+    effective_runtime_major = runtime_policy_major if runtime_policy_major is not None else runtime_major
+    combined_policy = " ".join(
+        filter(
+            None,
+            [
+                framework,
+                hard_constraints["runtimeVersionPolicy"].lower(),
+                hard_constraints["frameworkVersionPolicy"].lower(),
+            ],
+        )
+    )
+
+    if hard_constraints["blockCurrentBaselineScaffold"]:
+        reasons.append("hard constraints explicitly block the current baseline scaffold")
+
+    if hard_constraints["containerAllowed"] is False and spec.get("deploymentType") == "container":
+        reasons.append("container deployment is blocked by hardConstraints.containerAllowed")
+
+    if family in {"web-app", "pwa", "mockup-local"} or (family == "library-tooling" and language == "typescript"):
+        if effective_runtime_major is not None and effective_runtime_major < 20:
+            reasons.append(
+                f"runtimeVersion policy `{hard_constraints['runtimeVersionPolicy'] or spec['runtimeVersion']}` is below the current scaffold baseline `Node 20.19+ / 22.12+`"
+            )
+        if "react 18" in combined_policy or "vite 4" in combined_policy or "vite 5" in combined_policy:
+            reasons.append("framework policy pins a legacy React/Vite line")
+
+    if family in {"backend-service", "batch-worker", "receiver-integration"} or (family == "library-tooling" and language == "java"):
+        if effective_runtime_major is not None and effective_runtime_major < 17:
+            reasons.append(
+                f"runtimeVersion policy `{hard_constraints['runtimeVersionPolicy'] or spec['runtimeVersion']}` is below the current Java 17 scaffold baseline"
+            )
+        if "spring boot 2" in combined_policy:
+            reasons.append("framework policy pins a Spring Boot 2.x line")
+        if "spring boot 4" in combined_policy:
+            reasons.append("framework policy targets Spring Boot 4.x while the current runnable scaffold targets 3.5.x")
+
+    if (hard_constraints["operatingEnvironment"] or hard_constraints["operatingSystemVersion"]) and reasons:
+        environment_note = " / ".join(
+            part for part in [hard_constraints["operatingEnvironment"], hard_constraints["operatingSystemVersion"]] if part
+        )
+        reasons.append(f"fixed operating environment: {environment_note}")
+
+    return unique(reasons)
+
+
 def validate_spec(spec: dict) -> None:
     required = [
         "repositoryName",
@@ -483,8 +590,18 @@ def validate_spec(spec: dict) -> None:
     if isinstance(spec["runtimeRoles"], list) and not spec["runtimeRoles"]:
         raise ValueError("runtimeRoles must contain at least one item")
 
+    if spec.get("constraintMode") not in CONSTRAINT_MODES:
+        raise ValueError(f"Unsupported constraintMode: {spec.get('constraintMode')}")
+
+    if not isinstance(spec.get("hardConstraints"), dict):
+        raise ValueError("hardConstraints must be an object")
+
     if spec["language"].lower() == "java" and not spec.get("packageName"):
         raise ValueError("packageName is required for Java-based scaffolds")
+
+    hard_constraints = normalize_hard_constraints(spec.get("hardConstraints"))
+    if hard_constraints["containerAllowed"] is False and spec.get("deploymentType") == "container":
+        raise ValueError("deploymentType `container` conflicts with hardConstraints.containerAllowed=false")
 
     coordination_keys = [
         "requiredAgentRoles",
@@ -876,20 +993,26 @@ def derive_refinement_manifest(spec: dict, scaffold_profile: str | None, support
     )
     modules.append(runtime_refinement_module(spec))
 
-    if spec.get("exceptions"):
+    if spec.get("exceptions") or spec.get("constraintMode") != "recommended-baseline":
         modules.append(
             make_refinement_module(
                 module_id="stack-exceptions",
                 title="Non-Default Stack Exceptions",
                 priority="medium",
-                trigger_reason="The spec already contains exceptions that differ from family defaults.",
+                trigger_reason=(
+                    "The spec already contains exceptions that differ from family defaults."
+                    if spec.get("exceptions")
+                    else "constraintMode locks the project to a fixed or legacy target baseline."
+                ),
                 questions=[
                     "예외로 남긴 언어, 프레임워크, 빌드/테스트 도구 차이를 유지할 근거는 무엇인가?",
                     "이 예외를 문서화할 repo-local overlay note는 어디에 남길 것인가?",
                     "기본 preset과 다른 명령 체계가 있다면 pre-commit과 command-catalog를 어떻게 수정할 것인가?",
+                    "fixed target 환경을 해치지 않도록 금지해야 할 upgrade 또는 scaffold 적용 범위는 무엇인가?",
                 ],
                 recommended_outputs=[
                     "repo-local overlay note for exceptions",
+                    "compatibility matrix or legacy exception note",
                     "docs/ai/command-catalog.md",
                     "docs/ai/architecture-map.md",
                 ],
@@ -1581,6 +1704,8 @@ def derive_agent_workboard(
 
 def normalize_spec(spec: dict) -> dict:
     normalized = dict(spec)
+    normalized["constraintMode"] = normalize_constraint_mode(normalized.get("constraintMode"))
+    normalized["hardConstraints"] = normalize_hard_constraints(normalized.get("hardConstraints"))
     derived = derive_agent_coordination(normalized)
     for key, value in derived.items():
         if key not in normalized or not normalized.get(key):
@@ -1588,32 +1713,63 @@ def normalize_spec(spec: dict) -> dict:
     return normalized
 
 
-def choose_scaffold(spec: dict) -> tuple[str | None, str]:
+def choose_scaffold_plan(spec: dict) -> dict:
     family = spec["projectFamily"]
     language = str(spec["language"]).lower()
     framework = str(spec["framework"]).lower()
+    constraint_reasons = scaffold_constraint_reasons(spec)
+    constraint_reason_text = "; ".join(constraint_reasons)
 
     if family == "web-app" and language == "typescript" and "react" in framework:
-        return "web-react-vite", "supported"
+        if constraint_reasons:
+            return {"profile": None, "supportLevel": "docs-only", "reason": constraint_reason_text}
+        return {"profile": "web-react-vite", "supportLevel": "supported", "reason": ""}
     if family == "pwa" and language == "typescript" and "react" in framework:
-        return "pwa-react-vite", "supported"
+        if constraint_reasons:
+            return {"profile": None, "supportLevel": "docs-only", "reason": constraint_reason_text}
+        return {"profile": "pwa-react-vite", "supportLevel": "supported", "reason": ""}
     if family == "mockup-local":
-        return "mockup-local-static", "supported"
+        if constraint_reasons:
+            return {"profile": None, "supportLevel": "docs-only", "reason": constraint_reason_text}
+        return {"profile": "mockup-local-static", "supportLevel": "supported", "reason": ""}
     if family == "backend-service" and language == "java" and "spring" in framework:
-        return "java-spring-service", "supported"
+        if constraint_reasons:
+            return {"profile": None, "supportLevel": "docs-only", "reason": constraint_reason_text}
+        return {"profile": "java-spring-service", "supportLevel": "supported", "reason": ""}
     if family == "batch-worker" and language == "java" and "spring" in framework:
-        return "java-spring-batch", "supported"
+        if constraint_reasons:
+            return {"profile": None, "supportLevel": "docs-only", "reason": constraint_reason_text}
+        return {"profile": "java-spring-batch", "supportLevel": "supported", "reason": ""}
     if family == "receiver-integration" and language == "java" and "spring" in framework:
-        return "java-spring-receiver", "supported"
+        if constraint_reasons:
+            return {"profile": None, "supportLevel": "docs-only", "reason": constraint_reason_text}
+        return {"profile": "java-spring-receiver", "supportLevel": "supported", "reason": ""}
     if family == "game" and language in {"c#", "csharp"} and "unity" in framework:
-        return "unity-game", "structure-only"
+        if constraint_reasons:
+            return {"profile": None, "supportLevel": "docs-only", "reason": constraint_reason_text}
+        return {"profile": "unity-game", "supportLevel": "structure-only", "reason": ""}
     if family == "mobile-app" and language == "dart" and "flutter" in framework:
-        return "flutter-mobile", "structure-only"
+        if constraint_reasons:
+            return {"profile": None, "supportLevel": "docs-only", "reason": constraint_reason_text}
+        return {"profile": "flutter-mobile", "supportLevel": "structure-only", "reason": ""}
     if family == "library-tooling" and language == "typescript":
-        return "typescript-library-tooling", "supported"
+        if constraint_reasons:
+            return {"profile": None, "supportLevel": "docs-only", "reason": constraint_reason_text}
+        return {"profile": "typescript-library-tooling", "supportLevel": "supported", "reason": ""}
     if family == "library-tooling" and language == "java":
-        return "java-library-tooling", "supported"
-    return None, "docs-only"
+        if constraint_reasons:
+            return {"profile": None, "supportLevel": "docs-only", "reason": constraint_reason_text}
+        return {"profile": "java-library-tooling", "supportLevel": "supported", "reason": ""}
+    return {
+        "profile": None,
+        "supportLevel": "docs-only",
+        "reason": "No supported scaffold exists for this project family / language / framework combination.",
+    }
+
+
+def choose_scaffold(spec: dict) -> tuple[str | None, str]:
+    scaffold_plan = choose_scaffold_plan(spec)
+    return scaffold_plan["profile"], scaffold_plan["supportLevel"]
 
 
 def derive_main_class_name(spec: dict) -> str:
@@ -1750,6 +1906,7 @@ def write_root_readme(
     spec: dict,
     scaffold_profile: str | None,
     support_level: str,
+    support_reason: str,
     provenance: dict,
 ) -> None:
     coordination_mode = derive_coordination_mode(spec)
@@ -1791,6 +1948,7 @@ def write_root_readme(
 - Repository: `{spec['repositoryName']}`
 - Project family: `{spec['projectFamily']}`
 - Project nature: `{spec['projectNature']}`
+- Constraint mode: `{spec.get('constraintMode', 'recommended-baseline')}`
 - Repository mode: `{spec['repositoryMode']}`
 - Runtime roles: `{', '.join(spec['runtimeRoles'])}`
 - Language / framework: `{spec['language']} / {spec['framework']}`
@@ -1804,6 +1962,7 @@ def write_root_readme(
 - Optional agent roles: `{', '.join(spec['optionalAgentRoles'])}`
 - Scaffold profile: `{scaffold_profile or 'docs-only'}`
 - Scaffold support level: `{support_level}`
+{f"- Scaffold support note: {support_reason}" if support_reason else ""}
 
 ## Foundry Provenance
 
@@ -1864,6 +2023,7 @@ def write_repo_local_overrides(target_dir: Path, spec: dict, refinement_manifest
         "",
         f"- Repository: `{spec['repositoryName']}`",
         f"- Project family: `{spec['projectFamily']}`",
+        f"- Constraint mode: `{spec.get('constraintMode', 'recommended-baseline')}`",
         f"- Runtime roles: `{', '.join(spec['runtimeRoles'])}`",
         f"- Language / framework: `{spec['language']} / {spec['framework']}`",
         f"- Build tool: `{spec['buildTool']}`",
@@ -1871,15 +2031,34 @@ def write_repo_local_overrides(target_dir: Path, spec: dict, refinement_manifest
         f"- Deployment type: `{spec['deploymentType']}`",
         f"- Security profile: `{spec['securityProfile']}`",
         "",
-        "## Decision Modes",
-        "",
-        "- `decide-now`: 지금 확정하고 관련 문서/설정까지 같이 반영한다.",
-        "- `keep-default`: 공통 기본값을 의도적으로 유지한다.",
-        "- `defer-with-note`: 지금은 미루되 이유와 나중에 결정할 주체를 남긴다.",
-        "",
-        "## Non-Default Choices",
+        "## Fixed Constraints",
         "",
     ]
+    hard_constraints = normalize_hard_constraints(spec.get("hardConstraints"))
+    fixed_constraint_lines = [
+        f"- Operating environment: `{hard_constraints['operatingEnvironment'] or '-'}`",
+        f"- Operating system version: `{hard_constraints['operatingSystemVersion'] or '-'}`",
+        f"- Runtime version policy: `{hard_constraints['runtimeVersionPolicy'] or '-'}`",
+        f"- Framework version policy: `{hard_constraints['frameworkVersionPolicy'] or '-'}`",
+        f"- Container allowed: `{hard_constraints['containerAllowed'] if hard_constraints['containerAllowed'] is not None else '-'}`",
+        f"- Block current baseline scaffold: `{hard_constraints['blockCurrentBaselineScaffold']}`",
+    ]
+    lines.extend(fixed_constraint_lines)
+    if hard_constraints["notes"]:
+        lines.append("- Notes: " + ", ".join(hard_constraints["notes"]))
+    lines.extend(
+        [
+            "",
+            "## Decision Modes",
+            "",
+            "- `decide-now`: 지금 확정하고 관련 문서/설정까지 같이 반영한다.",
+            "- `keep-default`: 공통 기본값을 의도적으로 유지한다.",
+            "- `defer-with-note`: 지금은 미루되 이유와 나중에 결정할 주체를 남긴다.",
+            "",
+            "## Non-Default Choices",
+            "",
+        ]
+    )
     if exceptions:
         for exception in exceptions:
             lines.append(f"- {exception}")
@@ -2014,6 +2193,7 @@ def write_generation_artifacts(
     template_name: str,
     scaffold_profile: str | None,
     support_level: str,
+    support_reason: str,
     provenance: dict,
 ) -> None:
     meta_dir = target_dir / ".agent-base"
@@ -2055,6 +2235,9 @@ def write_generation_artifacts(
         "template": template_name,
         "scaffoldProfile": scaffold_profile,
         "supportLevel": support_level,
+        "scaffoldSupportReason": support_reason,
+        "constraintMode": spec.get("constraintMode", "recommended-baseline"),
+        "hardConstraints": normalize_hard_constraints(spec.get("hardConstraints")),
         "requiredAgentRoles": spec["requiredAgentRoles"],
         "optionalAgentRoles": spec["optionalAgentRoles"],
         "roleSpecializations": spec["roleSpecializations"],
@@ -2107,8 +2290,9 @@ def write_generation_artifacts(
     if support_level == "docs-only":
         (target_dir / "TODO_UNSUPPORTED_SCAFFOLD.md").write_text(
             "# Unsupported Scaffold\n\n"
-            "This project family / language / framework combination is not scaffolded yet.\n"
-            "The docs template was generated successfully. Add a repo-local scaffold and overlay docs next.\n",
+            "This project could not use a runnable scaffold with the current family / language / framework / constraint combination.\n"
+            + (f"\nReason: {support_reason}\n" if support_reason else "\n")
+            + "The docs template was generated successfully. Add a repo-local scaffold and overlay docs next.\n",
             encoding="utf-8",
         )
 
@@ -2136,15 +2320,18 @@ def generate_project(spec: dict, output_root: Path, force: bool) -> Path:
     template_dir = TEMPLATES_DIR / template_name
     shutil.copytree(template_dir, target_dir)
 
-    scaffold_profile, support_level = choose_scaffold(spec)
+    scaffold_plan = choose_scaffold_plan(spec)
+    scaffold_profile = scaffold_plan["profile"]
+    support_level = scaffold_plan["supportLevel"]
+    support_reason = scaffold_plan["reason"]
     if scaffold_profile:
         scaffold_dir = SCAFFOLDS_DIR / scaffold_profile
         copy_tree(scaffold_dir, target_dir)
 
     tokens = build_token_map(spec)
     apply_tokens(target_dir, tokens)
-    write_root_readme(target_dir, spec, scaffold_profile, support_level, provenance)
-    write_generation_artifacts(target_dir, spec, template_name, scaffold_profile, support_level, provenance)
+    write_root_readme(target_dir, spec, scaffold_profile, support_level, support_reason, provenance)
+    write_generation_artifacts(target_dir, spec, template_name, scaffold_profile, support_level, support_reason, provenance)
     write_repo_local_overrides(target_dir, spec, derive_refinement_manifest(spec, scaffold_profile, support_level))
     write_precommit_config(target_dir, spec)
     return target_dir

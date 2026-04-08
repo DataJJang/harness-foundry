@@ -11,31 +11,32 @@
 1. 프로젝트 대화형 인터뷰를 시작한다.
 2. 가능하면 [`project-bootstrap-cli.md`](./project-bootstrap-cli.md) 와 `source/scripts/project_bootstrap_cli.py`를 사용해 인터뷰를 실행한다.
 3. 프로젝트 패밀리를 확정한다.
-4. 프로젝트 성격, 저장소 구성 방식, 대상 플랫폼, 런타임 역할을 확정한다.
-5. [`stack-matrix.md`](./stack-matrix.md) 기준으로 언어, 프레임워크, 런타임, 빌드 도구, 테스트 도구를 확정한다.
-6. DB, cache, 배포 유형, 서비스 기동 형태, 로깅 방식, 동작 OS를 확정한다.
-7. [`project-generation-spec.md`](./project-generation-spec.md) 입력값을 모두 채운다.
-8. [`project-selection-mapping.md`](./project-selection-mapping.md) 기준으로 적합한 템플릿, 초기 산출물, 추천 agent 역할 세트를 확정한다.
-9. [`roles/README.md`](./roles/README.md) 와 [`../../checklists/agent-role-selection.md`](../../checklists/agent-role-selection.md) 를 사용해 required/optional 역할을 고른다.
-10. bootstrap CLI 또는 generator가 파생한 `requiredAgentRoles`, `optionalAgentRoles`, `roleSpecializations`, `agentWorkflowOrder`를 확인한다.
-11. spec JSON을 저장하고 [`project-generator.md`](./project-generator.md) 기준으로 생성기를 실행한다.
-12. spec 옆 `*.refinement.json` 또는 생성된 저장소의 `.agent-base/refinement-manifest.json`을 보고 high-priority 심화 모듈부터 처리한다.
-13. 생성된 저장소에서 `python3 scripts/update_refinement_status.py --interactive --append-to-overrides`를 실행해 다음 pending module부터 정리한다.
-14. spec 옆 `*.refinement-status.json` 또는 생성된 저장소의 `.agent-base/refinement-status.json`에 현재 결정을 기록한다.
-15. `docs/ai/repo-local-overrides.md`에 기본값 유지 이유, 예외, defer note를 남긴다.
-16. 생성된 샘플 저장소의 `.agent-base/context-manifest.json`을 보고 fast path 문서와 core roles를 먼저 확인한다.
-17. 생성된 샘플 저장소의 `.agent-base/agent-workboard.json`을 열어 design-freeze, runtime, validator, docs lane의 owned path와 next handoff를 확정한다.
-18. blocker가 풀리면 `python3 scripts/update_agent_workboard.py --finalize-design-freeze`를 실행해 첫 execution packet을 고정한다.
-19. 첫 전달 전에는 `python3 scripts/update_agent_workboard.py --check-packets --strict`로 packet freshness를 확인한다.
-20. 생성된 저장소에서 `python3 scripts/update_agent_workboard.py --interactive --append-handoff`를 실행해 현재 실행 lane과 handoff history를 갱신한다.
-21. 생성된 샘플 저장소에서 `python3 scripts/install_git_hooks.py`를 실행해 local pre-commit gate를 설치한다.
-22. 생성된 샘플 저장소에서 `AGENTS.md`, `docs/ai/command-catalog.md`, `docs/ai/architecture-map.md`를 저장소 실정에 맞게 보정한다.
-23. DB를 소유하는 저장소면 [`database-rules.md`](./database-rules.md) 기준으로 naming, COMMENT, migration, 위험 SQL 원칙을 확정한다.
-24. [`../../checklists/project-interview.md`](../../checklists/project-interview.md), [`../../checklists/agent-role-selection.md`](../../checklists/agent-role-selection.md), [`../../checklists/project-creation.md`](../../checklists/project-creation.md) 를 완료한다.
-25. `docs/ai/prompts/examples/*`, `docs/ai/prompts/*.md`, `docs/ai/prompts/roles/*.md`를 사용해 첫 프롬프트를 실행한다.
-26. 첫 build/test/문서 세트를 만든다.
-27. 역할 간 분업이 있으면 [`../../checklists/agent-handoff.md`](../../checklists/agent-handoff.md) 와 `docs/ai/agent-handoff-log.md`로 handoff artifact를 정리한다.
-28. 첫 공유 전달 전 [`../../checklists/first-delivery.md`](../../checklists/first-delivery.md) 와 [`../../checklists/agent-completion-review.md`](../../checklists/agent-completion-review.md) 를 점검한다.
+4. 프로젝트 성격, 런타임 역할, 운영 제약 모드를 확정한다.
+5. `constraintMode`가 `fixed-target` 또는 `legacy-maintenance`면 실제 운영 환경, OS 버전, runtime/framework policy를 먼저 고정한다.
+6. [`stack-matrix.md`](./stack-matrix.md) 기준으로 언어, 프레임워크, 런타임, 빌드 도구, 테스트 도구를 확정한다.
+7. 저장소 구성 방식, DB, cache, 배포 유형, 서비스 기동 형태, 로깅 방식, 동작 OS를 확정한다.
+8. [`project-generation-spec.md`](./project-generation-spec.md) 입력값을 모두 채운다.
+9. [`project-selection-mapping.md`](./project-selection-mapping.md) 기준으로 적합한 템플릿, 초기 산출물, 추천 agent 역할 세트를 확정한다.
+10. [`roles/README.md`](./roles/README.md) 와 [`../../checklists/agent-role-selection.md`](../../checklists/agent-role-selection.md) 를 사용해 required/optional 역할을 고른다.
+11. bootstrap CLI 또는 generator가 파생한 `requiredAgentRoles`, `optionalAgentRoles`, `roleSpecializations`, `agentWorkflowOrder`를 확인한다.
+12. spec JSON을 저장하고 [`project-generator.md`](./project-generator.md) 기준으로 생성기를 실행한다.
+13. spec 옆 `*.refinement.json` 또는 생성된 저장소의 `.agent-base/refinement-manifest.json`을 보고 high-priority 심화 모듈부터 처리한다.
+14. 생성된 저장소에서 `python3 scripts/update_refinement_status.py --interactive --append-to-overrides`를 실행해 다음 pending module부터 정리한다.
+15. spec 옆 `*.refinement-status.json` 또는 생성된 저장소의 `.agent-base/refinement-status.json`에 현재 결정을 기록한다.
+16. `docs/ai/repo-local-overrides.md`에 기본값 유지 이유, 예외, defer note를 남긴다.
+17. 생성된 샘플 저장소의 `.agent-base/context-manifest.json`을 보고 fast path 문서와 core roles를 먼저 확인한다.
+18. 생성된 샘플 저장소의 `.agent-base/agent-workboard.json`을 열어 design-freeze, runtime, validator, docs lane의 owned path와 next handoff를 확정한다.
+19. blocker가 풀리면 `python3 scripts/update_agent_workboard.py --finalize-design-freeze`를 실행해 첫 execution packet을 고정한다.
+20. 첫 전달 전에는 `python3 scripts/update_agent_workboard.py --check-packets --strict`로 packet freshness를 확인한다.
+21. 생성된 저장소에서 `python3 scripts/update_agent_workboard.py --interactive --append-handoff`를 실행해 현재 실행 lane과 handoff history를 갱신한다.
+22. 생성된 샘플 저장소에서 `python3 scripts/install_git_hooks.py`를 실행해 local pre-commit gate를 설치한다.
+23. 생성된 샘플 저장소에서 `AGENTS.md`, `docs/ai/command-catalog.md`, `docs/ai/architecture-map.md`를 저장소 실정에 맞게 보정한다.
+24. DB를 소유하는 저장소면 [`database-rules.md`](./database-rules.md) 기준으로 naming, COMMENT, migration, 위험 SQL 원칙을 확정한다.
+25. [`../../checklists/project-interview.md`](../../checklists/project-interview.md), [`../../checklists/agent-role-selection.md`](../../checklists/agent-role-selection.md), [`../../checklists/project-creation.md`](../../checklists/project-creation.md) 를 완료한다.
+26. `docs/ai/prompts/examples/*`, `docs/ai/prompts/*.md`, `docs/ai/prompts/roles/*.md`를 사용해 첫 프롬프트를 실행한다.
+27. 첫 build/test/문서 세트를 만든다.
+28. 역할 간 분업이 있으면 [`../../checklists/agent-handoff.md`](../../checklists/agent-handoff.md) 와 `docs/ai/agent-handoff-log.md`로 handoff artifact를 정리한다.
+29. 첫 공유 전달 전 [`../../checklists/first-delivery.md`](../../checklists/first-delivery.md) 와 [`../../checklists/agent-completion-review.md`](../../checklists/agent-completion-review.md) 를 점검한다.
 
 ## 3. 대화형 인터뷰 질문 순서
 
@@ -46,28 +47,24 @@
 3. 프로젝트 목적
 4. 프로젝트 패밀리
 5. 프로젝트 성격
-6. 저장소 구성 방식
-   - `prototype`
-   - `production`
-   - `internal-tool`
-   - `demo`
-   - `local-only`
-   - `research`
-7. 대상 사용자
-8. 대상 플랫폼
-9. 하위 런타임 역할
-10. 프로그램 언어
-11. 언어별 프레임워크
-12. 데이터 저장소
-13. cache
-14. 배포 유형
-15. 서비스 기동 형태
-16. 로깅 방식
-17. 동작 OS
-18. 보안 또는 인증 방식
-19. 외부 연동
-20. 기본 문서 세트
-21. spec 저장 경로와 output root
+6. 하위 런타임 역할
+7. 운영 제약 모드
+8. 필요 시 고정 운영 환경, OS 버전, 허용 runtime/framework policy
+9. 저장소 구성 방식
+10. 대상 사용자
+11. 대상 플랫폼
+12. 프로그램 언어
+13. 언어별 프레임워크
+14. 데이터 저장소
+15. cache
+16. 배포 유형
+17. 서비스 기동 형태
+18. 로깅 방식
+19. 동작 OS
+20. 보안 또는 인증 방식
+21. 외부 연동
+22. 기본 문서 세트
+23. spec 저장 경로와 output root
 
 인터뷰 자체에서 역할을 직접 묻지 않아도 된다. 역할은 인터뷰 결과를 바탕으로 `project-selection-mapping.md`와 `roles/README.md`에서 파생하고, CLI/generator는 그 결과를 spec와 `.agent-base/agent-role-plan.json`에 남긴다.
 
@@ -96,6 +93,8 @@
 - `mockup-local`은 DB, cache, 배포를 `없음` 또는 최소 옵션으로 허용한다.
 - `production` 성격이면 보안, 배포, 운영 문서를 필수로 생성한다.
 - `local-only` 성격이면 운영/배포 문서는 축약 가능하나 첫 build/test 기준은 생략하지 않는다.
+- `fixed-target` 또는 `legacy-maintenance`면 baseline보다 실제 운영 제약을 우선한다.
+- 현재 runnable scaffold가 그 제약을 만족하지 못하면 생성기는 `docs-only`로 강등하고, 이유를 manifest와 README에 남긴다.
 - 인터뷰 결과는 생성기 입력용 JSON으로 정규화한다.
 - `repositoryMode`가 `monorepo` 또는 `multi-repo`여도 generator v1은 샘플 저장소 1개만 생성한다.
 

@@ -7,13 +7,16 @@ import re
 from pathlib import Path
 
 from generate_project import (
+    CONSTRAINT_MODES,
     TEMPLATE_BY_FAMILY,
-    choose_scaffold,
+    choose_scaffold_plan,
     derive_agent_coordination,
     derive_coordination_mode,
     derive_refinement_manifest,
     derive_refinement_status,
     generate_project,
+    normalize_constraint_mode,
+    normalize_hard_constraints,
     normalize_spec,
     validate_spec,
 )
@@ -352,6 +355,18 @@ INTERVIEW_INPUT_MODES = [
     "full-detail",
 ]
 
+CONSTRAINT_MODE_OPTIONS = [
+    "recommended-baseline",
+    "fixed-target",
+    "legacy-maintenance",
+]
+
+CONTAINER_POLICY_OPTIONS = [
+    "unknown",
+    "allowed",
+    "not-allowed",
+]
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run an interactive bootstrap interview and generate a sample project.")
@@ -432,6 +447,10 @@ def detect_exceptions(spec: dict, family_defaults: dict) -> list[str]:
         actual = spec.get(key)
         if default and actual and actual != default:
             exceptions.append(f"{key} uses `{actual}` instead of family default `{default}`")
+    if spec.get("constraintMode") != "recommended-baseline":
+        exceptions.append(
+            f"constraintMode is `{spec.get('constraintMode')}` and hard constraints override the default family baseline"
+        )
     if spec["repositoryMode"] != "single-repo":
         exceptions.append(
             "repositoryMode is not `single-repo`; generator v1 still creates one sample repository and requires manual expansion."
@@ -567,7 +586,50 @@ def quick_start_defaults(project_family: str, project_nature: str, runtime_roles
     return defaults
 
 
-def default_interview_mode(project_nature: str) -> str:
+def apply_constraint_defaults(defaults: dict, hard_constraints: dict) -> dict:
+    adjusted = dict(defaults)
+    if hard_constraints.get("runtimeVersionPolicy"):
+        adjusted["runtimeVersion"] = hard_constraints["runtimeVersionPolicy"]
+    if hard_constraints.get("frameworkVersionPolicy"):
+        adjusted["framework"] = hard_constraints["frameworkVersionPolicy"]
+    if hard_constraints.get("containerAllowed") is False and adjusted.get("deploymentType") == "container":
+        adjusted["deploymentType"] = "VM"
+    return adjusted
+
+
+def prompt_hard_constraints(defaults: dict, constraint_mode: str) -> dict:
+    if constraint_mode not in CONSTRAINT_MODES or constraint_mode == "recommended-baseline":
+        return normalize_hard_constraints({})
+
+    print_header("고정 운영 제약")
+    print("이 모드는 최신 scaffold baseline보다 실제 target 환경과 운영 제약을 우선합니다.")
+    operating_environment = prompt_text("고정 운영 환경 설명", "", required=False)
+    operating_system_version = prompt_text("운영체제/플랫폼 제약", "", required=False)
+    runtime_version_policy = prompt_text("허용 런타임 버전/정책", defaults["runtimeVersion"])
+    framework_version_policy = prompt_text("허용 프레임워크 버전/정책", defaults["framework"])
+    container_policy = prompt_choice("컨테이너 허용 여부", CONTAINER_POLICY_OPTIONS, "unknown")
+    block_current_baseline = prompt_yes_no("현재 baseline scaffold를 자동 제외할까요?", True)
+    notes = prompt_list("추가 제약 메모 (쉼표 구분, 없으면 Enter)", [])
+    return normalize_hard_constraints(
+        {
+            "operatingEnvironment": operating_environment,
+            "operatingSystemVersion": operating_system_version,
+            "runtimeVersionPolicy": runtime_version_policy,
+            "frameworkVersionPolicy": framework_version_policy,
+            "containerAllowed": {
+                "unknown": None,
+                "allowed": True,
+                "not-allowed": False,
+            }.get(container_policy),
+            "blockCurrentBaselineScaffold": block_current_baseline,
+            "notes": notes,
+        }
+    )
+
+
+def default_interview_mode(project_nature: str, constraint_mode: str) -> str:
+    if constraint_mode != "recommended-baseline":
+        return "guided-review"
     return "guided-review" if project_nature == "production" else "quick-start"
 
 
@@ -598,15 +660,32 @@ def build_interactive_spec(args: argparse.Namespace) -> tuple[dict, Path, Path]:
 
     family_detail_defaults = family_defaults(project_family, project_nature)
     runtime_roles = prompt_multi("런타임 역할", RUNTIME_ROLES, family_detail_defaults["runtimeRoles"])
+    constraint_mode = normalize_constraint_mode(
+        prompt_choice("운영 제약 모드", CONSTRAINT_MODE_OPTIONS, "recommended-baseline")
+    )
+    hard_constraints = prompt_hard_constraints(family_detail_defaults, constraint_mode)
     recommended_defaults = quick_start_defaults(project_family, project_nature, runtime_roles)
-    interview_mode = prompt_choice("입력 방식", INTERVIEW_INPUT_MODES, default_interview_mode(project_nature))
+    family_detail_defaults = apply_constraint_defaults(family_detail_defaults, hard_constraints)
+    recommended_defaults = apply_constraint_defaults(recommended_defaults, hard_constraints)
+    interview_mode = prompt_choice(
+        "입력 방식",
+        INTERVIEW_INPUT_MODES,
+        default_interview_mode(project_nature, constraint_mode),
+    )
+    if constraint_mode != "recommended-baseline" and interview_mode == "quick-start":
+        print("고정 운영 제약이 있으면 runtime/framework/deployment를 직접 확인해야 하므로 guided-review로 전환합니다.")
+        interview_mode = "guided-review"
     if interview_mode == "quick-start":
         print_baseline_summary(project_family, project_nature, runtime_roles, recommended_defaults)
         if not prompt_yes_no("위 baseline을 그대로 채우고 계속할까요?", True):
             interview_mode = "guided-review"
 
-    active_defaults = dict(family_detail_defaults if interview_mode == "full-detail" else recommended_defaults)
-    baseline_defaults = dict(active_defaults)
+    if interview_mode == "full-detail" or constraint_mode != "recommended-baseline":
+        active_defaults = dict(family_detail_defaults)
+        baseline_defaults = dict(DEFAULTS_BY_FAMILY[project_family])
+    else:
+        active_defaults = dict(recommended_defaults)
+        baseline_defaults = dict(active_defaults)
 
     if interview_mode == "quick-start":
         repository_mode = active_defaults["repositoryMode"]
@@ -645,6 +724,11 @@ def build_interactive_spec(args: argparse.Namespace) -> tuple[dict, Path, Path]:
         target_environments = prompt_multi("대상 환경", TARGET_ENVIRONMENTS, active_defaults["targetEnvironments"])
         external_integrations = prompt_list("핵심 외부 연동 (쉼표 구분)", active_defaults["externalIntegrations"])
 
+    if hard_constraints["containerAllowed"] is False and deployment_type == "container":
+        print("고정 제약이 container 배포를 허용하지 않아 배포 유형을 다시 확인합니다.")
+        safe_deployments = [option for option in DEPLOYMENT_TYPES if option != "container"]
+        deployment_type = prompt_choice("배포 유형 (container 제외)", safe_deployments, "VM")
+
     spec: dict = {
         "repositoryName": repository_name,
         "projectName": project_name,
@@ -669,6 +753,8 @@ def build_interactive_spec(args: argparse.Namespace) -> tuple[dict, Path, Path]:
         "securityProfile": security_profile,
         "targetEnvironments": target_environments,
         "externalIntegrations": external_integrations,
+        "constraintMode": constraint_mode,
+        "hardConstraints": hard_constraints,
     }
 
     if language.lower() == "java":
@@ -720,14 +806,19 @@ def print_summary(spec: dict, output_root: Path, spec_path: Path) -> None:
     print_header("확정된 project generation spec")
     print(json.dumps(spec, indent=2, ensure_ascii=False))
     template_name = TEMPLATE_BY_FAMILY[spec["projectFamily"]]
-    scaffold_profile, support_level = choose_scaffold(spec)
+    scaffold_plan = choose_scaffold_plan(spec)
+    scaffold_profile = scaffold_plan["profile"]
+    support_level = scaffold_plan["supportLevel"]
     refinement_manifest = derive_refinement_manifest(spec, scaffold_profile, support_level)
     coordination_mode = derive_coordination_mode(spec)
     print()
     print("선택 결과")
     print(f"- template: {template_name}")
+    print(f"- constraint mode: {spec.get('constraintMode', 'recommended-baseline')}")
     print(f"- scaffold profile: {scaffold_profile or 'docs-only'}")
     print(f"- scaffold support level: {support_level}")
+    if scaffold_plan["reason"]:
+        print(f"- scaffold support note: {scaffold_plan['reason']}")
     print(f"- core agent roles: {', '.join(spec['requiredAgentRoles'])}")
     print(f"- extended agent roles: {', '.join(spec['optionalAgentRoles'])}")
     print(f"- role specializations: {', '.join(spec['roleSpecializations'])}")
@@ -762,7 +853,9 @@ def write_spec(spec: dict, spec_path: Path) -> None:
 
 
 def write_refinement_manifest(spec: dict, spec_path: Path) -> Path:
-    scaffold_profile, support_level = choose_scaffold(spec)
+    scaffold_plan = choose_scaffold_plan(spec)
+    scaffold_profile = scaffold_plan["profile"]
+    support_level = scaffold_plan["supportLevel"]
     refinement_path = refinement_path_for_spec(spec_path)
     refinement_path.parent.mkdir(parents=True, exist_ok=True)
     refinement_manifest = derive_refinement_manifest(spec, scaffold_profile, support_level)
@@ -774,7 +867,9 @@ def write_refinement_manifest(spec: dict, spec_path: Path) -> Path:
 
 
 def write_refinement_status(spec: dict, spec_path: Path) -> Path:
-    scaffold_profile, support_level = choose_scaffold(spec)
+    scaffold_plan = choose_scaffold_plan(spec)
+    scaffold_profile = scaffold_plan["profile"]
+    support_level = scaffold_plan["supportLevel"]
     refinement_manifest = derive_refinement_manifest(spec, scaffold_profile, support_level)
     refinement_status = derive_refinement_status(spec, refinement_manifest)
     refinement_status_path = refinement_status_path_for_spec(spec_path)

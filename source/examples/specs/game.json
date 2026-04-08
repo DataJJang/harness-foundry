@@ -4,6 +4,16 @@
   "projectPurpose": "Provide a starter Unity-based game prototype.",
   "projectFamily": "game",
   "projectNature": "prototype",
+  "constraintMode": "recommended-baseline",
+  "hardConstraints": {
+    "operatingEnvironment": "",
+    "operatingSystemVersion": "",
+    "runtimeVersionPolicy": "",
+    "frameworkVersionPolicy": "",
+    "containerAllowed": null,
+    "blockCurrentBaselineScaffold": false,
+    "notes": []
+  },
   "repositoryMode": "single-repo",
   "targetUsers": [
     "gamers"

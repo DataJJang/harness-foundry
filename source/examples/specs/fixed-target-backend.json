@@ -1,0 +1,64 @@
+{
+  "repositoryName": "sample-legacy-backend",
+  "projectName": "Sample Legacy Backend",
+  "projectPurpose": "Maintain a backend service that must still run on a locked legacy server.",
+  "projectFamily": "backend-service",
+  "projectNature": "internal-tool",
+  "constraintMode": "fixed-target",
+  "hardConstraints": {
+    "operatingEnvironment": "2010-era on-prem server",
+    "operatingSystemVersion": "legacy Linux with old glibc",
+    "runtimeVersionPolicy": "Java 11 only",
+    "frameworkVersionPolicy": "Spring Boot 2.7.x only",
+    "containerAllowed": false,
+    "blockCurrentBaselineScaffold": true,
+    "notes": [
+      "Upgrade path is deferred until infra replacement",
+      "New scaffold defaults must not overwrite startup scripts"
+    ]
+  },
+  "repositoryMode": "single-repo",
+  "targetUsers": [
+    "internal-operators"
+  ],
+  "targetPlatforms": [
+    "server"
+  ],
+  "runtimeRoles": [
+    "api"
+  ],
+  "language": "Java",
+  "runtimeVersion": "11",
+  "framework": "Spring Boot 2.7.x (legacy)",
+  "buildTool": "Gradle",
+  "testTool": "Gradle test",
+  "datastore": "없음",
+  "cache": "없음",
+  "deploymentType": "VM",
+  "startupMode": "long-running-service",
+  "loggingMode": "file",
+  "targetOs": [
+    "Linux"
+  ],
+  "securityProfile": "JWT",
+  "packageName": "com.example.legacybackend",
+  "targetEnvironments": [
+    "local",
+    "dev"
+  ],
+  "externalIntegrations": [
+    "internal-api"
+  ],
+  "baseDocumentSet": [
+    "README",
+    "build-guide",
+    "test-plan",
+    "impact-analysis"
+  ],
+  "exceptions": [
+    "constraintMode is `fixed-target` and hard constraints override the default family baseline",
+    "runtimeVersion uses `11` instead of family default `17`",
+    "framework uses `Spring Boot 2.7.x (legacy)` instead of family default `Spring Boot 3.5.x`",
+    "deploymentType uses `VM` instead of family default `container`"
+  ]
+}

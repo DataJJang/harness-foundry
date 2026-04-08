@@ -11,6 +11,7 @@
 - `runtimeRole[]`는 서비스 규칙 문서와 추가 템플릿 오버레이 선택 기준이다.
 - `runtimeRole[]`와 `projectFamily`는 required/optional agent 역할과 specialization을 자동 파생하는 기준이다.
 - `repositoryMode`는 생성기 출력의 한계와 후속 오버레이 범위를 결정한다.
+- `constraintMode`와 `hardConstraints`는 scaffold 적용 가능 여부를 baseline보다 먼저 결정한다.
 - `projectNature`, `deploymentType`, `datastore`, `cache`는 생성해야 할 문서 종류를 제한하거나 확장한다.
 - `production` 또는 외부 사용자 대상이면 운영/배포/보안 문서는 필수다.
 
@@ -88,6 +89,7 @@
 - 생성기는 `templates/<family>-repo`를 먼저 복사한다.
 - `repositoryMode`가 `monorepo` 또는 `multi-repo`여도 v1 생성기는 샘플 저장소 1개만 만든다.
 - 이후 지원되는 scaffold profile이 있으면 코드와 설정 skeleton을 추가한다.
+- 다만 `hardConstraints`가 현재 runnable scaffold baseline과 충돌하면 scaffold는 추가하지 않고 `docs-only`로 강등한다.
 - scaffold profile이 `structure-only`면 실행 가능한 전체 기능 대신 최소 디렉토리와 엔트리 파일만 만든다.
 - 생성기는 최소 아래 산출물을 만든다.
   - root `README.md`
@@ -96,7 +98,7 @@
   - `.agent-base/context-manifest.json`
   - `.agent-base/agent-role-plan.json`
   - family-appropriate scaffold files
-- 지원되지 않는 스택 조합이면 docs template만 생성하고 `TODO_UNSUPPORTED_SCAFFOLD.md`를 남긴다.
+- 지원되지 않는 스택 조합이거나 현재 constraint 조합이 scaffold baseline을 막으면 docs template만 생성하고 `TODO_UNSUPPORTED_SCAFFOLD.md`를 남긴다.
 
 ## 7. Brownfield / Adoption 연결 규칙
 

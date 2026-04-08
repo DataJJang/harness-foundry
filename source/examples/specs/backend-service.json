@@ -4,6 +4,16 @@
   "projectPurpose": "Provide a starter backend API for internal services.",
   "projectFamily": "backend-service",
   "projectNature": "prototype",
+  "constraintMode": "recommended-baseline",
+  "hardConstraints": {
+    "operatingEnvironment": "",
+    "operatingSystemVersion": "",
+    "runtimeVersionPolicy": "",
+    "frameworkVersionPolicy": "",
+    "containerAllowed": null,
+    "blockCurrentBaselineScaffold": false,
+    "notes": []
+  },
   "repositoryMode": "single-repo",
   "targetUsers": [
     "internal-operators"
