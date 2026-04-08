@@ -220,6 +220,7 @@ python3 ./source/scripts/project_bootstrap_cli.py \
 - `docs/ai/repo-local-overrides.md`
 - `docs/ai/agent-handoff-packets.md`
 - `docs/ai/agent-handoff-log.md`
+- `scripts/show_start_path.py`
 - `scripts/update_refinement_status.py`
 - `scripts/update_agent_workboard.py`
 - `.githooks/*`
@@ -252,6 +253,8 @@ python3 ./source/scripts/project_bootstrap_cli.py \
 - `.agent-base/coordination.lock`: updater 스크립트가 상태 파일을 직렬화할 때 잡는 공유 잠금 경로다.
 
 권장 흐름은 `update_refinement_status.py`로 high-priority refinement를 정리하고, blocker가 풀리면 `update_agent_workboard.py --finalize-design-freeze`로 첫 execution handoff packet을 만든 뒤, 이후 `update_agent_workboard.py`로 lane과 baton history를 갱신하는 방식이다. 전달 직전에는 `python3 scripts/update_agent_workboard.py --check-packets --strict`로 current packet이 아직 fresh한지 확인한다. 두 updater는 같은 `coordination.lock`을 잡고 JSON/Markdown을 atomic write로 갱신하므로, 같은 저장소에서 동시에 상태를 바꿀 때도 overwrite 위험을 줄인다. 잠금이 오래 잡혀 있으면 `--lock-timeout-seconds`로 fail-fast 하도록 실행할 수 있다.
+
+처음 진입할 때는 생성된 저장소에서 `python3 scripts/show_start_path.py`를 먼저 실행하는 편이 좋다. 이 명령은 추천 coordination mode와 현재 blocker/workboard 상태를 읽고, 지금 바로 할 3가지 액션만 얇게 보여준다.
 
 ## Template Authoring 원칙
 

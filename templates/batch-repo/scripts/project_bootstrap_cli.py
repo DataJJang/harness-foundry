@@ -743,6 +743,8 @@ def main() -> int:
                     "savedRefinementStatus": str(refinement_status_path),
                     "recommendedCoordinationMode": coordination_mode["mode"],
                     "generated": str(generated),
+                    "generatedStarterCommand": "python3 scripts/show_start_path.py",
+                    "generatedStarterCommandPath": str(generated / "scripts" / "show_start_path.py"),
                     "generatedContextManifest": str(generated / ".agent-base" / "context-manifest.json"),
                     "generatedRefinementManifest": str(generated / ".agent-base" / "refinement-manifest.json"),
                     "generatedRefinementStatus": str(generated / ".agent-base" / "refinement-status.json"),

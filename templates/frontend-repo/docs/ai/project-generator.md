@@ -95,6 +95,7 @@ python3 source/scripts/generate_project.py \
 - `docs/ai/agent-handoff-packets.md`
 - `docs/ai/repo-local-overrides.md`
 - `docs/ai/agent-handoff-log.md`
+- `scripts/show_start_path.py`
 - 필요 시 `TODO_UNSUPPORTED_SCAFFOLD.md`
 
 생성된 root `README.md`와 `.agent-base/context-manifest.json`은 추천 coordination mode와 그 이유를 같이 남긴다.
@@ -102,6 +103,7 @@ python3 source/scripts/generate_project.py \
 ## 7. 후속 작업
 
 - `python3 scripts/install_git_hooks.py`로 local pre-commit gate를 활성화한다.
+- 가장 얇은 진입이 필요하면 `python3 scripts/show_start_path.py`를 먼저 실행해 현재 저장소 기준 top 3 action만 본다.
 - `.agent-base/context-manifest.json`을 보고 fast path 문서만 먼저 연다.
 - `.agent-base/refinement-manifest.json`을 보고 high-priority follow-up module부터 정리한다.
 - `python3 scripts/update_refinement_status.py --interactive --append-to-overrides`로 현재 pending module을 처리한다.

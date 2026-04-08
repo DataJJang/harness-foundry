@@ -1484,6 +1484,7 @@ def apply_tokens(root: Path, tokens: dict[str, str]) -> None:
 
 def write_root_readme(target_dir: Path, spec: dict, scaffold_profile: str | None, support_level: str) -> None:
     coordination_mode = derive_coordination_mode(spec)
+    starter_command = "python3 scripts/show_start_path.py"
     if coordination_mode["mode"] == "lite":
         next_steps = [
             "Review `AGENTS.md`, `.agent-base/context-manifest.json`, and `docs/ai/command-catalog.md` only.",
@@ -1541,7 +1542,15 @@ def write_root_readme(target_dir: Path, spec: dict, scaffold_profile: str | None
 Why this mode:
 {coordination_reason_lines}
 
-## Next Steps
+## Quick Start
+
+```bash
+{starter_command}
+```
+
+이 명령은 현재 저장소의 추천 mode, blocking refinement, workboard 상태를 읽고 지금 바로 할 3가지 액션만 보여준다.
+
+## Mode Baseline
 
 {next_steps_lines}
 """
@@ -1747,6 +1756,8 @@ def write_generation_artifacts(target_dir: Path, spec: dict, template_name: str,
         "repoLocalOverridesPath": "docs/ai/repo-local-overrides.md",
         "handoffLogPath": "docs/ai/agent-handoff-log.md",
         "handoffPacketDirectoryPath": "docs/ai/handoff-packets",
+        "starterCommandPath": "scripts/show_start_path.py",
+        "starterCommand": "python3 scripts/show_start_path.py",
         "refinementModuleIds": [module["id"] for module in refinement_manifest["modules"]],
         "highPriorityRefinementModuleIds": refinement_manifest["summary"]["highPriorityModuleIds"],
     }

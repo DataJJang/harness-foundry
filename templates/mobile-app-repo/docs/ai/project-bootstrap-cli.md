@@ -77,6 +77,7 @@ CLI는 아래를 만든다.
 - 필요 시 실제 샘플 저장소
 
 spec은 `.agent-base/project-generation-spec.json`으로도 생성 저장소 안에 다시 남고, generator는 `.agent-base/context-manifest.json`, `.agent-base/agent-role-plan.json`, `.agent-base/refinement-manifest.json`, `.agent-base/refinement-status.json`, `.agent-base/agent-workboard.json`, `docs/ai/agent-handoff-log.md`를 같이 만든다. 이 중 `.agent-base/context-manifest.json`과 root `README.md`에는 추천 coordination mode와 이유가 같이 들어간다.
+또한 생성된 저장소에는 `scripts/show_start_path.py`가 들어가며, 현재 repo state 기준 top 3 action을 바로 보여준다.
 
 ## 6. 주의사항
 
@@ -88,6 +89,8 @@ spec은 `.agent-base/project-generation-spec.json`으로도 생성 저장소 안
 ## 7. 후속 작업
 
 CLI와 generator 실행 후에는 먼저 추천 coordination mode를 확인하고 아래처럼 시작한다.
+
+- 가장 얇은 시작점이 필요하면 생성된 저장소에서 `python3 scripts/show_start_path.py`를 먼저 실행한다.
 
 - `Lite`
   - `docs/ai/command-catalog.md`와 `.agent-base/pre-commit-config.json` 보정

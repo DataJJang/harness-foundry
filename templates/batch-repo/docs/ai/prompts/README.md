@@ -44,6 +44,7 @@
 
 먼저 generator가 남긴 `.agent-base/context-manifest.json`의 `recommendedCoordinationMode`를 확인하고 아래 중 하나를 기본 경로로 고른다.
 모드는 escalation path다. 기본은 가장 짧은 경로로 시작하고, shared ownership이나 운영 리스크가 생길 때만 다음 단계로 올린다.
+generated repo에서는 manual prompt sequence를 열기 전에 `python3 scripts/show_start_path.py`로 현재 top 3 action부터 확인하는 편이 좋다.
 
 ### Lite
 
