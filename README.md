@@ -227,8 +227,9 @@ python3 ./source/scripts/project_bootstrap_cli.py \
 - `.agent-base/refinement-status.json`: bootstrap 이후 결정과 defer 상태를 추적한다.
 - `.agent-base/agent-workboard.json`: 실제 실행 lane, owned path, blocker, next handoff를 관리한다.
 - `docs/ai/agent-handoff-log.md`: 에이전트 간 baton history를 시간순으로 남긴다.
+- `.agent-base/coordination.lock`: updater 스크립트가 상태 파일을 직렬화할 때 잡는 공유 잠금 경로다.
 
-권장 흐름은 `update_refinement_status.py`로 high-priority refinement를 정리하고, 그 결과가 workboard에 자동 반영된 뒤 `update_agent_workboard.py`로 현재 lane과 handoff를 갱신하는 방식이다.
+권장 흐름은 `update_refinement_status.py`로 high-priority refinement를 정리하고, 그 결과가 workboard에 자동 반영된 뒤 `update_agent_workboard.py`로 현재 lane과 handoff를 갱신하는 방식이다. 두 updater는 같은 `coordination.lock`을 잡고 JSON/Markdown을 atomic write로 갱신하므로, 같은 저장소에서 동시에 상태를 바꿀 때도 overwrite 위험을 줄인다. 잠금이 오래 잡혀 있으면 `--lock-timeout-seconds`로 fail-fast 하도록 실행할 수 있다.
 
 ## Template Authoring 원칙
 

@@ -59,6 +59,9 @@
 5. lane이 바뀌거나 다음 역할로 넘길 때 `python3 scripts/update_agent_workboard.py --append-handoff`로 baton을 남긴다.
 6. 첫 전달 전에는 workboard, handoff log, overrides, command catalog가 서로 모순되지 않는지 확인한다.
 
+두 updater는 기본적으로 `.agent-base/coordination.lock`을 공유해 같은 저장소의 상태 파일을 직렬화하고, JSON/Markdown을 atomic write로 반영한다.
+잠금 대기를 짧게 제한하고 싶으면 `update_refinement_status.py`, `update_agent_workboard.py`에 `--lock-timeout-seconds`를 줄 수 있다.
+
 ## 기본 명령
 
 ```bash

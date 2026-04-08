@@ -8,6 +8,7 @@ from datetime import datetime
 from pathlib import Path
 
 from generate_project import derive_refinement_status, sync_agent_workboard_with_refinement
+from state_io import coordination_lock, default_lock_path, load_json, save_json, write_text_atomic
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -15,6 +16,7 @@ DEFAULT_MANIFEST_PATH = REPO_ROOT / ".agent-base" / "refinement-manifest.json"
 DEFAULT_STATUS_PATH = REPO_ROOT / ".agent-base" / "refinement-status.json"
 DEFAULT_OVERRIDES_PATH = REPO_ROOT / "docs" / "ai" / "repo-local-overrides.md"
 DEFAULT_WORKBOARD_PATH = REPO_ROOT / ".agent-base" / "agent-workboard.json"
+DEFAULT_LOCK_PATH = default_lock_path(DEFAULT_STATUS_PATH)
 
 STATUS_CHOICES = ["pending", "resolved", "kept-default", "deferred"]
 DECISION_MODE_BY_STATUS = {
@@ -32,6 +34,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--status-path", default=str(DEFAULT_STATUS_PATH), help="Path to refinement-status.json")
     parser.add_argument("--overrides-path", default=str(DEFAULT_OVERRIDES_PATH), help="Path to repo-local-overrides.md")
     parser.add_argument("--workboard-path", default=str(DEFAULT_WORKBOARD_PATH), help="Path to agent-workboard.json")
+    parser.add_argument("--lock-path", default=str(DEFAULT_LOCK_PATH), help="Path to the shared coordination lock file")
+    parser.add_argument("--lock-timeout-seconds", type=float, default=10.0, help="How long to wait for the coordination lock")
     parser.add_argument("--module", help="Module id to update")
     parser.add_argument("--status", choices=STATUS_CHOICES, help="New status value")
     parser.add_argument("--decision-mode", help="Override decision mode")
@@ -47,16 +51,6 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--interactive", action="store_true", help="Prompt for the next pending module interactively")
     return parser.parse_args()
-
-
-def load_json(path: Path) -> dict:
-    with path.open("r", encoding="utf-8") as fp:
-        return json.load(fp)
-
-
-def save_json(path: Path, payload: dict) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
 def maybe_sync_workboard(workboard_path: Path, status: dict) -> bool:
@@ -231,8 +225,7 @@ def upsert_overrides_snippet(path: Path, module_id: str, snippet: str) -> None:
         suffix = "" if text.endswith("\n") else "\n"
         updated = text + suffix + "\n" + wrapped_snippet + "\n"
 
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(updated, encoding="utf-8")
+    write_text_atomic(path, updated)
 
 
 def interactive_update(manifest: dict, status: dict) -> dict | None:
@@ -276,47 +269,52 @@ def main() -> int:
     status_path = Path(args.status_path).expanduser().resolve()
     overrides_path = Path(args.overrides_path).expanduser().resolve()
     workboard_path = Path(args.workboard_path).expanduser().resolve()
-    manifest = load_json(manifest_path)
-    status = ensure_status(manifest, status_path)
-    manifest_by_id = {module["id"]: module for module in manifest["modules"]}
+    lock_path = Path(args.lock_path).expanduser().resolve()
 
-    if args.list:
-        list_modules(manifest, status)
-        return 0
+    with coordination_lock(lock_path, timeout_seconds=args.lock_timeout_seconds):
+        manifest = load_json(manifest_path)
+        status = ensure_status(manifest, status_path)
+        manifest_by_id = {module["id"]: module for module in manifest["modules"]}
 
-    updated_module: dict | None = None
-    if args.interactive:
-        updated_module = interactive_update(manifest, status)
-        if updated_module is None:
+        if args.list:
+            list_modules(manifest, status)
             return 0
-    else:
-        if not args.module or not args.status:
-            raise SystemExit("Use --interactive or provide both --module and --status.")
-        status_module = find_status_module(status, args.module)
-        update_module(
-            module=status_module,
-            new_status=args.status,
-            decision_mode=args.decision_mode,
-            notes=args.notes or status_module["notes"],
-            deferred_reason=args.deferred_reason or status_module["deferredReason"],
-            resolver=args.resolver or status_module["resolver"],
-        )
-        recompute_summary(status)
-        updated_module = status_module
 
-    save_json(status_path, status)
-    workboard_updated = maybe_sync_workboard(workboard_path, status)
-    next_module = next_pending_module(status)
-    snippet = render_snippet(manifest_by_id[updated_module["id"]], updated_module)
-    overrides_written = False
-    if args.append_to_overrides:
-        upsert_overrides_snippet(overrides_path, updated_module["id"], snippet)
-        overrides_written = True
+        updated_module: dict | None = None
+        if args.interactive:
+            updated_module = interactive_update(manifest, status)
+            if updated_module is None:
+                return 0
+        else:
+            if not args.module or not args.status:
+                raise SystemExit("Use --interactive or provide both --module and --status.")
+            status_module = find_status_module(status, args.module)
+            update_module(
+                module=status_module,
+                new_status=args.status,
+                decision_mode=args.decision_mode,
+                notes=args.notes or status_module["notes"],
+                deferred_reason=args.deferred_reason or status_module["deferredReason"],
+                resolver=args.resolver or status_module["resolver"],
+            )
+            recompute_summary(status)
+            updated_module = status_module
+
+        save_json(status_path, status)
+        workboard_updated = maybe_sync_workboard(workboard_path, status)
+        next_module = next_pending_module(status)
+        snippet = render_snippet(manifest_by_id[updated_module["id"]], updated_module)
+        overrides_written = False
+        if args.append_to_overrides:
+            upsert_overrides_snippet(overrides_path, updated_module["id"], snippet)
+            overrides_written = True
+
     response = {
         "updatedModule": updated_module["id"],
         "statusPath": str(status_path),
         "overridesPath": str(overrides_path),
         "workboardPath": str(workboard_path),
+        "lockPath": str(lock_path),
         "overridesUpdated": overrides_written,
         "workboardUpdated": workboard_updated,
         "moduleStatus": updated_module["status"],

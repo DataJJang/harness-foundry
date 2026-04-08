@@ -106,6 +106,7 @@ python3 source/scripts/generate_project.py \
 - refinement 업데이트 후 `.agent-base/agent-workboard.json`의 blocker와 `design-freeze` 상태가 자동 동기화됐는지 확인한다.
 - `.agent-base/agent-workboard.json`을 열어 execution lane, owned path, next handoff를 고정한다.
 - `python3 scripts/update_agent_workboard.py --interactive --append-handoff`로 실행 중 baton을 갱신한다.
+- updater가 동시에 돌 수 있는 환경이면 `.agent-base/coordination.lock`을 기준으로 직렬화된다고 보고 순서만 맞추면 된다.
 - `.agent-base/pre-commit-config.json`의 preset profile과 저장소 실제 명령을 맞춘다.
 - `docs/ai/command-catalog.md`를 실제 명령으로 보정한다.
 - `AGENTS.md`와 `architecture-map.md`를 저장소 실정에 맞게 보정한다.

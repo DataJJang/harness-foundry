@@ -7,11 +7,13 @@ from datetime import datetime
 from pathlib import Path
 
 from generate_project import recompute_agent_workboard_summary, sync_agent_workboard_with_refinement
+from state_io import coordination_lock, default_lock_path, load_json, save_json, write_text_atomic
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_WORKBOARD_PATH = REPO_ROOT / ".agent-base" / "agent-workboard.json"
 DEFAULT_HANDOFF_LOG_PATH = REPO_ROOT / "docs" / "ai" / "agent-handoff-log.md"
+DEFAULT_LOCK_PATH = default_lock_path(DEFAULT_WORKBOARD_PATH)
 
 STATUS_CHOICES = ["pending", "in-progress", "blocked", "completed"]
 
@@ -20,6 +22,8 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Update the shared agent workboard and append handoff logs.")
     parser.add_argument("--workboard-path", default=str(DEFAULT_WORKBOARD_PATH), help="Path to agent-workboard.json")
     parser.add_argument("--handoff-log-path", default=str(DEFAULT_HANDOFF_LOG_PATH), help="Path to agent-handoff-log.md")
+    parser.add_argument("--lock-path", default=str(DEFAULT_LOCK_PATH), help="Path to the shared coordination lock file")
+    parser.add_argument("--lock-timeout-seconds", type=float, default=10.0, help="How long to wait for the coordination lock")
     parser.add_argument("--lane", help="Lane id to update")
     parser.add_argument("--status", choices=STATUS_CHOICES, help="New lane status")
     parser.add_argument("--owner", help="Current owner for the lane")
@@ -42,16 +46,6 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--handoff-open-question", action="append", default=[], help="Open question for the handoff entry")
     parser.add_argument("--handoff-verification", help="Verification state for the handoff entry")
     return parser.parse_args()
-
-
-def load_json(path: Path) -> dict:
-    with path.open("r", encoding="utf-8") as fp:
-        return json.load(fp)
-
-
-def save_json(path: Path, payload: dict) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
 def find_lane(workboard: dict, lane_id: str) -> dict:
@@ -272,66 +266,69 @@ def append_handoff_log(path: Path, entry: str) -> None:
             updated = text + suffix + "\n" + entry + "\n"
     else:
         updated = "# Agent Handoff Log\n\n## Chronological Handoffs\n\n" + entry + "\n"
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(updated, encoding="utf-8")
+    write_text_atomic(path, updated)
 
 
 def main() -> int:
     args = parse_args()
     workboard_path = Path(args.workboard_path).expanduser().resolve()
     handoff_log_path = Path(args.handoff_log_path).expanduser().resolve()
-    workboard = load_json(workboard_path)
-    sync_design_state(workboard, workboard_path)
+    lock_path = Path(args.lock_path).expanduser().resolve()
 
-    if args.list:
-        list_lanes(workboard)
-        return 0
+    with coordination_lock(lock_path, timeout_seconds=args.lock_timeout_seconds):
+        workboard = load_json(workboard_path)
+        sync_design_state(workboard, workboard_path)
 
-    updated_lane: dict | None = None
-    if args.interactive:
-        updated_lane = interactive_update(workboard)
-        if updated_lane is None:
+        if args.list:
+            list_lanes(workboard)
             return 0
-    else:
-        if not args.lane:
-            raise SystemExit("Use --interactive or provide --lane.")
-        lane = find_lane(workboard, args.lane)
-        update_lane(
-            lane=lane,
-            new_status=args.status,
-            owner=args.owner,
-            summary=args.summary,
-            notes=args.notes,
-            next_handoff=args.next_handoff,
-            verification_status=args.verification_status,
-            blockers=args.blocker,
-            clear_blockers=args.clear_blockers,
-            open_questions=args.open_question,
-            clear_open_questions=args.clear_open_questions,
-        )
-        updated_lane = lane
 
-    recompute_agent_workboard_summary(workboard)
-    save_json(workboard_path, workboard)
+        updated_lane: dict | None = None
+        if args.interactive:
+            updated_lane = interactive_update(workboard)
+            if updated_lane is None:
+                return 0
+        else:
+            if not args.lane:
+                raise SystemExit("Use --interactive or provide --lane.")
+            lane = find_lane(workboard, args.lane)
+            update_lane(
+                lane=lane,
+                new_status=args.status,
+                owner=args.owner,
+                summary=args.summary,
+                notes=args.notes,
+                next_handoff=args.next_handoff,
+                verification_status=args.verification_status,
+                blockers=args.blocker,
+                clear_blockers=args.clear_blockers,
+                open_questions=args.open_question,
+                clear_open_questions=args.clear_open_questions,
+            )
+            updated_lane = lane
 
-    entry = None
-    if args.append_handoff:
-        entry = render_handoff_entry(
-            lane=updated_lane,
-            handoff_from=args.handoff_from,
-            handoff_to=args.handoff_to,
-            handoff_summary=args.handoff_summary,
-            handoff_files=args.handoff_file,
-            handoff_outputs=args.handoff_output,
-            handoff_open_questions=args.handoff_open_question,
-            handoff_verification=args.handoff_verification,
-        )
-        append_handoff_log(handoff_log_path, entry)
+        recompute_agent_workboard_summary(workboard)
+        save_json(workboard_path, workboard)
+
+        entry = None
+        if args.append_handoff:
+            entry = render_handoff_entry(
+                lane=updated_lane,
+                handoff_from=args.handoff_from,
+                handoff_to=args.handoff_to,
+                handoff_summary=args.handoff_summary,
+                handoff_files=args.handoff_file,
+                handoff_outputs=args.handoff_output,
+                handoff_open_questions=args.handoff_open_question,
+                handoff_verification=args.handoff_verification,
+            )
+            append_handoff_log(handoff_log_path, entry)
 
     response = {
         "updatedLane": updated_lane["id"],
         "workboardPath": str(workboard_path),
         "handoffLogPath": str(handoff_log_path),
+        "lockPath": str(lock_path),
         "handoffWritten": bool(entry),
         "laneStatus": updated_lane["status"],
         "currentOwner": updated_lane["currentOwner"],
