@@ -92,6 +92,7 @@ python3 source/scripts/generate_project.py \
 - `.agent-base/refinement-manifest.json`
 - `.agent-base/refinement-status.json`
 - `.agent-base/agent-workboard.json`
+- `docs/ai/agent-handoff-packets.md`
 - `docs/ai/repo-local-overrides.md`
 - `docs/ai/agent-handoff-log.md`
 - 필요 시 `TODO_UNSUPPORTED_SCAFFOLD.md`
@@ -105,6 +106,7 @@ python3 source/scripts/generate_project.py \
 - `.agent-base/refinement-status.json`과 `docs/ai/repo-local-overrides.md`에 결정과 defer note를 남긴다.
 - refinement 업데이트 후 `.agent-base/agent-workboard.json`의 blocker와 `design-freeze` 상태가 자동 동기화됐는지 확인한다.
 - `.agent-base/agent-workboard.json`을 열어 execution lane, owned path, next handoff를 고정한다.
+- blocker가 모두 풀리면 `python3 scripts/update_agent_workboard.py --finalize-design-freeze`로 첫 execution packet을 만든다.
 - `python3 scripts/update_agent_workboard.py --interactive --append-handoff`로 실행 중 baton을 갱신한다.
 - updater가 동시에 돌 수 있는 환경이면 `.agent-base/coordination.lock`을 기준으로 직렬화된다고 보고 순서만 맞추면 된다.
 - `.agent-base/pre-commit-config.json`의 preset profile과 저장소 실제 명령을 맞춘다.

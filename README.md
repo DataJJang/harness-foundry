@@ -199,6 +199,7 @@ python3 ./source/scripts/project_bootstrap_cli.py \
 - `.agent-base/agent-role-plan.json`
 - `.agent-base/agent-workboard.json`
 - `docs/ai/repo-local-overrides.md`
+- `docs/ai/agent-handoff-packets.md`
 - `docs/ai/agent-handoff-log.md`
 - `scripts/update_refinement_status.py`
 - `scripts/update_agent_workboard.py`
@@ -219,6 +220,7 @@ python3 ./source/scripts/project_bootstrap_cli.py \
 - 템플릿 복사 후에는 local pre-commit hook와 실패 학습 루프를 저장소 운영 기준에 맞게 활성화
 - multi-agent로 진행할 때는 역할별 입력, 출력, handoff artifact를 명시한다
 - 설계가 끝난 뒤에는 `agent-role-plan`만 보지 말고 `agent-workboard`로 owned path, next handoff, blocker를 고정한다
+- planning에서 execution으로 넘어갈 때는 current handoff packet까지 남겨 다음 runner의 시작 기준을 고정한다
 - 규칙 변경은 `source/`와 `template-build.json`을 먼저 수정하고 `tools/build_templates.py`로 `templates/*`를 다시 생성한다
 
 ## 실행 협업 기준
@@ -226,10 +228,11 @@ python3 ./source/scripts/project_bootstrap_cli.py \
 - `.agent-base/agent-role-plan.json`: 어떤 역할이 필요한지와 기본 순서를 정한다.
 - `.agent-base/refinement-status.json`: bootstrap 이후 결정과 defer 상태를 추적한다.
 - `.agent-base/agent-workboard.json`: 실제 실행 lane, owned path, blocker, next handoff를 관리한다.
+- `docs/ai/handoff-packets/*.md`: 다음 실행 에이전트가 바로 읽을 current contract를 남긴다.
 - `docs/ai/agent-handoff-log.md`: 에이전트 간 baton history를 시간순으로 남긴다.
 - `.agent-base/coordination.lock`: updater 스크립트가 상태 파일을 직렬화할 때 잡는 공유 잠금 경로다.
 
-권장 흐름은 `update_refinement_status.py`로 high-priority refinement를 정리하고, 그 결과가 workboard에 자동 반영된 뒤 `update_agent_workboard.py`로 현재 lane과 handoff를 갱신하는 방식이다. 두 updater는 같은 `coordination.lock`을 잡고 JSON/Markdown을 atomic write로 갱신하므로, 같은 저장소에서 동시에 상태를 바꿀 때도 overwrite 위험을 줄인다. 잠금이 오래 잡혀 있으면 `--lock-timeout-seconds`로 fail-fast 하도록 실행할 수 있다.
+권장 흐름은 `update_refinement_status.py`로 high-priority refinement를 정리하고, blocker가 풀리면 `update_agent_workboard.py --finalize-design-freeze`로 첫 execution handoff packet을 만든 뒤, 이후 `update_agent_workboard.py`로 lane과 baton history를 갱신하는 방식이다. 두 updater는 같은 `coordination.lock`을 잡고 JSON/Markdown을 atomic write로 갱신하므로, 같은 저장소에서 동시에 상태를 바꿀 때도 overwrite 위험을 줄인다. 잠금이 오래 잡혀 있으면 `--lock-timeout-seconds`로 fail-fast 하도록 실행할 수 있다.
 
 ## Template Authoring 원칙
 

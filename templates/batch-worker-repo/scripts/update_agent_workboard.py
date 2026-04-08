@@ -37,10 +37,18 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--clear-open-questions", action="store_true", help="Clear all lane open questions")
     parser.add_argument("--list", action="store_true", help="List current work lanes and exit")
     parser.add_argument("--interactive", action="store_true", help="Prompt for the next suggested lane interactively")
+    parser.add_argument(
+        "--finalize-design-freeze",
+        action="store_true",
+        help="Complete the design-freeze lane and generate a deterministic execution handoff packet",
+    )
+    parser.add_argument("--target-lane", help="Target lane id for the guided design-freeze handoff")
+    parser.add_argument("--activate-target", action="store_true", help="Mark the target lane as in-progress")
     parser.add_argument("--append-handoff", action="store_true", help="Append a handoff entry to agent-handoff-log.md")
     parser.add_argument("--handoff-from", help="Sender for the handoff entry")
     parser.add_argument("--handoff-to", help="Receiver for the handoff entry")
     parser.add_argument("--handoff-summary", help="Summary for the handoff entry")
+    parser.add_argument("--handoff-packet-path", help="Path to a deterministic handoff packet markdown file")
     parser.add_argument("--handoff-file", action="append", default=[], help="File or path in scope for the handoff")
     parser.add_argument("--handoff-output", action="append", default=[], help="Expected output for the handoff")
     parser.add_argument("--handoff-open-question", action="append", default=[], help="Open question for the handoff entry")
@@ -55,17 +63,49 @@ def find_lane(workboard: dict, lane_id: str) -> dict:
     raise SystemExit(f"Unknown lane id: {lane_id}")
 
 
+def repo_root_from_workboard_path(workboard_path: Path) -> Path:
+    return workboard_path.parent.parent if workboard_path.parent.name == ".agent-base" else workboard_path.parent
+
+
+def resolve_shared_path(workboard: dict, workboard_path: Path, shared_key: str) -> Path | None:
+    shared_path = workboard.get("sharedContext", {}).get(shared_key)
+    if not shared_path:
+        return None
+    path = Path(shared_path)
+    if not path.is_absolute():
+        path = (repo_root_from_workboard_path(workboard_path) / path).resolve()
+    return path
+
+
+def relative_to_repo(path: Path, repo_root: Path) -> str:
+    try:
+        return str(path.relative_to(repo_root))
+    except ValueError:
+        return str(path)
+
+
+def merge_unique(*values: list[str]) -> list[str]:
+    merged: list[str] = []
+    for items in values:
+        for item in items:
+            if item and item not in merged:
+                merged.append(item)
+    return merged
+
+
+def load_refinement_status(workboard: dict, workboard_path: Path) -> dict | None:
+    refinement_path = resolve_shared_path(workboard, workboard_path, "refinementStatusPath")
+    if not refinement_path or not refinement_path.exists():
+        return None
+    return load_json(refinement_path)
+
+
 def sync_design_state(workboard: dict, workboard_path: Path) -> None:
-    shared = workboard.get("sharedContext", {})
-    refinement_path_str = shared.get("refinementStatusPath")
-    if not refinement_path_str:
+    refinement_path = resolve_shared_path(workboard, workboard_path, "refinementStatusPath")
+    if not refinement_path:
         recompute_agent_workboard_summary(workboard)
         return
 
-    repo_root = workboard_path.parent.parent if workboard_path.parent.name == ".agent-base" else workboard_path.parent
-    refinement_path = Path(refinement_path_str)
-    if not refinement_path.is_absolute():
-        refinement_path = (repo_root / refinement_path).resolve()
     if refinement_path.exists():
         refinement_status = load_json(refinement_path)
         sync_agent_workboard_with_refinement(workboard, refinement_status)
@@ -88,6 +128,8 @@ def list_lanes(workboard: dict) -> None:
         )
         print(f"  objective: {lane['objective']}")
         print(f"  scope: {lane['scopeSummary']}")
+        if lane.get("latestPacketPath"):
+            print(f"  packet: {lane['latestPacketPath']}")
 
 
 def ask(prompt: str, default: str = "") -> str:
@@ -220,6 +262,7 @@ def render_handoff_entry(
     handoff_from: str | None,
     handoff_to: str | None,
     handoff_summary: str | None,
+    handoff_packet_path: str | None,
     handoff_files: list[str],
     handoff_outputs: list[str],
     handoff_open_questions: list[str],
@@ -238,6 +281,7 @@ def render_handoff_entry(
         f"- Lane status: `{lane['status']}`",
         f"- Summary: {handoff_summary or lane['latestSummary'] or lane['objective']}",
         f"- Verification status: `{verification}`",
+        f"- Packet path: `{handoff_packet_path or lane.get('latestPacketPath') or '-'}`",
         "",
         "Files in scope:",
     ]
@@ -253,6 +297,228 @@ def render_handoff_entry(
     else:
         lines.append("- 없음")
     return "\n".join(lines)
+
+
+def default_packet_path(workboard: dict, workboard_path: Path, source_lane: dict, target_lane: dict) -> tuple[Path, str]:
+    repo_root = repo_root_from_workboard_path(workboard_path)
+    packet_dir = workboard.get("sharedContext", {}).get("handoffPacketDirectoryPath") or "docs/ai/handoff-packets"
+    relative_path = f"{packet_dir}/{source_lane['id']}-to-{target_lane['id']}.md"
+    absolute_path = (repo_root / relative_path).resolve()
+    return absolute_path, relative_path
+
+
+def choose_target_lane(workboard: dict, lane_id: str | None) -> dict:
+    if lane_id:
+        lane = find_lane(workboard, lane_id)
+        if lane["id"] == "design-freeze":
+            raise SystemExit("Target lane cannot be design-freeze.")
+        if lane["status"] == "completed":
+            raise SystemExit(f"Target lane is already completed: {lane['id']}")
+        if lane["status"] == "blocked":
+            raise SystemExit(f"Target lane is blocked and cannot receive the design-freeze handoff: {lane['id']}")
+        return lane
+
+    for lane in workboard["workLanes"]:
+        if lane["id"] == "design-freeze":
+            continue
+        if lane["status"] in {"pending", "in-progress"}:
+            return lane
+    raise SystemExit("No execution lane is available for the design-freeze handoff.")
+
+
+def render_handoff_packet(
+    workboard: dict,
+    source_lane: dict,
+    target_lane: dict,
+    refinement_status: dict | None,
+    packet_path: str,
+    handoff_summary: str,
+    handoff_open_questions: list[str],
+    handoff_verification: str,
+) -> str:
+    shared = workboard.get("sharedContext", {})
+    blocking = workboard["summary"]["blockingHighPriorityModuleIds"]
+    open_questions = merge_unique(list(target_lane["openQuestions"]), handoff_open_questions)
+    shared_inputs = merge_unique(
+        [shared.get("workboardPath", "")],
+        [shared.get("refinementStatusPath", "")],
+        [shared.get("repoLocalOverridesPath", "")],
+        [shared.get("commandCatalogPath", "")],
+        [shared.get("architectureMapPath", "")],
+        list(shared.get("fastPathDocs", [])),
+    )
+    timestamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+    lines = [
+        "# Active Agent Handoff Packet",
+        "",
+        "이 문서는 planning에서 execution으로 넘어갈 때 현재 실행 계약을 고정한다.",
+        "",
+        f"- Generated at: `{timestamp}`",
+        f"- Packet path: `{packet_path}`",
+        f"- From lane: `{source_lane['id']}` (`{source_lane['currentOwner'] or source_lane['role']}`)",
+        f"- To lane: `{target_lane['id']}` (`{target_lane['currentOwner'] or target_lane['role']}`)",
+        f"- Design ready: `{'yes' if workboard['summary']['designReady'] else 'no'}`",
+        f"- Blocking high-priority modules: `{', '.join(blocking) if blocking else 'none'}`",
+        "",
+        "## Frozen Summary",
+        "",
+        f"- {handoff_summary}",
+        "",
+        "## Shared Inputs To Read First",
+    ]
+    for path in shared_inputs:
+        lines.append(f"- `{path}`")
+
+    lines.extend(
+        [
+            "",
+            "## Target Lane Contract",
+            "",
+            f"- Role: `{target_lane['role']}`",
+            f"- Objective: {target_lane['objective']}",
+            f"- Scope: {target_lane['scopeSummary']}",
+            f"- Depends on: `{', '.join(target_lane['dependsOn']) if target_lane['dependsOn'] else '-'}`",
+            f"- Next handoff target: `{target_lane['nextHandoffTarget'] or '-'}`",
+            f"- Verification starting point: `{handoff_verification}`",
+            "",
+            "Owned paths:",
+        ]
+    )
+    for path in target_lane["ownedPaths"]:
+        lines.append(f"- {path}")
+    lines.extend(["", "Required inputs:"])
+    for item in target_lane["requiredInputs"]:
+        lines.append(f"- {item}")
+    lines.extend(["", "Expected outputs:"])
+    for item in target_lane["expectedOutputs"]:
+        lines.append(f"- {item}")
+    lines.extend(["", "Done when:"])
+    for item in target_lane["doneWhen"]:
+        lines.append(f"- {item}")
+    lines.extend(["", "Open questions:"])
+    if open_questions:
+        for item in open_questions:
+            lines.append(f"- {item}")
+    else:
+        lines.append("- 없음")
+    lines.extend(["", "Existing blockers:"])
+    if target_lane["blockers"]:
+        for item in target_lane["blockers"]:
+            lines.append(f"- {item}")
+    else:
+        lines.append("- 없음")
+
+    if refinement_status:
+        lines.extend(["", "## High-Priority Refinement Snapshot"])
+        high_priority_modules = [module for module in refinement_status["modules"] if module["priority"] == "high"]
+        if not high_priority_modules:
+            lines.extend(["", "- 없음"])
+        for module in high_priority_modules:
+            lines.extend(
+                [
+                    "",
+                    f"### {module['title']} `{module['id']}`",
+                    "",
+                    f"- Status: `{module['status']}`",
+                    f"- Resolver: `{module['resolver'] or '-'}`",
+                    f"- Notes: {module['notes'] or '-'}",
+                ]
+            )
+            if module["status"] == "deferred":
+                lines.append(f"- Deferred reason: {module['deferredReason'] or '-'}")
+
+    lines.extend(["", "## Coordination Rules"])
+    for rule in workboard.get("coordinationRules", []):
+        lines.append(f"- {rule}")
+
+    lines.extend(
+        [
+            "",
+            "## Escalate Back To Design Freeze When",
+            "",
+            "- 새로운 schema, auth, rollout, environment 판단이 현재 packet 범위를 넘어서기 시작할 때",
+            "- target lane의 owned path 밖으로 write scope가 넓어질 때",
+            "- high-priority refinement module을 다시 여는 blocker가 생길 때",
+            "- verification boundary나 rollback note가 바뀌어 기존 handoff를 믿기 어려워질 때",
+        ]
+    )
+    return "\n".join(lines)
+
+
+def finalize_design_freeze(
+    workboard: dict,
+    workboard_path: Path,
+    target_lane_id: str | None,
+    activate_target: bool,
+    summary_text: str | None,
+    notes_text: str | None,
+    owner: str | None,
+    next_handoff: str | None,
+    verification_status: str | None,
+    extra_open_questions: list[str],
+    packet_path_arg: str | None,
+) -> tuple[dict, dict, Path, str, str]:
+    blocking = list(workboard["summary"]["blockingHighPriorityModuleIds"])
+    if blocking:
+        raise SystemExit(
+            "Cannot finalize design-freeze while high-priority refinement blockers remain: "
+            + ", ".join(blocking)
+        )
+    design_lane = find_lane(workboard, "design-freeze")
+    target_lane = choose_target_lane(workboard, target_lane_id)
+    repo_root = repo_root_from_workboard_path(workboard_path)
+
+    if packet_path_arg:
+        packet_path = Path(packet_path_arg)
+        if not packet_path.is_absolute():
+            packet_path = (repo_root / packet_path).resolve()
+        packet_path_display = relative_to_repo(packet_path, repo_root)
+    else:
+        packet_path, packet_path_display = default_packet_path(workboard, workboard_path, design_lane, target_lane)
+
+    handoff_summary = summary_text or design_lane["latestSummary"] or (
+        f"Design freeze complete. Execution scope is frozen for `{target_lane['id']}`."
+    )
+    handoff_verification = verification_status or "design-ready"
+    shared_open_questions = merge_unique(list(design_lane["openQuestions"]), list(target_lane["openQuestions"]), extra_open_questions)
+    target_owner = target_lane["currentOwner"] or target_lane["role"]
+
+    update_lane(
+        lane=design_lane,
+        new_status="completed",
+        owner=owner or design_lane["currentOwner"],
+        summary=handoff_summary,
+        notes=notes_text if notes_text is not None else design_lane["notes"],
+        next_handoff=next_handoff or target_owner,
+        verification_status=handoff_verification,
+        blockers=[],
+        clear_blockers=True,
+        open_questions=shared_open_questions,
+        clear_open_questions=True,
+    )
+
+    target_lane["latestPacketPath"] = packet_path_display
+    target_lane["lastUpdated"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+    target_lane["openQuestions"] = shared_open_questions
+    if not target_lane["latestSummary"]:
+        target_lane["latestSummary"] = f"Ready to start from `{packet_path_display}`."
+    if activate_target:
+        target_lane["status"] = "in-progress"
+    design_lane["latestPacketPath"] = packet_path_display
+
+    recompute_agent_workboard_summary(workboard)
+    refinement_status = load_refinement_status(workboard, workboard_path)
+    packet = render_handoff_packet(
+        workboard=workboard,
+        source_lane=design_lane,
+        target_lane=target_lane,
+        refinement_status=refinement_status,
+        packet_path=packet_path_display,
+        handoff_summary=handoff_summary,
+        handoff_open_questions=shared_open_questions,
+        handoff_verification=handoff_verification,
+    )
+    return design_lane, target_lane, packet_path, packet_path_display, packet
 
 
 def append_handoff_log(path: Path, entry: str) -> None:
@@ -284,13 +550,32 @@ def main() -> int:
             return 0
 
         updated_lane: dict | None = None
+        target_lane: dict | None = None
+        packet_path_display: str | None = None
+        packet_text: str | None = None
         if args.interactive:
             updated_lane = interactive_update(workboard)
             if updated_lane is None:
                 return 0
+        elif args.finalize_design_freeze:
+            updated_lane, target_lane, packet_path, packet_path_display, packet_text = finalize_design_freeze(
+                workboard=workboard,
+                workboard_path=workboard_path,
+                target_lane_id=args.target_lane,
+                activate_target=args.activate_target,
+                summary_text=args.handoff_summary or args.summary,
+                notes_text=args.notes,
+                owner=args.owner,
+                next_handoff=args.handoff_to or args.next_handoff,
+                verification_status=args.handoff_verification or args.verification_status,
+                extra_open_questions=merge_unique(args.open_question, args.handoff_open_question),
+                packet_path_arg=args.handoff_packet_path,
+            )
+            packet_path.parent.mkdir(parents=True, exist_ok=True)
+            write_text_atomic(packet_path, packet_text)
         else:
             if not args.lane:
-                raise SystemExit("Use --interactive or provide --lane.")
+                raise SystemExit("Use --interactive, --finalize-design-freeze, or provide --lane.")
             lane = find_lane(workboard, args.lane)
             update_lane(
                 lane=lane,
@@ -311,24 +596,27 @@ def main() -> int:
         save_json(workboard_path, workboard)
 
         entry = None
-        if args.append_handoff:
+        if args.append_handoff or args.finalize_design_freeze:
             entry = render_handoff_entry(
                 lane=updated_lane,
                 handoff_from=args.handoff_from,
-                handoff_to=args.handoff_to,
-                handoff_summary=args.handoff_summary,
-                handoff_files=args.handoff_file,
-                handoff_outputs=args.handoff_output,
-                handoff_open_questions=args.handoff_open_question,
-                handoff_verification=args.handoff_verification,
+                handoff_to=args.handoff_to or (target_lane["currentOwner"] if target_lane else None),
+                handoff_summary=args.handoff_summary or args.summary,
+                handoff_packet_path=packet_path_display or args.handoff_packet_path,
+                handoff_files=args.handoff_file or (list(target_lane["ownedPaths"]) if target_lane else []),
+                handoff_outputs=args.handoff_output or (list(target_lane["expectedOutputs"]) if target_lane else []),
+                handoff_open_questions=args.handoff_open_question or (list(target_lane["openQuestions"]) if target_lane else []),
+                handoff_verification=args.handoff_verification or args.verification_status,
             )
             append_handoff_log(handoff_log_path, entry)
 
     response = {
         "updatedLane": updated_lane["id"],
+        "targetLane": target_lane["id"] if target_lane else None,
         "workboardPath": str(workboard_path),
         "handoffLogPath": str(handoff_log_path),
         "lockPath": str(lock_path),
+        "packetPath": packet_path_display,
         "handoffWritten": bool(entry),
         "laneStatus": updated_lane["status"],
         "currentOwner": updated_lane["currentOwner"],

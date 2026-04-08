@@ -73,6 +73,7 @@
 - [`refinement-manifest.md`](./refinement-manifest.md)
 - [`refinement-status.md`](./refinement-status.md)
 - [`agent-workboard.md`](./agent-workboard.md)
+- [`agent-handoff-packets.md`](./agent-handoff-packets.md)
 - [`repo-local-overrides.md`](./repo-local-overrides.md)
 - [`token-substitution.md`](./token-substitution.md)
 - [`tools/compatibility.md`](./tools/compatibility.md)

@@ -20,7 +20,7 @@ Your job:
 1. Identify required and optional agent roles.
 2. Define execution order and possible parallel work.
 3. Freeze execution lanes, owned paths, and next handoff targets for `.agent-base/agent-workboard.json`.
-4. Define handoff artifacts for each role.
+4. Define handoff artifacts for each role, including deterministic current packet paths for major planning-to-execution handoffs.
 5. Call out unresolved risks and missing context.
 
 Output format:

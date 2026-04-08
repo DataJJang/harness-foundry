@@ -11,4 +11,5 @@
 - [ ] DB/보안/운영 영향이 있는지 표시되었는가
 - [ ] 수신 역할이 무엇을 출력해야 하는지 명시되었는가
 - [ ] 다음 handoff 대상이 필요한지 표시되었는가
+- [ ] planning -> execution 전환이면 `docs/ai/handoff-packets/` 아래 current packet이 갱신되었는가
 - [ ] `docs/ai/agent-handoff-log.md`에 baton 기록이 남았는가

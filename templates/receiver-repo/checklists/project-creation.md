@@ -28,6 +28,7 @@
 - [ ] `.agent-base/refinement-status.json`에 현재 refinement 상태를 반영했다
 - [ ] `docs/ai/repo-local-overrides.md`에 기본값 유지 이유, 예외, defer note를 기록했다
 - [ ] `.agent-base/agent-workboard.json`에서 execution lane과 owned path를 확정했다
+- [ ] blocker가 풀렸다면 `python3 scripts/update_agent_workboard.py --finalize-design-freeze` 또는 동등 절차로 첫 execution packet을 만들었다
 - [ ] `python3 scripts/update_agent_workboard.py --interactive --append-handoff` 또는 동등 절차로 첫 handoff를 남겼다
 - [ ] `docs/ai/command-catalog.md`에 첫 build/compile/test/smoke 기준을 기록했다
 - [ ] `python3 scripts/install_git_hooks.py`로 local pre-commit gate를 설치했다
@@ -47,6 +48,7 @@
 - [ ] `test-plan` 문서를 생성했다
 - [ ] DB를 소유하는 저장소면 `database-review` 또는 `impact-analysis`를 생성했다
 - [ ] 필요 시 `deployment-checklist` 또는 `operations-manual` 초안을 생성했다
+- [ ] planning -> execution 전환이 있었다면 `docs/ai/handoff-packets/` 아래 current packet이 있다
 - [ ] 실행 역할이 둘 이상이면 `docs/ai/agent-handoff-log.md`에 첫 baton이 기록되었다
 
 ## 5. 첫 기술 검증

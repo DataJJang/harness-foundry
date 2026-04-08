@@ -53,6 +53,7 @@ python3 scripts/update_refinement_status.py --interactive
 ```
 
 생성된 저장소 안에서 실행하면, 가능한 경우 `.agent-base/agent-workboard.json`의 `designReady`, `blockingHighPriorityModuleIds`, `design-freeze` lane 상태도 같이 동기화한다.
+high-priority blocker가 모두 사라지면 `design-freeze`는 보통 `pending`으로 돌아오고, 실제 첫 execution packet은 `python3 scripts/update_agent_workboard.py --finalize-design-freeze`에서 만든다.
 이 스크립트는 기본적으로 `.agent-base/coordination.lock`을 잡고 `refinement-status.json`, `agent-workboard.json`, `repo-local-overrides.md`를 atomic write로 갱신한다.
 다른 updater가 이미 실행 중이면 잠금이 풀릴 때까지 기다리며, 필요하면 `--lock-timeout-seconds 0.1`처럼 fail-fast 설정을 줄 수 있다.
 

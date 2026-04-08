@@ -906,6 +906,7 @@ def make_work_lane(
         "notes": notes,
         "verificationStatus": verification_status,
         "nextHandoffTarget": handoff_targets[0] if handoff_targets else "",
+        "latestPacketPath": "",
         "blockers": list(blockers or []),
         "openQuestions": [],
         "lastUpdated": None,
@@ -971,7 +972,7 @@ def derive_agent_workboard(
             title="Design Freeze And Task Framing",
             phase="planning",
             role="orchestrator" if "orchestrator" in active_roles else "bootstrap-planner",
-            status="completed" if design_ready else "pending",
+            status="pending",
             objective="상위 설계와 refinement 결정을 실행 가능한 작업 범위와 handoff 기준으로 고정한다.",
             scope_summary="high-priority refinement, 역할별 owned path, 검증 경계, 다음 handoff 순서를 합의한다.",
             depends_on=[],
@@ -1001,6 +1002,7 @@ def derive_agent_workboard(
             done_when=[
                 "high-priority refinement module이 resolved 또는 deferred with owner 상태다",
                 "각 실행 lane의 owned path와 next handoff target이 정리되었다",
+                "첫 execution lane으로 넘길 deterministic handoff packet이 준비되었다",
                 "작업을 막는 open question과 blocker가 workboard에 남아 있다",
             ],
             blockers=high_priority_pending,
@@ -1240,6 +1242,7 @@ def derive_agent_workboard(
             "각 lane은 owned path를 먼저 선언하고, 다른 lane의 write scope를 덮어쓰지 않는다.",
             "새 설계 판단이 필요해지면 runtime lane이 혼자 결정하지 말고 design-freeze lane으로 되돌린다.",
             "handoff 때는 files, outputs, verification, open question을 docs/ai/agent-handoff-log.md에 남긴다.",
+            "planning에서 execution으로 넘어갈 때는 docs/ai/handoff-packets/ 아래 current packet으로 실행 기준을 고정한다.",
             "qa-validator와 docs-operator 없이 작업을 최종 완료로 선언하지 않는다.",
         ],
         "workLanes": work_lanes,
@@ -1444,14 +1447,15 @@ def write_root_readme(target_dir: Path, spec: dict, scaffold_profile: str | None
 2. Review `.agent-base/refinement-manifest.json` and resolve the high-priority follow-up modules first.
 3. Run `python3 scripts/update_refinement_status.py --interactive --append-to-overrides` to process the next pending refinement module.
 4. Review `.agent-base/agent-workboard.json` and confirm the first execution lane and owned paths.
-5. Run `python3 scripts/update_agent_workboard.py --interactive --append-handoff` after each major execution handoff.
-6. Update `.agent-base/refinement-status.json`, `.agent-base/agent-workboard.json`, and `docs/ai/repo-local-overrides.md` while making bootstrap follow-up decisions.
-7. Install the local git hook pack with `python3 scripts/install_git_hooks.py`.
-8. Review `.agent-base/pre-commit-config.json` and align the preset with the real repository commands.
-9. Review `.agent-base/context-manifest.json` and load only the recommended fast-path docs first.
-10. Update commands, package names, env files, and runtime assumptions to the real repository state.
-11. Run the first build, compile, test, and smoke validation.
-12. Complete `checklists/project-creation.md` and `checklists/first-delivery.md`.
+5. Once design blockers are clear, run `python3 scripts/update_agent_workboard.py --finalize-design-freeze` to freeze the first execution handoff packet.
+6. Run `python3 scripts/update_agent_workboard.py --interactive --append-handoff` after each later major execution handoff.
+7. Update `.agent-base/refinement-status.json`, `.agent-base/agent-workboard.json`, and `docs/ai/repo-local-overrides.md` while making bootstrap follow-up decisions.
+8. Install the local git hook pack with `python3 scripts/install_git_hooks.py`.
+9. Review `.agent-base/pre-commit-config.json` and align the preset with the real repository commands.
+10. Review `.agent-base/context-manifest.json` and load only the recommended fast-path docs first.
+11. Update commands, package names, env files, and runtime assumptions to the real repository state.
+12. Run the first build, compile, test, and smoke validation.
+13. Complete `checklists/project-creation.md` and `checklists/first-delivery.md`.
 """
     (target_dir / "README.md").write_text(readme, encoding="utf-8")
 
@@ -1567,6 +1571,7 @@ def write_agent_handoff_log(target_dir: Path, workboard: dict) -> None:
         f"- Repo-local overrides: `{shared['repoLocalOverridesPath']}`",
         f"- Command catalog: `{shared['commandCatalogPath']}`",
         f"- Architecture map: `{shared['architectureMapPath']}`",
+        f"- Handoff packet directory: `{shared['handoffPacketDirectoryPath']}`",
         "",
         f"- Design ready: `{'yes' if workboard['summary']['designReady'] else 'no'}`",
         "- Blocking high-priority modules:",
@@ -1587,6 +1592,7 @@ def write_agent_handoff_log(target_dir: Path, workboard: dict) -> None:
                 f"- Role: `{lane['role']}`",
                 f"- Status: `{lane['status']}`",
                 f"- Next handoff target: `{lane['nextHandoffTarget'] or '-'}`",
+                f"- Latest packet path: `{lane['latestPacketPath'] or '-'}`",
                 f"- Objective: {lane['objective']}",
                 f"- Scope: {lane['scopeSummary']}",
                 "",
@@ -1626,6 +1632,7 @@ def write_generation_artifacts(target_dir: Path, spec: dict, template_name: str,
         "workboardPath": ".agent-base/agent-workboard.json",
         "repoLocalOverridesPath": "docs/ai/repo-local-overrides.md",
         "handoffLogPath": "docs/ai/agent-handoff-log.md",
+        "handoffPacketDirectoryPath": "docs/ai/handoff-packets",
         "commandCatalogPath": "docs/ai/command-catalog.md",
         "architectureMapPath": "docs/ai/architecture-map.md",
         "precommitConfigPath": ".agent-base/pre-commit-config.json",
@@ -1647,6 +1654,7 @@ def write_generation_artifacts(target_dir: Path, spec: dict, template_name: str,
         "agentWorkboardPath": ".agent-base/agent-workboard.json",
         "repoLocalOverridesPath": "docs/ai/repo-local-overrides.md",
         "handoffLogPath": "docs/ai/agent-handoff-log.md",
+        "handoffPacketDirectoryPath": "docs/ai/handoff-packets",
         "refinementModuleIds": [module["id"] for module in refinement_manifest["modules"]],
         "highPriorityRefinementModuleIds": refinement_manifest["summary"]["highPriorityModuleIds"],
     }

@@ -16,6 +16,7 @@
 - [ ] high-priority refinement module은 해결되었거나 defer 이유가 기록되었다
 - [ ] refinement-status가 최신 상태이고 pending/deferred가 설명 가능하다
 - [ ] agent-workboard가 최신 상태이고 lane별 owner, scope, next handoff가 설명 가능하다
+- [ ] planning -> execution 전환이 있었다면 current handoff packet이 최신 상태다
 - [ ] 첫 build, compile, test 명령이 실제로 동작한다
 - [ ] pre-commit hook가 설치되었고 최소 1회 실행 확인이 있다
 - [ ] pre-commit preset이 과검사나 누락 없이 저장소 실정과 맞는다
