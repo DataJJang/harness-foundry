@@ -8,6 +8,13 @@
 - simple 작업에 brownfield, migration, extended role 문맥이 과하게 섞이지 않게 한다.
 - `fast path`와 `deep path`를 분리해 entry layer를 가볍게 유지한다.
 
+## Context Depth vs Coordination Depth
+
+- `fast path` / `deep path`는 문서를 얼마나 읽을지 정하는 축이다.
+- `Lite` / `Coordinated` / `Full`은 사람과 agent가 얼마나 강하게 coordination artifact를 쓸지 정하는 축이다.
+- generated repo는 `.agent-base/context-manifest.json`에 추천 coordination mode를 남긴다.
+- `Lite` 작업도 DB나 rollout 이슈가 생기면 deep path로 확장할 수 있고, `Full` 작업도 시작은 fast path로 가볍게 할 수 있다.
+
 ## 기본 원칙
 
 - 항상 `AGENTS.md`부터 시작한다.

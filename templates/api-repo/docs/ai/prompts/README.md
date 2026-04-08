@@ -42,28 +42,53 @@
 
 ## 새 프로젝트 시작 시 권장 프롬프트 순서
 
-1. [`project-bootstrap-interview.md`](./project-bootstrap-interview.md)로 대화형 인터뷰를 진행한다.
-2. [`project-spec-finalizer.md`](./project-spec-finalizer.md)로 인터뷰 결과를 정규화된 spec으로 확정한다.
-3. [`scaffold-planning.md`](./scaffold-planning.md)으로 템플릿, 구조, 첫 산출물 계획을 만든다.
-4. [`project-generator-run.md`](./project-generator-run.md)으로 generator 실행 패키지를 정리한다.
-5. [`../roles/README.md`](../roles/README.md)와 [`roles/README.md`](./roles/README.md), `checklists/agent-role-selection.md`로 core roles를 먼저 확정한다.
-6. generator가 남긴 `.agent-base/agent-role-plan.json`을 확인해 필수 역할과 specialization을 실제 실행 흐름에 반영한다.
-7. generator가 남긴 `.agent-base/context-manifest.json`을 확인해 fast path 문서만 먼저 연다.
-8. generator가 남긴 `.agent-base/refinement-manifest.json`을 확인해 high-priority module부터 follow-up 질문을 진행한다.
-9. `.agent-base/refinement-status.json`과 `docs/ai/repo-local-overrides.md`에 현재 결정을 기록한다.
-10. 필요하면 `python3 scripts/update_refinement_status.py --interactive --append-to-overrides`로 module 상태를 갱신한다.
-11. `.agent-base/agent-workboard.json`을 확인해 execution lane, owned path, next handoff를 고정한다.
-12. 첫 runner에게 넘기기 전에는 `python3 scripts/update_agent_workboard.py --finalize-design-freeze`로 current handoff packet을 만든다.
-13. 첫 공유 전달 전에는 `python3 scripts/update_agent_workboard.py --check-packets --strict`로 packet freshness를 확인한다.
-14. 필요하면 `python3 scripts/update_agent_workboard.py --interactive --append-handoff`로 baton history를 남긴다.
-15. [`post-bootstrap-refinement.md`](./post-bootstrap-refinement.md)로 결정-now / keep-default / defer-with-note를 정리한다.
-16. 필요한 경우 extended roles를 추가하고 역할별 specialist 프롬프트를 확장한다.
-17. `build-guide.md`를 이용해 첫 로컬 구축 문서를 만든다.
-18. `test-plan.md`로 첫 검증 계획을 만든다.
-19. DB를 소유하는 저장소면 `examples/database-review.md` 또는 `impact-analysis.md`를 사용해 DB change 기준을 확정한다.
-20. 배포가 필요한 저장소면 `deployment-checklist.md`를 만든다.
-21. 운영성 기능이면 `operations-manual.md`와 `impact-analysis.md`를 추가한다.
-22. 실패 케이스가 생기면 `agent-failure-review.md`와 `scripts/record_agent_failure.py`로 환류를 시작한다.
+먼저 generator가 남긴 `.agent-base/context-manifest.json`의 `recommendedCoordinationMode`를 확인하고 아래 중 하나를 기본 경로로 고른다.
+모드는 escalation path다. 기본은 가장 짧은 경로로 시작하고, shared ownership이나 운영 리스크가 생길 때만 다음 단계로 올린다.
+
+### Lite
+
+1. [`project-bootstrap-interview.md`](./project-bootstrap-interview.md)
+2. [`project-spec-finalizer.md`](./project-spec-finalizer.md)
+3. [`project-generator-run.md`](./project-generator-run.md)
+4. 필요하면 [`post-bootstrap-refinement.md`](./post-bootstrap-refinement.md)로 high-priority blocker만 정리한다.
+5. `build-guide.md` 또는 `test-plan.md` 중 당장 필요한 것 하나만 먼저 만든다.
+
+### Coordinated
+
+1. [`project-bootstrap-interview.md`](./project-bootstrap-interview.md)
+2. [`project-spec-finalizer.md`](./project-spec-finalizer.md)
+3. [`scaffold-planning.md`](./scaffold-planning.md)
+4. [`project-generator-run.md`](./project-generator-run.md)
+5. `roles/README.md`, `checklists/agent-role-selection.md`, `.agent-base/refinement-manifest.json`으로 high-priority coordination만 먼저 고정한다.
+6. 필요하면 [`post-bootstrap-refinement.md`](./post-bootstrap-refinement.md), `build-guide.md`, `test-plan.md`를 이어서 쓴다.
+
+### Full
+
+1. [`project-bootstrap-interview.md`](./project-bootstrap-interview.md)
+2. [`project-spec-finalizer.md`](./project-spec-finalizer.md)
+3. [`scaffold-planning.md`](./scaffold-planning.md)
+4. [`project-generator-run.md`](./project-generator-run.md)
+5. [`../roles/README.md`](../roles/README.md), [`roles/README.md`](./roles/README.md), `checklists/agent-role-selection.md`로 core/extended role을 먼저 고정한다.
+6. `.agent-base/refinement-manifest.json`, `.agent-base/agent-role-plan.json`, `.agent-base/agent-workboard.json`을 같이 보고 planning-to-execution handoff 기준을 정한다.
+7. 필요하면 [`post-bootstrap-refinement.md`](./post-bootstrap-refinement.md), `build-guide.md`, `test-plan.md`, `deployment-checklist.md`, `operations-manual.md`, `impact-analysis.md`를 연결한다.
+
+## Full Reference Sequence
+
+아래는 가장 상세한 참조 순서다. `Full`이 아니면 전부를 기본 절차로 강제하지 않는다.
+
+1. generator가 남긴 `.agent-base/context-manifest.json`을 확인해 fast path 문서만 먼저 연다.
+2. generator가 남긴 `.agent-base/refinement-manifest.json`을 확인해 high-priority module부터 follow-up 질문을 진행한다.
+3. `.agent-base/refinement-status.json`과 `docs/ai/repo-local-overrides.md`에 현재 결정을 기록한다.
+4. 필요하면 `python3 scripts/update_refinement_status.py --interactive --append-to-overrides`로 module 상태를 갱신한다.
+5. `.agent-base/agent-workboard.json`을 확인해 execution lane, owned path, next handoff를 고정한다.
+6. 첫 runner에게 넘기기 전에는 `python3 scripts/update_agent_workboard.py --finalize-design-freeze`로 current handoff packet을 만든다.
+7. 첫 공유 전달 전에는 `python3 scripts/update_agent_workboard.py --check-packets --strict`로 packet freshness를 확인한다.
+8. 필요하면 `python3 scripts/update_agent_workboard.py --interactive --append-handoff`로 baton history를 남긴다.
+9. 필요한 경우 extended roles를 추가하고 역할별 specialist 프롬프트를 확장한다.
+10. DB를 소유하는 저장소면 `examples/database-review.md` 또는 `impact-analysis.md`를 사용해 DB change 기준을 확정한다.
+11. 배포가 필요한 저장소면 `deployment-checklist.md`를 만든다.
+12. 운영성 기능이면 `operations-manual.md`와 `impact-analysis.md`를 추가한다.
+13. 실패 케이스가 생기면 `agent-failure-review.md`와 `scripts/record_agent_failure.py`로 환류를 시작한다.
 
 ## 기존 저장소 adoption / migration 시 권장 프롬프트 순서
 

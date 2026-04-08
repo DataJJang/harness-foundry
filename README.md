@@ -71,6 +71,24 @@ extended roles:
 
 역할별 책임과 handoff 규칙은 [`source/docs/ai/roles/README.md`](./source/docs/ai/roles/README.md) 에 정리돼 있다.
 
+### 4. Collaboration Depth
+
+같은 규칙 팩이라도 모든 저장소가 같은 절차 깊이를 강제하지는 않는다.
+
+기본 원칙은 가장 가벼운 모드로 시작하고, shared ownership, DB/security risk, release coordination이 생길 때만 한 단계씩 올리는 것이다.
+
+- `Lite`
+  - local-first, low-risk, 1인 또는 소규모 시작 경로
+  - blocking refinement와 첫 build/test만 먼저 본다
+- `Coordinated`
+  - DB, security, integration, shared handoff가 있는 기본 협업 경로
+  - refinement, workboard, first execution handoff를 맞춘다
+- `Full`
+  - production, monorepo/multi-repo, release/rollback, schema ownership처럼 coordination cost가 큰 경로
+  - role plan, workboard, packet freshness를 기본 절차로 쓴다
+
+generator는 생성된 root `README.md`와 `.agent-base/context-manifest.json`에 추천 mode와 이유를 같이 남긴다.
+
 ## 패키지 구조
 
 - `source/`
@@ -193,6 +211,7 @@ python3 ./source/scripts/project_bootstrap_cli.py \
 - `.agent-base/project-generation-spec.json`
 - `.agent-base/generation-manifest.json`
 - `.agent-base/context-manifest.json`
+  - fast/deep path와 추천 coordination mode를 같이 담는다
 - `.agent-base/pre-commit-config.json`
 - `.agent-base/refinement-manifest.json`
 - `.agent-base/refinement-status.json`

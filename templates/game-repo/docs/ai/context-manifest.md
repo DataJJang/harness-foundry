@@ -16,6 +16,9 @@
 - `runtimeRoles`
 - `fastPathDocs`
 - `deepPathDocs`
+- `recommendedCoordinationMode`
+- `coordinationModeSummary`
+- `coordinationModeReasons`
 - `coreRoles`
 - `extendedRoles`
 - `roleSpecializations`
@@ -24,6 +27,7 @@
 ## 사용 원칙
 
 - 저장소를 처음 열면 먼저 `fastPathDocs`만 읽는다.
+- 그 다음 `recommendedCoordinationMode`를 보고 `Lite`, `Coordinated`, `Full` 중 어느 절차를 기본값으로 쓸지 고른다.
 - deep path 문서는 schema ownership, migration, rollout, repeated failure 같은 조건이 생길 때만 추가한다.
 - `coreRoles`를 먼저 확정하고, `extendedRoles`는 필요 조건이 생겼을 때만 실제 실행 흐름에 넣는다.
 - repo-local overlay가 생기면 context manifest도 함께 갱신한다.
@@ -31,4 +35,5 @@
 ## 생성 시점
 
 - `generate_project.py`는 샘플 저장소 생성 시 `.agent-base/context-manifest.json`을 같이 만든다.
+- 이때 generator는 spec의 risk/coordination 신호를 보고 추천 coordination mode와 이유도 같이 계산한다.
 - 이후 저장소 담당자는 `command-catalog.md`, `architecture-map.md`, repo-local 예외를 보정한 뒤 필요하면 manifest를 수동 갱신한다.

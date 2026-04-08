@@ -105,6 +105,7 @@
 
 - entry layer는 가볍게 유지한다.
 - bootstrap과 adoption은 시작 경로를 분리한다.
+- context depth와 coordination depth는 별도 축으로 설명한다.
 - 역할 문서는 `core roles`와 `extended roles`를 구분해 읽는다.
 - simple 작업은 필요한 문맥만 먼저 읽고, migration/production/DB-owning 작업일 때만 deep path로 확장한다.
 - 템플릿과 생성 스크립트는 이 문서 구조를 기준으로 동기화한다.

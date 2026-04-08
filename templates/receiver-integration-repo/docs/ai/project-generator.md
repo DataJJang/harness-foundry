@@ -97,6 +97,8 @@ python3 source/scripts/generate_project.py \
 - `docs/ai/agent-handoff-log.md`
 - 필요 시 `TODO_UNSUPPORTED_SCAFFOLD.md`
 
+생성된 root `README.md`와 `.agent-base/context-manifest.json`은 추천 coordination mode와 그 이유를 같이 남긴다.
+
 ## 7. 후속 작업
 
 - `python3 scripts/install_git_hooks.py`로 local pre-commit gate를 활성화한다.

@@ -73,9 +73,10 @@ CLI는 아래를 만든다.
 - 선택된 template 이름
 - 선택된 scaffold profile 이름
 - 생성 지원 수준
+- 추천 coordination mode와 이유
 - 필요 시 실제 샘플 저장소
 
-spec은 `.agent-base/project-generation-spec.json`으로도 생성 저장소 안에 다시 남고, generator는 `.agent-base/context-manifest.json`, `.agent-base/agent-role-plan.json`, `.agent-base/refinement-manifest.json`, `.agent-base/refinement-status.json`, `.agent-base/agent-workboard.json`, `docs/ai/agent-handoff-log.md`를 같이 만든다.
+spec은 `.agent-base/project-generation-spec.json`으로도 생성 저장소 안에 다시 남고, generator는 `.agent-base/context-manifest.json`, `.agent-base/agent-role-plan.json`, `.agent-base/refinement-manifest.json`, `.agent-base/refinement-status.json`, `.agent-base/agent-workboard.json`, `docs/ai/agent-handoff-log.md`를 같이 만든다. 이 중 `.agent-base/context-manifest.json`과 root `README.md`에는 추천 coordination mode와 이유가 같이 들어간다.
 
 ## 6. 주의사항
 
@@ -86,18 +87,17 @@ spec은 `.agent-base/project-generation-spec.json`으로도 생성 저장소 안
 
 ## 7. 후속 작업
 
-CLI와 generator 실행 후에는 아래를 이어서 수행한다.
+CLI와 generator 실행 후에는 먼저 추천 coordination mode를 확인하고 아래처럼 시작한다.
 
-1. `docs/ai/command-catalog.md` 보정
-2. spec 옆 `*.refinement.json` 또는 `.agent-base/refinement-manifest.json`의 high-priority module 확인
-3. `python3 scripts/update_refinement_status.py --interactive --append-to-overrides`로 다음 pending module 처리
-4. spec 옆 `*.refinement-status.json` 또는 `.agent-base/refinement-status.json`에 현재 결정을 반영
-5. `docs/ai/repo-local-overrides.md`에 예외와 defer note 정리
-6. `.agent-base/agent-workboard.json`에서 execution lane과 next handoff를 확인
-7. `python3 scripts/update_agent_workboard.py --interactive --append-handoff`로 baton 갱신
-8. `python3 scripts/install_git_hooks.py` 실행
-9. `.agent-base/pre-commit-config.json`의 preset profile을 확인
-10. `docs/ai/architecture-map.md` 보정
-11. 첫 build/test/smoke 실행
-12. `checklists/project-creation.md` 완료
-13. `checklists/first-delivery.md` 완료
+- `Lite`
+  - `docs/ai/command-catalog.md`와 `.agent-base/pre-commit-config.json` 보정
+  - high-priority blocker만 확인
+  - 첫 build/test/smoke 실행
+- `Coordinated`
+  - high-priority refinement와 `docs/ai/repo-local-overrides.md` 정리
+  - `.agent-base/agent-workboard.json` 확인
+  - 필요 시 `--finalize-design-freeze`로 첫 execution handoff 고정
+- `Full`
+  - role plan, refinement, workboard를 같이 정리
+  - handoff packet과 freshness check를 shared delivery 기본 절차로 사용
+  - checklist, release/runbook, first validation을 역할별로 설명 가능한 상태까지 진행

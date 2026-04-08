@@ -10,6 +10,18 @@
 - 역할 배정은 [`agent-role-selection.md`](../../../checklists/agent-role-selection.md), 역할 간 인수인계는 [`agent-handoff.md`](../../../checklists/agent-handoff.md)를 함께 쓴다.
 - 상위 설계 이후 실행 단계에서는 `.agent-base/agent-workboard.json`과 `docs/ai/agent-handoff-log.md`를 같이 쓴다.
 
+## Coordination Mode Baseline
+
+- `Lite`
+  - 한 사람 또는 작은 팀이 `runtime-engineer`, `qa-validator`, `docs-operator`를 겸해도 된다.
+  - `orchestrator`와 `bootstrap-planner`는 문서 기준 역할로만 두고 실제 handoff artifact는 최소화한다.
+- `Coordinated`
+  - `orchestrator`, `runtime-engineer`, `qa-validator`, `docs-operator`를 기본으로 두고, `data-steward`와 `security-reviewer`는 조건부로 켠다.
+  - execution lane, first handoff packet, high-priority refinement를 명시적으로 맞춘다.
+- `Full`
+  - core roles를 명시적으로 유지하고 `release-manager`, `solution-architect` 같은 extended role을 실제 흐름에 올린다.
+  - shared delivery 전에는 owner, validator, docs owner, packet freshness를 모두 설명 가능해야 한다.
+
 ## Core Roles
 
 기본적으로 먼저 확정하는 역할군이다.

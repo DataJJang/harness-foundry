@@ -131,6 +131,18 @@ CONTEXT_BUDGET = {
     "checklists": 2,
 }
 
+COORDINATION_MODE_LABELS = {
+    "lite": "Lite",
+    "coordinated": "Coordinated",
+    "full": "Full",
+}
+
+COORDINATION_MODE_SUMMARIES = {
+    "lite": "짧은 기본 경로로 시작하고, 실제 blocker가 생길 때만 coordination artifact를 넓힌다.",
+    "coordinated": "핵심 refinement와 execution handoff만 고정하고, 나머지는 필요 시에만 확장한다.",
+    "full": "DB, security, release, multi-lane handoff를 포함한 전체 coordination 흐름을 기본 절차로 쓴다.",
+}
+
 RUNTIME_REFINEMENT_BY_FAMILY = {
     "game": {
         "title": "Game Runtime Shape",
@@ -426,8 +438,58 @@ def derive_agent_coordination(spec: dict) -> dict[str, list[str]]:
     }
 
 
+def derive_coordination_mode(spec: dict) -> dict[str, object]:
+    coordinated_reasons: list[str] = []
+    full_reasons: list[str] = []
+    target_environments = spec.get("targetEnvironments", [])
+
+    if spec.get("repositoryMode") != "single-repo":
+        full_reasons.append(f"repositoryMode is `{spec['repositoryMode']}`.")
+    if spec.get("projectNature") == "production":
+        full_reasons.append("projectNature is `production`.")
+    if spec.get("deploymentType") != "local-only" and len(target_environments) >= 3:
+        full_reasons.append(
+            "non-local deployment spans three or more target environments."
+        )
+    if spec.get("schemaOwnership") in {"owned", "shared"}:
+        full_reasons.append(f"schemaOwnership is `{spec['schemaOwnership']}`.")
+    if len(spec.get("runtimeRoles", [])) > 1 and spec.get("datastore") != "없음":
+        full_reasons.append("multiple runtime roles share a datastore boundary.")
+
+    if spec.get("datastore") != "없음":
+        coordinated_reasons.append(f"datastore is `{spec['datastore']}`.")
+    if spec.get("securityProfile") != "없음":
+        coordinated_reasons.append(f"securityProfile is `{spec['securityProfile']}`.")
+    if spec.get("deploymentType") != "local-only":
+        coordinated_reasons.append(f"deploymentType is `{spec['deploymentType']}`.")
+    if spec.get("externalIntegrations"):
+        coordinated_reasons.append(
+            "external integrations are declared: " + ", ".join(spec["externalIntegrations"]) + "."
+        )
+
+    if full_reasons:
+        mode = "full"
+        reasons = unique(full_reasons + coordinated_reasons)
+    elif coordinated_reasons:
+        mode = "coordinated"
+        reasons = unique(coordinated_reasons)
+    else:
+        mode = "lite"
+        reasons = [
+            "single-repo, local-first bootstrap with no DB, security, deployment, or external-integration risk trigger was detected."
+        ]
+
+    return {
+        "mode": mode,
+        "label": COORDINATION_MODE_LABELS[mode],
+        "summary": COORDINATION_MODE_SUMMARIES[mode],
+        "reasons": reasons,
+    }
+
+
 def derive_context_manifest(spec: dict) -> dict:
     mode = "bootstrap"
+    coordination_mode = derive_coordination_mode(spec)
     fast_path_docs = [
         "AGENTS.md",
         "docs/ai/context-profiles.md",
@@ -454,6 +516,9 @@ def derive_context_manifest(spec: dict) -> dict:
         "runtimeRoles": spec.get("runtimeRoles", []),
         "fastPathDocs": fast_path_docs,
         "deepPathDocs": unique(deep_path_docs),
+        "recommendedCoordinationMode": coordination_mode["mode"],
+        "coordinationModeSummary": coordination_mode["summary"],
+        "coordinationModeReasons": list(coordination_mode["reasons"]),
         "coreRoles": spec["requiredAgentRoles"],
         "extendedRoles": spec["optionalAgentRoles"],
         "roleSpecializations": spec["roleSpecializations"],
@@ -1418,6 +1483,33 @@ def apply_tokens(root: Path, tokens: dict[str, str]) -> None:
 
 
 def write_root_readme(target_dir: Path, spec: dict, scaffold_profile: str | None, support_level: str) -> None:
+    coordination_mode = derive_coordination_mode(spec)
+    if coordination_mode["mode"] == "lite":
+        next_steps = [
+            "Review `AGENTS.md`, `.agent-base/context-manifest.json`, and `docs/ai/command-catalog.md` only.",
+            "Review `.agent-base/refinement-manifest.json` and handle only the high-priority blockers for the first runnable path.",
+            "Align `docs/ai/command-catalog.md` and `.agent-base/pre-commit-config.json` with the real repository commands.",
+            "Run the first build, test, or smoke validation and record any gap in `docs/ai/repo-local-overrides.md`.",
+            "Open `.agent-base/agent-workboard.json` only if more than one owner or DB/security/release risk appears.",
+        ]
+    elif coordination_mode["mode"] == "coordinated":
+        next_steps = [
+            "Review `AGENTS.md`, `.agent-base/context-manifest.json`, and `.agent-base/refinement-manifest.json` first.",
+            "Update high-priority refinement decisions and record exceptions in `docs/ai/repo-local-overrides.md`.",
+            "Review `.agent-base/agent-workboard.json`; once blockers clear, run `python3 scripts/update_agent_workboard.py --finalize-design-freeze`.",
+            "Use handoff packets and baton history only at major role or scope transitions.",
+            "Align command/pre-commit settings and run the first build, test, or smoke validation.",
+        ]
+    else:
+        next_steps = [
+            "Review `AGENTS.md`, `.agent-base/context-manifest.json`, `.agent-base/agent-role-plan.json`, and `.agent-base/agent-workboard.json` together.",
+            "Resolve the high-priority refinement modules before widening implementation scope.",
+            "Run `python3 scripts/update_agent_workboard.py --finalize-design-freeze` and keep packet freshness checks in the shared delivery path.",
+            "Keep role owners, side lanes, and baton history current while implementation is in progress.",
+            "Align command/pre-commit settings, prepare release or runbook notes, and run the first build, test, and smoke validation.",
+        ]
+    next_steps_lines = "\n".join(f"{index}. {step}" for index, step in enumerate(next_steps, start=1))
+    coordination_reason_lines = "\n".join(f"- {reason}" for reason in coordination_mode["reasons"])
     readme = f"""# {spec['projectName']}
 
 {spec['projectPurpose']}
@@ -1441,21 +1533,17 @@ def write_root_readme(target_dir: Path, spec: dict, scaffold_profile: str | None
 - Scaffold profile: `{scaffold_profile or 'docs-only'}`
 - Scaffold support level: `{support_level}`
 
+## Recommended Coordination Mode
+
+- Mode: `{coordination_mode['label']}`
+- Summary: {coordination_mode['summary']}
+
+Why this mode:
+{coordination_reason_lines}
+
 ## Next Steps
 
-1. Review `AGENTS.md`, `docs/ai/project-bootstrap.md`, and `docs/ai/command-catalog.md`.
-2. Review `.agent-base/refinement-manifest.json` and resolve the high-priority follow-up modules first.
-3. Run `python3 scripts/update_refinement_status.py --interactive --append-to-overrides` to process the next pending refinement module.
-4. Review `.agent-base/agent-workboard.json` and confirm the first execution lane and owned paths.
-5. Once design blockers are clear, run `python3 scripts/update_agent_workboard.py --finalize-design-freeze` to freeze the first execution handoff packet.
-6. Run `python3 scripts/update_agent_workboard.py --interactive --append-handoff` after each later major execution handoff.
-7. Update `.agent-base/refinement-status.json`, `.agent-base/agent-workboard.json`, and `docs/ai/repo-local-overrides.md` while making bootstrap follow-up decisions.
-8. Install the local git hook pack with `python3 scripts/install_git_hooks.py`.
-9. Review `.agent-base/pre-commit-config.json` and align the preset with the real repository commands.
-10. Review `.agent-base/context-manifest.json` and load only the recommended fast-path docs first.
-11. Update commands, package names, env files, and runtime assumptions to the real repository state.
-12. Run the first build, compile, test, and smoke validation.
-13. Complete `checklists/project-creation.md` and `checklists/first-delivery.md`.
+{next_steps_lines}
 """
     (target_dir / "README.md").write_text(readme, encoding="utf-8")
 
@@ -1622,6 +1710,7 @@ def write_generation_artifacts(target_dir: Path, spec: dict, template_name: str,
     refinement_manifest = derive_refinement_manifest(spec, scaffold_profile, support_level)
     refinement_status = derive_refinement_status(spec, refinement_manifest)
     context_manifest = derive_context_manifest(spec)
+    coordination_mode = derive_coordination_mode(spec)
     role_plan = derive_agent_role_plan(spec)
     path_map = {
         "specPath": ".agent-base/project-generation-spec.json",
@@ -1649,6 +1738,9 @@ def write_generation_artifacts(target_dir: Path, spec: dict, template_name: str,
         "optionalAgentRoles": spec["optionalAgentRoles"],
         "roleSpecializations": spec["roleSpecializations"],
         "agentWorkflowOrder": spec["agentWorkflowOrder"],
+        "recommendedCoordinationMode": coordination_mode["mode"],
+        "coordinationModeSummary": coordination_mode["summary"],
+        "coordinationModeReasons": list(coordination_mode["reasons"]),
         "refinementManifestPath": ".agent-base/refinement-manifest.json",
         "refinementStatusPath": ".agent-base/refinement-status.json",
         "agentWorkboardPath": ".agent-base/agent-workboard.json",

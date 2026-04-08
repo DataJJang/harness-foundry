@@ -9,9 +9,10 @@ from pathlib import Path
 from generate_project import (
     TEMPLATE_BY_FAMILY,
     choose_scaffold,
+    derive_agent_coordination,
+    derive_coordination_mode,
     derive_refinement_manifest,
     derive_refinement_status,
-    derive_agent_coordination,
     generate_project,
     normalize_spec,
     validate_spec,
@@ -625,6 +626,7 @@ def print_summary(spec: dict, output_root: Path, spec_path: Path) -> None:
     template_name = TEMPLATE_BY_FAMILY[spec["projectFamily"]]
     scaffold_profile, support_level = choose_scaffold(spec)
     refinement_manifest = derive_refinement_manifest(spec, scaffold_profile, support_level)
+    coordination_mode = derive_coordination_mode(spec)
     print()
     print("선택 결과")
     print(f"- template: {template_name}")
@@ -633,6 +635,9 @@ def print_summary(spec: dict, output_root: Path, spec_path: Path) -> None:
     print(f"- core agent roles: {', '.join(spec['requiredAgentRoles'])}")
     print(f"- extended agent roles: {', '.join(spec['optionalAgentRoles'])}")
     print(f"- role specializations: {', '.join(spec['roleSpecializations'])}")
+    print(
+        f"- recommended coordination mode: {coordination_mode['label']} ({coordination_mode['summary']})"
+    )
     print(f"- output root: {output_root}")
     print(f"- spec path: {spec_path}")
     print(f"- refinement path: {refinement_path_for_spec(spec_path)}")
@@ -640,6 +645,10 @@ def print_summary(spec: dict, output_root: Path, spec_path: Path) -> None:
     print("- next context path: AGENTS.md -> context-profiles.md -> start-bootstrap.md")
     if spec["repositoryMode"] != "single-repo":
         print("- note: v1 generator는 샘플 저장소 1개만 만들고, monorepo/multi-repo 확장은 후속 수작업이 필요합니다.")
+    if coordination_mode["reasons"]:
+        print("- coordination reasons:")
+        for reason in coordination_mode["reasons"]:
+            print(f"  - {reason}")
     print()
     print("Refinement preview")
     print(f"- modules: {refinement_manifest['summary']['moduleCount']}")
@@ -684,6 +693,7 @@ def write_refinement_status(spec: dict, spec_path: Path) -> Path:
 def main() -> int:
     args = parse_args()
     spec, output_root, spec_path = build_interactive_spec(args)
+    coordination_mode = derive_coordination_mode(spec)
     print_summary(spec, output_root, spec_path)
 
     if not prompt_yes_no("이 spec을 저장할까요?", True):
@@ -701,6 +711,7 @@ def main() -> int:
                     "savedSpec": str(spec_path),
                     "savedRefinementManifest": str(refinement_path),
                     "savedRefinementStatus": str(refinement_status_path),
+                    "recommendedCoordinationMode": coordination_mode["mode"],
                     "generated": None,
                 },
                 ensure_ascii=False,
@@ -715,6 +726,7 @@ def main() -> int:
                     "savedSpec": str(spec_path),
                     "savedRefinementManifest": str(refinement_path),
                     "savedRefinementStatus": str(refinement_status_path),
+                    "recommendedCoordinationMode": coordination_mode["mode"],
                     "generated": None,
                 },
                 ensure_ascii=False,
@@ -729,7 +741,9 @@ def main() -> int:
                     "savedSpec": str(spec_path),
                     "savedRefinementManifest": str(refinement_path),
                     "savedRefinementStatus": str(refinement_status_path),
+                    "recommendedCoordinationMode": coordination_mode["mode"],
                     "generated": str(generated),
+                    "generatedContextManifest": str(generated / ".agent-base" / "context-manifest.json"),
                     "generatedRefinementManifest": str(generated / ".agent-base" / "refinement-manifest.json"),
                     "generatedRefinementStatus": str(generated / ".agent-base" / "refinement-status.json"),
                     "generatedAgentWorkboard": str(generated / ".agent-base" / "agent-workboard.json"),

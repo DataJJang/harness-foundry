@@ -7,6 +7,7 @@ This file is the canonical AI entrypoint for a repository that uses this templat
 - New repository or new project: read [`docs/ai/start-bootstrap.md`](./docs/ai/start-bootstrap.md)
 - Existing repository, conversion, migration, or onboarding: read [`docs/ai/start-adoption.md`](./docs/ai/start-adoption.md)
 - Context-loading and light vs deep read paths: read [`docs/ai/context-profiles.md`](./docs/ai/context-profiles.md)
+- Collaboration depth for generated repos: check `.agent-base/context-manifest.json` or the root `README.md` for the recommended `Lite`, `Coordinated`, or `Full` path
 
 ## Fast Path
 
@@ -20,6 +21,21 @@ Read only these first:
 4. [`docs/ai/project-selection-mapping.md`](./docs/ai/project-selection-mapping.md)
 5. [`docs/ai/roles/README.md`](./docs/ai/roles/README.md)
 6. [`docs/ai/governance/quality-gates.md`](./docs/ai/governance/quality-gates.md)
+
+## Collaboration Depth
+
+Default to the lightest mode that still covers the current risk. Move up only when extra owners, data/security coordination, or release complexity actually appears.
+
+- `Lite`
+  - one person or low-risk bootstrap
+  - start with command alignment, blocking refinement only, first build/test
+  - open workboard or handoff artifacts only when extra owners or higher-risk scope appears
+- `Coordinated`
+  - multiple owners or moderate DB/security/deployment risk
+  - keep refinement decisions, workboard, and first execution handoff packet in sync
+- `Full`
+  - production, monorepo/multi-repo, or heavy DB/security/release coordination
+  - treat role plan, workboard, handoff packet, and freshness checks as default flow
 
 ## Core Concepts
 
