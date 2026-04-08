@@ -32,3 +32,11 @@
 - 공통 규칙은 `AGENTS.md`와 `docs/ai/`만 갱신한다.
 - 도구별 파일은 가능한 한 짧고 파생형으로 유지한다.
 - 도구별 파일이 canonical보다 길어지기 시작하면 구조가 잘못된 것으로 본다.
+
+## 5. Model Tier Mapping
+
+- canonical 규칙은 실제 모델명 대신 `economy`, `standard`, `high-reasoning` tier만 쓴다.
+- 역할, refinement module, execution lane별 tier 정책은 generated repo의 `.agent-base/model-routing.json`에 저장한다.
+- 실제 모델명 매핑은 `CLAUDE.md`, `GEMINI.md`, `copilot-instructions`, `.cursor/rules` 같은 adapter에서만 관리한다.
+- 도구가 현재 모델 tier를 노출할 수 있으면 첫 질의 시점에 `model-routing.json`과 비교해 `below-minimum`, `below-recommended`, `above-recommended` 경고를 바로 띄우는 것이 좋다.
+- 도구가 현재 tier를 직접 노출하지 못하면 soft recommendation으로만 동작시키고, 필요 시 `HARNESS_MODEL_TIER` 환경변수나 helper script로 보완한다.

@@ -13,6 +13,14 @@
 - 검증 기준, 미검증 항목, 운영 영향도를 반드시 출력하게 한다.
 - 실제 토큰, 실운영 URL, 실계정 정보는 프롬프트에 넣지 않는다.
 
+## Model Tier Routing
+
+- canonical 문서에는 실제 모델명 대신 `economy`, `standard`, `high-reasoning` tier만 적는다.
+- generated repo는 `.agent-base/model-routing.json`에 역할, refinement module, execution lane별 권장/최소 tier를 남긴다.
+- 도구가 현재 모델 tier를 알면 프롬프트 시작 전에 `.agent-base/model-routing.json`과 비교해 경고를 먼저 보여준다.
+- 도구가 tier를 직접 넘기지 못하면, 프롬프트 본문에 현재 tier를 적거나 `python3 scripts/show_start_path.py --current-model-tier <tier>` 같은 helper 출력으로 보완한다.
+- `below-minimum`은 즉시 경고 대상으로 보고, `below-recommended`는 추가 reviewer 또는 검증 강화를 붙일지 판단한다.
+
 ## 공통 입력 구조
 
 모든 프롬프트는 아래 항목을 가능한 한 채워 넣는다.
@@ -44,7 +52,8 @@
 
 먼저 generator가 남긴 `.agent-base/context-manifest.json`의 `recommendedCoordinationMode`를 확인하고 아래 중 하나를 기본 경로로 고른다.
 모드는 escalation path다. 기본은 가장 짧은 경로로 시작하고, shared ownership이나 운영 리스크가 생길 때만 다음 단계로 올린다.
-generated repo에서는 manual prompt sequence를 열기 전에 `python3 scripts/show_start_path.py`로 현재 top 3 action부터 확인하는 편이 좋다.
+generated repo에서는 manual prompt sequence를 열기 전에 AI에게 `AGENTS.md`, `.agent-base/context-manifest.json`, `.agent-base/model-routing.json`을 보고 top 3 action과 tier risk를 먼저 정리하게 하는 편이 좋다.
+helper가 필요하면 `python3 scripts/show_start_path.py --current-model-tier standard`처럼 현재 tier를 함께 넘길 수 있다.
 
 ### Lite
 
@@ -61,7 +70,8 @@ generated repo에서는 manual prompt sequence를 열기 전에 `python3 scripts
 3. [`scaffold-planning.md`](./scaffold-planning.md)
 4. [`project-generator-run.md`](./project-generator-run.md)
 5. `roles/README.md`, `checklists/agent-role-selection.md`, `.agent-base/refinement-manifest.json`으로 high-priority coordination만 먼저 고정한다.
-6. 필요하면 [`post-bootstrap-refinement.md`](./post-bootstrap-refinement.md), `build-guide.md`, `test-plan.md`를 이어서 쓴다.
+6. 현재 tier를 알고 있으면 `.agent-base/model-routing.json`과 비교해 `below-minimum` 또는 `below-recommended` 경고가 있는지 먼저 본다.
+7. 필요하면 [`post-bootstrap-refinement.md`](./post-bootstrap-refinement.md), `build-guide.md`, `test-plan.md`를 이어서 쓴다.
 
 ### Full
 
@@ -71,7 +81,8 @@ generated repo에서는 manual prompt sequence를 열기 전에 `python3 scripts
 4. [`project-generator-run.md`](./project-generator-run.md)
 5. [`../roles/README.md`](../roles/README.md), [`roles/README.md`](./roles/README.md), `checklists/agent-role-selection.md`로 core/extended role을 먼저 고정한다.
 6. `.agent-base/refinement-manifest.json`, `.agent-base/agent-role-plan.json`, `.agent-base/agent-workboard.json`을 같이 보고 planning-to-execution handoff 기준을 정한다.
-7. 필요하면 [`post-bootstrap-refinement.md`](./post-bootstrap-refinement.md), `build-guide.md`, `test-plan.md`, `deployment-checklist.md`, `operations-manual.md`, `impact-analysis.md`를 연결한다.
+7. 현재 tier를 알고 있으면 `.agent-base/model-routing.json`과 비교해 lane/refinement 기준을 먼저 확인한다.
+8. 필요하면 [`post-bootstrap-refinement.md`](./post-bootstrap-refinement.md), `build-guide.md`, `test-plan.md`, `deployment-checklist.md`, `operations-manual.md`, `impact-analysis.md`를 연결한다.
 
 ## Full Reference Sequence
 

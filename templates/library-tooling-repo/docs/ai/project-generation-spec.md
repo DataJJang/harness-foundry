@@ -147,6 +147,7 @@ generator는 spec를 받아 아래 산출물을 같이 남긴다.
 - `.agent-base/refinement-manifest.json`
 - `.agent-base/refinement-status.json`
 - `.agent-base/agent-workboard.json`
+- `.agent-base/model-routing.json`
 - `docs/ai/agent-handoff-log.md`
 
 `context-manifest.json`에는 fast path, deep path, core roles, extended roles, context budget이 들어간다.
@@ -154,6 +155,7 @@ generator는 spec를 받아 아래 산출물을 같이 남긴다.
 `refinement-manifest.json`에는 생성 후 어떤 심화 질문을 어떤 우선순위로 이어갈지 남긴다.
 `refinement-status.json`에는 그 follow-up 질문을 어떻게 처리했는지 상태를 남긴다.
 `agent-workboard.json`에는 설계 이후 실행 lane, owned path, next handoff, blocker를 남긴다.
+`model-routing.json`에는 역할, refinement, lane별 권장/최소 model tier를 남긴다.
 
 ## 3. 프로젝트 패밀리별 필수 산출 구조
 

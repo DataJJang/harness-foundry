@@ -143,6 +143,101 @@ COORDINATION_MODE_SUMMARIES = {
     "full": "DB, security, release, multi-lane handoff를 포함한 전체 coordination 흐름을 기본 절차로 쓴다.",
 }
 
+MODEL_TIER_ORDER = {
+    "economy": 0,
+    "standard": 1,
+    "high-reasoning": 2,
+}
+
+MODEL_TIER_SUMMARIES = {
+    "economy": "짧고 반복적인 작업, 고정 포맷 정리, 낮은 리스크의 문서/보정 작업에 적합하다.",
+    "standard": "일반 구현, bootstrap 정리, 중간 난도의 검증과 리팩터링에 적합하다.",
+    "high-reasoning": "production 설계, data/security/release 결정, migration, compatibility 검토에 적합하다.",
+}
+
+ROLE_MODEL_POLICY_BASE = {
+    "orchestrator": {
+        "recommendedTier": "standard",
+        "minimumTier": "economy",
+        "reason": "작업 순서와 handoff를 맞추지만, 일반적인 coordination은 standard면 충분하다.",
+    },
+    "bootstrap-planner": {
+        "recommendedTier": "standard",
+        "minimumTier": "economy",
+        "reason": "spec 정리와 기본 흐름 설계는 standard면 충분하고, 반복 인터뷰 정리는 economy도 가능하다.",
+    },
+    "runtime-engineer": {
+        "recommendedTier": "standard",
+        "minimumTier": "standard",
+        "reason": "실제 코드와 설정 변경은 최소 standard reasoning이 있어야 drift를 줄일 수 있다.",
+    },
+    "data-steward": {
+        "recommendedTier": "high-reasoning",
+        "minimumTier": "standard",
+        "reason": "schema, migration, verification, rollback 판단은 품질 하한이 높다.",
+    },
+    "security-reviewer": {
+        "recommendedTier": "high-reasoning",
+        "minimumTier": "standard",
+        "reason": "auth, secret, exposure, policy 판단은 고난도 reasoning이 유리하다.",
+    },
+    "qa-validator": {
+        "recommendedTier": "standard",
+        "minimumTier": "economy",
+        "reason": "검증 계획과 결과 정리는 standard가 좋지만, 고정된 체크 결과 취합은 economy도 가능하다.",
+    },
+    "docs-operator": {
+        "recommendedTier": "economy",
+        "minimumTier": "economy",
+        "reason": "문서 동기화와 정리 작업은 상대적으로 경량 tier로도 수행 가능하다.",
+    },
+    "product-analyst": {
+        "recommendedTier": "standard",
+        "minimumTier": "economy",
+        "reason": "요구사항과 범위 정리는 standard가 좋지만, 간단한 요약은 economy도 가능하다.",
+    },
+    "solution-architect": {
+        "recommendedTier": "high-reasoning",
+        "minimumTier": "standard",
+        "reason": "경계, 구조, 장기 유지보수 판단은 고난도 reasoning이 유리하다.",
+    },
+    "release-manager": {
+        "recommendedTier": "high-reasoning",
+        "minimumTier": "standard",
+        "reason": "rollout, rollback, operational readiness 판단은 낮은 tier에서 누락될 위험이 크다.",
+    },
+    "failure-curator": {
+        "recommendedTier": "standard",
+        "minimumTier": "economy",
+        "reason": "실패 패턴 정리와 문서 환류는 standard가 좋고, 단순 기록은 economy도 가능하다.",
+    },
+    "legacy-analyst": {
+        "recommendedTier": "standard",
+        "minimumTier": "economy",
+        "reason": "brownfield inventory는 standard가 좋지만, 단순 구조 수집은 economy도 가능하다.",
+    },
+    "migration-planner": {
+        "recommendedTier": "high-reasoning",
+        "minimumTier": "standard",
+        "reason": "전환 단계와 parity/cutover 계획은 장기적 판단 비용이 높다.",
+    },
+    "compatibility-reviewer": {
+        "recommendedTier": "high-reasoning",
+        "minimumTier": "standard",
+        "reason": "breaking point와 stack compatibility 판단은 reasoning cost가 큰 편이다.",
+    },
+    "refactor-guardian": {
+        "recommendedTier": "high-reasoning",
+        "minimumTier": "standard",
+        "reason": "behavior drift 없이 구조를 바꾸려면 높은 수준의 비교/추적이 필요하다.",
+    },
+    "cutover-manager": {
+        "recommendedTier": "high-reasoning",
+        "minimumTier": "standard",
+        "reason": "실운영 전환과 rollback timing은 판단 실수가 비싸다.",
+    },
+}
+
 RUNTIME_REFINEMENT_BY_FAMILY = {
     "game": {
         "title": "Game Runtime Shape",
@@ -528,13 +623,126 @@ def derive_context_manifest(spec: dict) -> dict:
     }
 
 
+def normalize_role_id(role: str) -> str:
+    return role.split("[", 1)[0].strip()
+
+
+def max_model_tier(*tiers: str) -> str:
+    resolved = [tier for tier in tiers if tier]
+    if not resolved:
+        return "economy"
+    return max(resolved, key=lambda tier: MODEL_TIER_ORDER.get(tier, -1))
+
+
+def role_model_policy(role: str, spec: dict) -> dict:
+    role_id = normalize_role_id(role)
+    base = ROLE_MODEL_POLICY_BASE.get(
+        role_id,
+        {
+            "recommendedTier": "standard",
+            "minimumTier": "economy",
+            "reason": "일반적인 역할 기준으로 standard tier를 추천한다.",
+        },
+    )
+    recommended = base["recommendedTier"]
+    minimum = base["minimumTier"]
+    reason = base["reason"]
+
+    if spec.get("projectNature") == "production" and role_id in {
+        "security-reviewer",
+        "data-steward",
+        "solution-architect",
+        "release-manager",
+        "migration-planner",
+        "compatibility-reviewer",
+        "cutover-manager",
+    }:
+        minimum = "high-reasoning"
+        recommended = "high-reasoning"
+        reason += " production 상황에서는 최소 tier도 high-reasoning으로 올려 본다."
+
+    if spec.get("deploymentType") != "local-only" and role_id == "release-manager":
+        minimum = max_model_tier(minimum, "high-reasoning")
+        recommended = "high-reasoning"
+
+    return {
+        "role": role,
+        "roleId": role_id,
+        "recommendedTier": recommended,
+        "minimumTier": minimum,
+        "summary": MODEL_TIER_SUMMARIES[recommended],
+        "reason": reason,
+    }
+
+
 def derive_agent_role_plan(spec: dict) -> dict:
+    roles = unique(spec["requiredAgentRoles"] + spec["optionalAgentRoles"])
     return {
         "requiredAgentRoles": spec["requiredAgentRoles"],
         "optionalAgentRoles": spec["optionalAgentRoles"],
         "roleSpecializations": spec["roleSpecializations"],
         "agentWorkflowOrder": spec["agentWorkflowOrder"],
         "agentRoleOverrides": spec["agentRoleOverrides"],
+        "roleModelPolicies": [role_model_policy(role, spec) for role in roles],
+    }
+
+
+def derive_model_routing(spec: dict, role_plan: dict, refinement_manifest: dict, workboard: dict) -> dict:
+    role_policies = {
+        policy["roleId"]: policy
+        for policy in role_plan.get("roleModelPolicies", [])
+    }
+
+    lane_policies = []
+    for lane in workboard["workLanes"]:
+        policy = role_model_policy(lane["role"], spec)
+        lane_policies.append(
+            {
+                "laneId": lane["id"],
+                "phase": lane["phase"],
+                "role": lane["role"],
+                "recommendedTier": policy["recommendedTier"],
+                "minimumTier": policy["minimumTier"],
+                "reason": f"{lane['role']} lane이므로 {policy['reason']}",
+            }
+        )
+
+    refinement_policies = []
+    for module in refinement_manifest["modules"]:
+        module_role_policies = [role_model_policy(role, spec) for role in module["agentRoles"]]
+        recommended = max_model_tier(*(policy["recommendedTier"] for policy in module_role_policies))
+        minimum = max_model_tier(*(policy["minimumTier"] for policy in module_role_policies))
+        refinement_policies.append(
+            {
+                "moduleId": module["id"],
+                "priority": module["priority"],
+                "recommendedTier": recommended,
+                "minimumTier": minimum,
+                "reason": " / ".join(policy["roleId"] for policy in module_role_policies),
+            }
+        )
+
+    return {
+        "version": 1,
+        "repositoryName": spec["repositoryName"],
+        "projectFamily": spec["projectFamily"],
+        "policyMode": "soft-recommendation-with-warning",
+        "tierDefinitions": [
+            {
+                "tier": tier,
+                "rank": rank,
+                "summary": MODEL_TIER_SUMMARIES[tier],
+            }
+            for tier, rank in MODEL_TIER_ORDER.items()
+        ],
+        "rolePolicies": [role_policies[key] for key in sorted(role_policies.keys())],
+        "lanePolicies": lane_policies,
+        "refinementPolicies": refinement_policies,
+        "warningRules": {
+            "belowMinimum": "현재 tier가 minimumTier보다 낮으면 결과 품질 보장이 어렵다는 경고를 즉시 띄운다.",
+            "aboveRecommended": "현재 tier가 recommendedTier보다 높으면 비용/토큰 과사용 가능성을 알리는 budget note를 띄운다.",
+            "enforcement": "도구가 현재 모델 tier를 알려줄 때만 자동 판정 가능하며, 그렇지 않으면 권장 정책으로만 동작한다.",
+        },
     }
 
 
@@ -1551,6 +1759,11 @@ Why this mode:
 ```
 
 이 명령은 현재 저장소의 추천 mode, blocking refinement, workboard 상태를 읽고 지금 바로 할 3가지 액션만 보여준다.
+현재 사용하는 AI 모델 tier를 알고 있으면 `.agent-base/model-routing.json`과 같이 비교하도록 AI에게 요청하거나 아래처럼 helper에 직접 넘길 수 있다.
+
+```bash
+python3 scripts/show_start_path.py --current-model-tier standard
+```
 
 ## Mode Baseline
 
@@ -1730,6 +1943,7 @@ def write_generation_artifacts(target_dir: Path, spec: dict, template_name: str,
         "refinementManifestPath": ".agent-base/refinement-manifest.json",
         "refinementStatusPath": ".agent-base/refinement-status.json",
         "workboardPath": ".agent-base/agent-workboard.json",
+        "modelRoutingPath": ".agent-base/model-routing.json",
         "repoLocalOverridesPath": "docs/ai/repo-local-overrides.md",
         "handoffLogPath": "docs/ai/agent-handoff-log.md",
         "handoffPacketDirectoryPath": "docs/ai/handoff-packets",
@@ -1738,6 +1952,7 @@ def write_generation_artifacts(target_dir: Path, spec: dict, template_name: str,
         "precommitConfigPath": ".agent-base/pre-commit-config.json",
     }
     agent_workboard = derive_agent_workboard(spec, context_manifest, refinement_manifest, refinement_status, path_map)
+    model_routing = derive_model_routing(spec, role_plan, refinement_manifest, agent_workboard)
     (meta_dir / "project-generation-spec.json").write_text(
         json.dumps(spec, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
@@ -1755,6 +1970,7 @@ def write_generation_artifacts(target_dir: Path, spec: dict, template_name: str,
         "refinementManifestPath": ".agent-base/refinement-manifest.json",
         "refinementStatusPath": ".agent-base/refinement-status.json",
         "agentWorkboardPath": ".agent-base/agent-workboard.json",
+        "modelRoutingPath": ".agent-base/model-routing.json",
         "repoLocalOverridesPath": "docs/ai/repo-local-overrides.md",
         "handoffLogPath": "docs/ai/agent-handoff-log.md",
         "handoffPacketDirectoryPath": "docs/ai/handoff-packets",
@@ -1785,6 +2001,10 @@ def write_generation_artifacts(target_dir: Path, spec: dict, template_name: str,
     )
     (meta_dir / "agent-workboard.json").write_text(
         json.dumps(agent_workboard, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    (meta_dir / "model-routing.json").write_text(
+        json.dumps(model_routing, indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
     )
     write_agent_handoff_log(target_dir, agent_workboard)

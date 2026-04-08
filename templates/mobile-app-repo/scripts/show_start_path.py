@@ -3,9 +3,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 
-from generate_project import COORDINATION_MODE_LABELS
+from generate_project import COORDINATION_MODE_LABELS, MODEL_TIER_ORDER
 from state_io import load_json
 
 
@@ -14,6 +15,8 @@ DEFAULT_CONTEXT_PATH = REPO_ROOT / ".agent-base" / "context-manifest.json"
 DEFAULT_REFINEMENT_STATUS_PATH = REPO_ROOT / ".agent-base" / "refinement-status.json"
 DEFAULT_WORKBOARD_PATH = REPO_ROOT / ".agent-base" / "agent-workboard.json"
 DEFAULT_GENERATION_MANIFEST_PATH = REPO_ROOT / ".agent-base" / "generation-manifest.json"
+DEFAULT_MODEL_ROUTING_PATH = REPO_ROOT / ".agent-base" / "model-routing.json"
+CURRENT_MODEL_TIER_ENV = "HARNESS_MODEL_TIER"
 
 ESCALATION_HINTS = {
     "lite": "shared ownership, data/security coordination, or release risk becomes part of the normal path.",
@@ -46,6 +49,15 @@ def parse_args() -> argparse.Namespace:
         default=str(DEFAULT_GENERATION_MANIFEST_PATH),
         help="Path to generation-manifest.json",
     )
+    parser.add_argument(
+        "--model-routing-path",
+        default=str(DEFAULT_MODEL_ROUTING_PATH),
+        help="Path to model-routing.json",
+    )
+    parser.add_argument(
+        "--current-model-tier",
+        help="Current AI model tier: economy, standard, or high-reasoning",
+    )
     parser.add_argument("--json", action="store_true", help="Print the starter path as JSON")
     return parser.parse_args()
 
@@ -69,6 +81,37 @@ def resolve_repo_root(context_path: Path) -> Path:
     return context_path.parent
 
 
+def normalize_model_tier(tier: str | None) -> str:
+    if not tier:
+        return ""
+    normalized = tier.strip().lower().replace("_", "-")
+    aliases = {
+        "high": "high-reasoning",
+        "highreasoning": "high-reasoning",
+    }
+    normalized = aliases.get(normalized, normalized)
+    if normalized in MODEL_TIER_ORDER:
+        return normalized
+    return ""
+
+
+def detect_current_model_tier(explicit_tier: str | None) -> tuple[str, str]:
+    normalized = normalize_model_tier(explicit_tier)
+    if normalized:
+        return normalized, "--current-model-tier"
+    env_tier = normalize_model_tier(os.environ.get(CURRENT_MODEL_TIER_ENV))
+    if env_tier:
+        return env_tier, CURRENT_MODEL_TIER_ENV
+    return "", ""
+
+
+def max_model_tier(*tiers: str) -> str:
+    resolved = [tier for tier in tiers if tier]
+    if not resolved:
+        return ""
+    return max(resolved, key=lambda tier: MODEL_TIER_ORDER.get(tier, -1))
+
+
 def find_lane(workboard: dict | None, lane_id: str) -> dict | None:
     if not workboard:
         return None
@@ -88,6 +131,131 @@ def latest_packet_path(workboard: dict | None) -> str:
         if lane.get("latestPacketPath"):
             return lane["latestPacketPath"]
     return ""
+
+
+def combine_model_policies(
+    target_kind: str,
+    target_ids: list[str],
+    policies: list[dict],
+    reason: str,
+) -> dict | None:
+    if not policies:
+        return None
+    return {
+        "targetKind": target_kind,
+        "targetIds": list(target_ids),
+        "recommendedTier": max_model_tier(*(policy.get("recommendedTier", "") for policy in policies)),
+        "minimumTier": max_model_tier(*(policy.get("minimumTier", "") for policy in policies)),
+        "reason": reason,
+        "sources": list(policies),
+    }
+
+
+def select_model_policy(model_routing: dict | None, state: dict) -> dict | None:
+    if not model_routing:
+        return None
+
+    lane_policies = {
+        policy.get("laneId"): policy for policy in model_routing.get("lanePolicies", []) if policy.get("laneId")
+    }
+    refinement_policies = {
+        policy.get("moduleId"): policy
+        for policy in model_routing.get("refinementPolicies", [])
+        if policy.get("moduleId")
+    }
+
+    blocking = list(state.get("blockingHighPriorityModules", []))
+    blocking_policies = [refinement_policies[module_id] for module_id in blocking if module_id in refinement_policies]
+    if blocking_policies:
+        return combine_model_policies(
+            "refinement",
+            blocking,
+            blocking_policies,
+            "High-priority refinement blocker가 아직 남아 있으므로, 현재는 refinement 기준 tier를 우선 적용한다.",
+        )
+
+    next_lane = state.get("nextSuggestedLaneId")
+    if next_lane and next_lane in lane_policies:
+        return combine_model_policies(
+            "lane",
+            [next_lane],
+            [lane_policies[next_lane]],
+            "다음 제안 lane을 시작하기 전이므로, 현재는 next suggested lane 기준 tier를 본다.",
+        )
+
+    if state.get("designFreezeStatus") != "completed" and "design-freeze" in lane_policies:
+        return combine_model_policies(
+            "lane",
+            ["design-freeze"],
+            [lane_policies["design-freeze"]],
+            "design-freeze가 아직 닫히지 않았으므로 planning-to-execution handoff tier를 본다.",
+        )
+
+    return None
+
+
+def evaluate_model_tier(policy: dict | None, current_tier: str, detected_from: str) -> dict:
+    if not policy:
+        return {
+            "status": "no-policy",
+            "currentTier": current_tier,
+            "detectedFrom": detected_from,
+            "recommendedTier": "",
+            "minimumTier": "",
+            "targetKind": "",
+            "targetIds": [],
+            "reason": "",
+            "message": "이 저장소에는 비교할 model routing policy가 아직 없다.",
+        }
+
+    recommended = policy.get("recommendedTier", "")
+    minimum = policy.get("minimumTier", "")
+    result = {
+        "status": "unknown",
+        "currentTier": current_tier,
+        "detectedFrom": detected_from,
+        "recommendedTier": recommended,
+        "minimumTier": minimum,
+        "targetKind": policy.get("targetKind", ""),
+        "targetIds": list(policy.get("targetIds", [])),
+        "reason": policy.get("reason", ""),
+        "message": "",
+    }
+
+    if not current_tier:
+        result["message"] = (
+            "현재 model tier를 모르면 즉시 경고를 낼 수 없다. "
+            f"`--current-model-tier` 또는 `{CURRENT_MODEL_TIER_ENV}`를 주면 바로 비교한다."
+        )
+        return result
+
+    current_rank = MODEL_TIER_ORDER.get(current_tier, -1)
+    recommended_rank = MODEL_TIER_ORDER.get(recommended, -1)
+    minimum_rank = MODEL_TIER_ORDER.get(minimum, -1)
+
+    if current_rank < minimum_rank:
+        result["status"] = "below-minimum"
+        result["message"] = (
+            f"현재 tier `{current_tier}`는 최소 요구 `{minimum}`보다 낮다. "
+            "산출물 품질 보장이 어려우므로 상위 tier로 올리거나, 상위 tier reviewer와 추가 검증을 붙이는 편이 안전하다."
+        )
+    elif current_rank < recommended_rank:
+        result["status"] = "below-recommended"
+        result["message"] = (
+            f"현재 tier `{current_tier}`는 최소 기준은 충족하지만 권장 tier `{recommended}`보다 낮다. "
+            "진행은 가능하지만 재작업이나 추가 리뷰 비용이 커질 수 있다."
+        )
+    elif current_rank > recommended_rank:
+        result["status"] = "above-recommended"
+        result["message"] = (
+            f"현재 tier `{current_tier}`는 권장 tier `{recommended}`보다 높다. "
+            "품질 리스크는 낮지만 비용과 토큰 사용량이 과해질 수 있다."
+        )
+    else:
+        result["status"] = "aligned"
+        result["message"] = f"현재 tier `{current_tier}`는 현재 단계 권장 범위와 맞는다."
+
+    return result
 
 
 def minimal_entry_files(mode: str) -> list[str]:
@@ -307,6 +475,9 @@ def build_report(
     refinement_status: dict | None,
     workboard: dict | None,
     generation_manifest: dict | None,
+    model_routing: dict | None,
+    current_model_tier: str,
+    detected_from: str,
 ) -> dict:
     mode = context_manifest.get("recommendedCoordinationMode") or (
         generation_manifest or {}
@@ -341,6 +512,8 @@ def build_report(
         "nextSuggestedLaneId": next_lane or "",
         "latestPacketPath": latest_packet_path(workboard),
     }
+    active_model_policy = select_model_policy(model_routing, state)
+    model_tier_check = evaluate_model_tier(active_model_policy, current_model_tier, detected_from)
 
     return {
         "mode": mode,
@@ -348,6 +521,7 @@ def build_report(
         "summary": summary,
         "reasons": reasons,
         "state": state,
+        "modelTierCheck": model_tier_check,
         "actions": build_actions(mode, state),
         "escalateWhen": ESCALATION_HINTS.get(mode, ""),
     }
@@ -365,6 +539,25 @@ def print_report(report: dict) -> None:
     print(f"- Design-freeze status: {report['state']['designFreezeStatus']}")
     print(f"- Next suggested lane: {report['state']['nextSuggestedLaneId'] or '-'}")
     print(f"- Latest packet path: {report['state']['latestPacketPath'] or '-'}")
+    model_tier_check = report.get("modelTierCheck", {})
+    if model_tier_check:
+        print(f"- Model tier status: {model_tier_check.get('status', '-')}")
+        print(f"- Current model tier: {model_tier_check.get('currentTier') or '-'}")
+        if model_tier_check.get("detectedFrom"):
+            print(f"- Tier source: {model_tier_check['detectedFrom']}")
+        if model_tier_check.get("minimumTier"):
+            print(f"- Minimum tier: {model_tier_check['minimumTier']}")
+        if model_tier_check.get("recommendedTier"):
+            print(f"- Recommended tier: {model_tier_check['recommendedTier']}")
+        if model_tier_check.get("targetIds"):
+            target_label = ", ".join(model_tier_check["targetIds"])
+            if model_tier_check.get("targetKind"):
+                target_label += f" ({model_tier_check['targetKind']})"
+            print(f"- Tier target: {target_label}")
+        if model_tier_check.get("reason"):
+            print(f"- Tier basis: {model_tier_check['reason']}")
+        if model_tier_check.get("message"):
+            print(f"- Model tier note: {model_tier_check['message']}")
     if report["reasons"]:
         print()
         print("Why this mode:")
@@ -402,8 +595,19 @@ def main() -> int:
     refinement_status = load_optional_json(Path(args.refinement_status_path).expanduser().resolve())
     workboard = load_optional_json(Path(args.workboard_path).expanduser().resolve())
     generation_manifest = load_optional_json(Path(args.generation_manifest_path).expanduser().resolve())
+    model_routing = load_optional_json(Path(args.model_routing_path).expanduser().resolve())
+    current_model_tier, detected_from = detect_current_model_tier(args.current_model_tier)
 
-    report = build_report(repo_root, context_manifest, refinement_status, workboard, generation_manifest)
+    report = build_report(
+        repo_root,
+        context_manifest,
+        refinement_status,
+        workboard,
+        generation_manifest,
+        model_routing,
+        current_model_tier,
+        detected_from,
+    )
     if args.json:
         print(json.dumps(report, indent=2, ensure_ascii=False))
         return 0
