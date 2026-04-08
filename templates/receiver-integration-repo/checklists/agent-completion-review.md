@@ -6,6 +6,7 @@
 - [ ] 미검증 항목이 기록되었는가
 - [ ] 문서 영향이 반영되었는가
 - [ ] `.agent-base/agent-workboard.json`의 해당 lane이 최신 상태인가
+- [ ] current handoff packet이 있다면 stale 상태가 아닌가
 - [ ] DB 영향이 있으면 data-steward 산출물이 있는가
 - [ ] 보안 영향이 있으면 security-review 결과가 있는가
 - [ ] handoff 누락이 없는가

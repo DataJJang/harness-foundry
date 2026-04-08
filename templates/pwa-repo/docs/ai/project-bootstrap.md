@@ -26,15 +26,16 @@
 16. 생성된 샘플 저장소의 `.agent-base/context-manifest.json`을 보고 fast path 문서와 core roles를 먼저 확인한다.
 17. 생성된 샘플 저장소의 `.agent-base/agent-workboard.json`을 열어 design-freeze, runtime, validator, docs lane의 owned path와 next handoff를 확정한다.
 18. blocker가 풀리면 `python3 scripts/update_agent_workboard.py --finalize-design-freeze`를 실행해 첫 execution packet을 고정한다.
-19. 생성된 저장소에서 `python3 scripts/update_agent_workboard.py --interactive --append-handoff`를 실행해 현재 실행 lane과 handoff history를 갱신한다.
-20. 생성된 샘플 저장소에서 `python3 scripts/install_git_hooks.py`를 실행해 local pre-commit gate를 설치한다.
-21. 생성된 샘플 저장소에서 `AGENTS.md`, `docs/ai/command-catalog.md`, `docs/ai/architecture-map.md`를 저장소 실정에 맞게 보정한다.
-22. DB를 소유하는 저장소면 [`database-rules.md`](./database-rules.md) 기준으로 naming, COMMENT, migration, 위험 SQL 원칙을 확정한다.
-23. [`../../checklists/project-interview.md`](../../checklists/project-interview.md), [`../../checklists/agent-role-selection.md`](../../checklists/agent-role-selection.md), [`../../checklists/project-creation.md`](../../checklists/project-creation.md) 를 완료한다.
-24. `docs/ai/prompts/examples/*`, `docs/ai/prompts/*.md`, `docs/ai/prompts/roles/*.md`를 사용해 첫 프롬프트를 실행한다.
-25. 첫 build/test/문서 세트를 만든다.
-26. 역할 간 분업이 있으면 [`../../checklists/agent-handoff.md`](../../checklists/agent-handoff.md) 와 `docs/ai/agent-handoff-log.md`로 handoff artifact를 정리한다.
-27. 첫 공유 전달 전 [`../../checklists/first-delivery.md`](../../checklists/first-delivery.md) 와 [`../../checklists/agent-completion-review.md`](../../checklists/agent-completion-review.md) 를 점검한다.
+19. 첫 전달 전에는 `python3 scripts/update_agent_workboard.py --check-packets --strict`로 packet freshness를 확인한다.
+20. 생성된 저장소에서 `python3 scripts/update_agent_workboard.py --interactive --append-handoff`를 실행해 현재 실행 lane과 handoff history를 갱신한다.
+21. 생성된 샘플 저장소에서 `python3 scripts/install_git_hooks.py`를 실행해 local pre-commit gate를 설치한다.
+22. 생성된 샘플 저장소에서 `AGENTS.md`, `docs/ai/command-catalog.md`, `docs/ai/architecture-map.md`를 저장소 실정에 맞게 보정한다.
+23. DB를 소유하는 저장소면 [`database-rules.md`](./database-rules.md) 기준으로 naming, COMMENT, migration, 위험 SQL 원칙을 확정한다.
+24. [`../../checklists/project-interview.md`](../../checklists/project-interview.md), [`../../checklists/agent-role-selection.md`](../../checklists/agent-role-selection.md), [`../../checklists/project-creation.md`](../../checklists/project-creation.md) 를 완료한다.
+25. `docs/ai/prompts/examples/*`, `docs/ai/prompts/*.md`, `docs/ai/prompts/roles/*.md`를 사용해 첫 프롬프트를 실행한다.
+26. 첫 build/test/문서 세트를 만든다.
+27. 역할 간 분업이 있으면 [`../../checklists/agent-handoff.md`](../../checklists/agent-handoff.md) 와 `docs/ai/agent-handoff-log.md`로 handoff artifact를 정리한다.
+28. 첫 공유 전달 전 [`../../checklists/first-delivery.md`](../../checklists/first-delivery.md) 와 [`../../checklists/agent-completion-review.md`](../../checklists/agent-completion-review.md) 를 점검한다.
 
 ## 3. 대화형 인터뷰 질문 순서
 

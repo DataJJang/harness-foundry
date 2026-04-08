@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from datetime import datetime
 from pathlib import Path
@@ -16,6 +17,9 @@ DEFAULT_HANDOFF_LOG_PATH = REPO_ROOT / "docs" / "ai" / "agent-handoff-log.md"
 DEFAULT_LOCK_PATH = default_lock_path(DEFAULT_WORKBOARD_PATH)
 
 STATUS_CHOICES = ["pending", "in-progress", "blocked", "completed"]
+PACKET_META_PREFIX = "<!-- agent-handoff-packet-meta: "
+PACKET_META_SUFFIX = " -->"
+PACKET_META_VERSION = 1
 
 
 def parse_args() -> argparse.Namespace:
@@ -36,6 +40,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--open-question", action="append", default=[], help="Open question to add to the lane")
     parser.add_argument("--clear-open-questions", action="store_true", help="Clear all lane open questions")
     parser.add_argument("--list", action="store_true", help="List current work lanes and exit")
+    parser.add_argument("--check-packets", action="store_true", help="Check whether referenced handoff packets are fresh")
+    parser.add_argument("--strict", action="store_true", help="Exit non-zero when packet checks find stale or missing packets")
     parser.add_argument("--interactive", action="store_true", help="Prompt for the next suggested lane interactively")
     parser.add_argument(
         "--finalize-design-freeze",
@@ -326,7 +332,48 @@ def choose_target_lane(workboard: dict, lane_id: str | None) -> dict:
     raise SystemExit("No execution lane is available for the design-freeze handoff.")
 
 
-def render_handoff_packet(
+def packet_lane_view(lane: dict) -> dict:
+    return {
+        "id": lane["id"],
+        "title": lane["title"],
+        "role": lane["role"],
+        "currentOwner": lane["currentOwner"],
+        "status": lane["status"],
+        "objective": lane["objective"],
+        "scopeSummary": lane["scopeSummary"],
+        "dependsOn": list(lane["dependsOn"]),
+        "ownedPaths": list(lane["ownedPaths"]),
+        "requiredInputs": list(lane["requiredInputs"]),
+        "expectedOutputs": list(lane["expectedOutputs"]),
+        "doneWhen": list(lane["doneWhen"]),
+        "nextHandoffTarget": lane["nextHandoffTarget"],
+        "blockers": list(lane["blockers"]),
+        "openQuestions": list(lane["openQuestions"]),
+    }
+
+
+def high_priority_refinement_snapshot(refinement_status: dict | None) -> list[dict]:
+    if not refinement_status:
+        return []
+    snapshot = []
+    for module in refinement_status["modules"]:
+        if module["priority"] != "high":
+            continue
+        snapshot.append(
+            {
+                "id": module["id"],
+                "title": module["title"],
+                "priority": module["priority"],
+                "status": module["status"],
+                "resolver": module["resolver"],
+                "notes": module["notes"],
+                "deferredReason": module["deferredReason"],
+            }
+        )
+    return snapshot
+
+
+def build_packet_contract(
     workboard: dict,
     source_lane: dict,
     target_lane: dict,
@@ -335,7 +382,7 @@ def render_handoff_packet(
     handoff_summary: str,
     handoff_open_questions: list[str],
     handoff_verification: str,
-) -> str:
+) -> dict:
     shared = workboard.get("sharedContext", {})
     blocking = workboard["summary"]["blockingHighPriorityModuleIds"]
     open_questions = merge_unique(list(target_lane["openQuestions"]), handoff_open_questions)
@@ -347,26 +394,73 @@ def render_handoff_packet(
         [shared.get("architectureMapPath", "")],
         list(shared.get("fastPathDocs", [])),
     )
-    timestamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+    return {
+        "packetPath": packet_path,
+        "summary": handoff_summary,
+        "verificationStatus": handoff_verification,
+        "designReady": workboard["summary"]["designReady"],
+        "blockingHighPriorityModuleIds": list(blocking),
+        "sharedInputs": shared_inputs,
+        "sourceLane": packet_lane_view(source_lane),
+        "targetLane": {
+            **packet_lane_view(target_lane),
+            "openQuestions": open_questions,
+        },
+        "highPriorityRefinement": high_priority_refinement_snapshot(refinement_status),
+        "coordinationRules": list(workboard.get("coordinationRules", [])),
+        "escalationRules": [
+            "새로운 schema, auth, rollout, environment 판단이 현재 packet 범위를 넘어서기 시작할 때",
+            "target lane의 owned path 밖으로 write scope가 넓어질 때",
+            "high-priority refinement module을 다시 여는 blocker가 생길 때",
+            "verification boundary나 rollback note가 바뀌어 기존 handoff를 믿기 어려워질 때",
+        ],
+    }
+
+
+def compute_contract_fingerprint(contract: dict) -> str:
+    serialized = json.dumps(contract, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+    return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+
+
+def render_packet_metadata(contract: dict, generated_at: str) -> str:
+    metadata = {
+        "version": PACKET_META_VERSION,
+        "generatedAt": generated_at,
+        "packetPath": contract["packetPath"],
+        "sourceLaneId": contract["sourceLane"]["id"],
+        "targetLaneId": contract["targetLane"]["id"],
+        "summary": contract["summary"],
+        "verificationStatus": contract["verificationStatus"],
+        "openQuestions": list(contract["targetLane"]["openQuestions"]),
+        "contractFingerprint": compute_contract_fingerprint(contract),
+    }
+    return PACKET_META_PREFIX + json.dumps(metadata, ensure_ascii=False, sort_keys=True) + PACKET_META_SUFFIX
+
+
+def render_handoff_packet(contract: dict, generated_at: str) -> str:
+    source_lane = contract["sourceLane"]
+    target_lane = contract["targetLane"]
+    blocking = contract["blockingHighPriorityModuleIds"]
     lines = [
+        render_packet_metadata(contract, generated_at),
         "# Active Agent Handoff Packet",
         "",
         "이 문서는 planning에서 execution으로 넘어갈 때 현재 실행 계약을 고정한다.",
         "",
-        f"- Generated at: `{timestamp}`",
-        f"- Packet path: `{packet_path}`",
+        f"- Generated at: `{generated_at}`",
+        f"- Packet path: `{contract['packetPath']}`",
         f"- From lane: `{source_lane['id']}` (`{source_lane['currentOwner'] or source_lane['role']}`)",
         f"- To lane: `{target_lane['id']}` (`{target_lane['currentOwner'] or target_lane['role']}`)",
-        f"- Design ready: `{'yes' if workboard['summary']['designReady'] else 'no'}`",
+        f"- Design ready: `{'yes' if contract['designReady'] else 'no'}`",
         f"- Blocking high-priority modules: `{', '.join(blocking) if blocking else 'none'}`",
         "",
         "## Frozen Summary",
         "",
-        f"- {handoff_summary}",
+        f"- {contract['summary']}",
         "",
         "## Shared Inputs To Read First",
     ]
-    for path in shared_inputs:
+    for path in contract["sharedInputs"]:
         lines.append(f"- `{path}`")
 
     lines.extend(
@@ -379,7 +473,7 @@ def render_handoff_packet(
             f"- Scope: {target_lane['scopeSummary']}",
             f"- Depends on: `{', '.join(target_lane['dependsOn']) if target_lane['dependsOn'] else '-'}`",
             f"- Next handoff target: `{target_lane['nextHandoffTarget'] or '-'}`",
-            f"- Verification starting point: `{handoff_verification}`",
+            f"- Verification starting point: `{contract['verificationStatus']}`",
             "",
             "Owned paths:",
         ]
@@ -396,8 +490,8 @@ def render_handoff_packet(
     for item in target_lane["doneWhen"]:
         lines.append(f"- {item}")
     lines.extend(["", "Open questions:"])
-    if open_questions:
-        for item in open_questions:
+    if target_lane["openQuestions"]:
+        for item in target_lane["openQuestions"]:
             lines.append(f"- {item}")
     else:
         lines.append("- 없음")
@@ -408,12 +502,9 @@ def render_handoff_packet(
     else:
         lines.append("- 없음")
 
-    if refinement_status:
+    if contract["highPriorityRefinement"]:
         lines.extend(["", "## High-Priority Refinement Snapshot"])
-        high_priority_modules = [module for module in refinement_status["modules"] if module["priority"] == "high"]
-        if not high_priority_modules:
-            lines.extend(["", "- 없음"])
-        for module in high_priority_modules:
+        for module in contract["highPriorityRefinement"]:
             lines.extend(
                 [
                     "",
@@ -426,23 +517,125 @@ def render_handoff_packet(
             )
             if module["status"] == "deferred":
                 lines.append(f"- Deferred reason: {module['deferredReason'] or '-'}")
+    else:
+        lines.extend(["", "## High-Priority Refinement Snapshot", "", "- 없음"])
 
     lines.extend(["", "## Coordination Rules"])
-    for rule in workboard.get("coordinationRules", []):
+    for rule in contract["coordinationRules"]:
         lines.append(f"- {rule}")
 
-    lines.extend(
-        [
-            "",
-            "## Escalate Back To Design Freeze When",
-            "",
-            "- 새로운 schema, auth, rollout, environment 판단이 현재 packet 범위를 넘어서기 시작할 때",
-            "- target lane의 owned path 밖으로 write scope가 넓어질 때",
-            "- high-priority refinement module을 다시 여는 blocker가 생길 때",
-            "- verification boundary나 rollback note가 바뀌어 기존 handoff를 믿기 어려워질 때",
-        ]
-    )
+    lines.extend(["", "## Escalate Back To Design Freeze When", ""])
+    for rule in contract["escalationRules"]:
+        lines.append(f"- {rule}")
     return "\n".join(lines)
+
+
+def parse_packet_metadata(path: Path) -> dict | None:
+    if not path.exists():
+        return None
+    lines = path.read_text(encoding="utf-8").splitlines()
+    if not lines:
+        return None
+    first_line = lines[0].strip()
+    if not first_line.startswith(PACKET_META_PREFIX) or not first_line.endswith(PACKET_META_SUFFIX):
+        return None
+    payload = first_line[len(PACKET_META_PREFIX) : -len(PACKET_META_SUFFIX)]
+    return json.loads(payload)
+
+
+def inspect_packet(
+    workboard: dict,
+    workboard_path: Path,
+    packet_path_display: str,
+    refinement_status: dict | None,
+) -> dict:
+    repo_root = repo_root_from_workboard_path(workboard_path)
+    packet_path = (repo_root / packet_path_display).resolve()
+    result = {
+        "packetPath": packet_path_display,
+        "status": "fresh",
+        "reason": "",
+        "sourceLaneId": "",
+        "targetLaneId": "",
+        "generatedAt": "",
+    }
+    if not packet_path.exists():
+        result["status"] = "missing"
+        result["reason"] = "packet file does not exist"
+        return result
+
+    metadata = parse_packet_metadata(packet_path)
+    if not metadata:
+        result["status"] = "invalid"
+        result["reason"] = "packet metadata is missing or malformed"
+        return result
+
+    result["sourceLaneId"] = metadata.get("sourceLaneId", "")
+    result["targetLaneId"] = metadata.get("targetLaneId", "")
+    result["generatedAt"] = metadata.get("generatedAt", "")
+
+    try:
+        source_lane = find_lane(workboard, metadata["sourceLaneId"])
+        target_lane = find_lane(workboard, metadata["targetLaneId"])
+    except (KeyError, SystemExit):
+        result["status"] = "invalid"
+        result["reason"] = "referenced source or target lane does not exist"
+        return result
+
+    expected_contract = build_packet_contract(
+        workboard=workboard,
+        source_lane=source_lane,
+        target_lane=target_lane,
+        refinement_status=refinement_status,
+        packet_path=packet_path_display,
+        handoff_summary=metadata.get("summary", ""),
+        handoff_open_questions=list(metadata.get("openQuestions", [])),
+        handoff_verification=metadata.get("verificationStatus", "design-ready"),
+    )
+    expected_fingerprint = compute_contract_fingerprint(expected_contract)
+    actual_fingerprint = metadata.get("contractFingerprint", "")
+    if actual_fingerprint != expected_fingerprint:
+        result["status"] = "stale"
+        result["reason"] = "contract fingerprint no longer matches the current workboard or refinement state"
+        return result
+
+    if source_lane.get("latestPacketPath") != packet_path_display or target_lane.get("latestPacketPath") != packet_path_display:
+        result["status"] = "stale"
+        result["reason"] = "workboard lanes do not both reference this packet as the current contract"
+        return result
+
+    return result
+
+
+def check_packets(workboard: dict, workboard_path: Path) -> tuple[list[dict], bool]:
+    refinement_status = load_refinement_status(workboard, workboard_path)
+    seen: list[str] = []
+    results: list[dict] = []
+    for lane in workboard["workLanes"]:
+        packet_path = lane.get("latestPacketPath", "")
+        if not packet_path or packet_path in seen:
+            continue
+        seen.append(packet_path)
+        results.append(inspect_packet(workboard, workboard_path, packet_path, refinement_status))
+
+    if not results:
+        print("Handoff packets: none")
+        return [], False
+
+    print("Handoff packets:")
+    has_issues = False
+    for result in results:
+        print(
+            f"- {result['packetPath']} [{result['status']}] "
+            f"source={result['sourceLaneId'] or '-'} target={result['targetLaneId'] or '-'}"
+        )
+        if result["generatedAt"]:
+            print(f"  generated-at: {result['generatedAt']}")
+        if result["reason"]:
+            print(f"  reason: {result['reason']}")
+        if result["status"] != "fresh":
+            has_issues = True
+    return results, has_issues
 
 
 def finalize_design_freeze(
@@ -508,7 +701,8 @@ def finalize_design_freeze(
 
     recompute_agent_workboard_summary(workboard)
     refinement_status = load_refinement_status(workboard, workboard_path)
-    packet = render_handoff_packet(
+    generated_at = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+    contract = build_packet_contract(
         workboard=workboard,
         source_lane=design_lane,
         target_lane=target_lane,
@@ -518,6 +712,7 @@ def finalize_design_freeze(
         handoff_open_questions=shared_open_questions,
         handoff_verification=handoff_verification,
     )
+    packet = render_handoff_packet(contract, generated_at)
     return design_lane, target_lane, packet_path, packet_path_display, packet
 
 
@@ -547,7 +742,11 @@ def main() -> int:
 
         if args.list:
             list_lanes(workboard)
-            return 0
+            if not args.check_packets:
+                return 0
+        if args.check_packets:
+            _, has_issues = check_packets(workboard, workboard_path)
+            return 1 if args.strict and has_issues else 0
 
         updated_lane: dict | None = None
         target_lane: dict | None = None

@@ -29,6 +29,7 @@
 - [ ] `docs/ai/repo-local-overrides.md`에 기본값 유지 이유, 예외, defer note를 기록했다
 - [ ] `.agent-base/agent-workboard.json`에서 execution lane과 owned path를 확정했다
 - [ ] blocker가 풀렸다면 `python3 scripts/update_agent_workboard.py --finalize-design-freeze` 또는 동등 절차로 첫 execution packet을 만들었다
+- [ ] execution packet이 있다면 `python3 scripts/update_agent_workboard.py --check-packets --strict` 또는 동등 절차로 freshness를 확인했다
 - [ ] `python3 scripts/update_agent_workboard.py --interactive --append-handoff` 또는 동등 절차로 첫 handoff를 남겼다
 - [ ] `docs/ai/command-catalog.md`에 첫 build/compile/test/smoke 기준을 기록했다
 - [ ] `python3 scripts/install_git_hooks.py`로 local pre-commit gate를 설치했다

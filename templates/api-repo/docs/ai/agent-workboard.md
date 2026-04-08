@@ -59,7 +59,8 @@
 4. `.agent-base/agent-workboard.json`에서 `nextSuggestedLaneId`와 `latestPacketPath`를 보고 현재 lane을 잡는다.
 5. 구현 중 설계 판단이 다시 열리면 runtime lane이 혼자 밀지 말고 `design-freeze` lane으로 되돌린다.
 6. lane이 바뀌거나 다음 역할로 넘길 때 `python3 scripts/update_agent_workboard.py --append-handoff`로 baton을 남긴다.
-7. 첫 전달 전에는 workboard, handoff log, handoff packet, overrides, command catalog가 서로 모순되지 않는지 확인한다.
+7. 첫 전달 전에는 `python3 scripts/update_agent_workboard.py --check-packets --strict`로 current packet freshness를 확인한다.
+8. workboard, handoff log, handoff packet, overrides, command catalog가 서로 모순되지 않는지 확인한다.
 
 두 updater는 기본적으로 `.agent-base/coordination.lock`을 공유해 같은 저장소의 상태 파일을 직렬화하고, JSON/Markdown을 atomic write로 반영한다.
 잠금 대기를 짧게 제한하고 싶으면 `update_refinement_status.py`, `update_agent_workboard.py`에 `--lock-timeout-seconds`를 줄 수 있다.
@@ -69,6 +70,7 @@
 ```bash
 python3 scripts/update_agent_workboard.py --list
 python3 scripts/update_agent_workboard.py --finalize-design-freeze
+python3 scripts/update_agent_workboard.py --check-packets --strict
 python3 scripts/update_agent_workboard.py --interactive --append-handoff
 python3 scripts/update_agent_workboard.py \
   --lane runtime-implementation \
@@ -82,6 +84,7 @@ python3 scripts/update_agent_workboard.py \
 ```
 
 `--finalize-design-freeze`는 high-priority blocker가 없을 때만 동작하며, `docs/ai/handoff-packets/design-freeze-to-<lane>.md` 형태의 deterministic packet을 갱신한다.
+`--check-packets`는 현재 workboard, refinement 상태, packet metadata fingerprint를 비교해 `fresh`, `stale`, `missing`, `invalid`를 판정한다.
 
 ## 좋은 handoff 기준
 
@@ -89,6 +92,7 @@ python3 scripts/update_agent_workboard.py \
 - handoff 요약은 "무엇을 끝냈는가"보다 "다음 역할이 무엇을 믿고 시작해도 되는가"를 중심으로 쓴다.
 - `files in scope`, `expected outputs`, `verification status`, `open questions`는 항상 같이 남긴다.
 - planning에서 execution으로 넘어갈 때는 history log만 남기지 말고 current packet도 같이 갱신한다.
+- 다음 역할에 넘기기 직전에는 packet freshness를 확인해 stale contract를 넘기지 않는다.
 - data, security, release 같은 side lane은 runtime lane과 같은 문제를 다른 말로 다시 풀지 말고, 자신의 승인 조건과 blocker만 남긴다.
 
 ## 사람이 보는 로그

@@ -34,6 +34,16 @@ python3 scripts/update_agent_workboard.py \
 - `docs/ai/handoff-packets/design-freeze-to-<lane>.md` 업데이트
 - `docs/ai/agent-handoff-log.md`에 baton 기록 추가
 
+freshness 확인:
+
+```bash
+python3 scripts/update_agent_workboard.py --check-packets
+python3 scripts/update_agent_workboard.py --check-packets --strict
+```
+
+`--check-packets`는 packet 안의 metadata fingerprint와 현재 workboard/refinement 상태를 비교한다.
+`--strict`를 붙이면 `stale`, `missing`, `invalid` packet이 있을 때 non-zero로 종료한다.
+
 ## packet에 반드시 들어가야 하는 것
 
 - frozen summary
@@ -47,6 +57,8 @@ python3 scripts/update_agent_workboard.py \
 ## 운영 팁
 
 - packet 경로는 timestamp 대신 deterministic path를 쓴다.
+- packet 본문 맨 위 metadata comment는 freshness 검증 기준이다. hand-edit로 지우지 않는다.
 - history는 `agent-handoff-log.md`에 남기고, packet은 같은 파일을 덮어쓴다.
 - target lane이 packet 경로를 잃지 않도록 `.agent-base/agent-workboard.json`의 `latestPacketPath`를 같이 갱신한다.
 - blocker가 다시 생기면 packet만 수정하지 말고 먼저 `design-freeze` lane을 다시 열어라.
+- stale packet이 나오면 먼저 current contract가 왜 바뀌었는지 확인하고, 필요하면 `design-freeze`를 다시 열거나 packet을 재생성한다.
