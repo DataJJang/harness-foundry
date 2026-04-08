@@ -70,6 +70,10 @@
 
 - [`project-generator.md`](./project-generator.md)
 - [`context-manifest.md`](./context-manifest.md)
+- [`refinement-manifest.md`](./refinement-manifest.md)
+- [`refinement-status.md`](./refinement-status.md)
+- [`agent-workboard.md`](./agent-workboard.md)
+- [`repo-local-overrides.md`](./repo-local-overrides.md)
 - [`token-substitution.md`](./token-substitution.md)
 - [`tools/compatibility.md`](./tools/compatibility.md)
 - [`tools/windsurf.md`](./tools/windsurf.md)

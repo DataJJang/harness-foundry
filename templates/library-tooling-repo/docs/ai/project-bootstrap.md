@@ -19,15 +19,21 @@
 9. [`roles/README.md`](./roles/README.md) 와 [`../../checklists/agent-role-selection.md`](../../checklists/agent-role-selection.md) 를 사용해 required/optional 역할을 고른다.
 10. bootstrap CLI 또는 generator가 파생한 `requiredAgentRoles`, `optionalAgentRoles`, `roleSpecializations`, `agentWorkflowOrder`를 확인한다.
 11. spec JSON을 저장하고 [`project-generator.md`](./project-generator.md) 기준으로 생성기를 실행한다.
-12. 생성된 샘플 저장소의 `.agent-base/context-manifest.json`을 보고 fast path 문서와 core roles를 먼저 확인한다.
-13. 생성된 샘플 저장소에서 `python3 scripts/install_git_hooks.py`를 실행해 local pre-commit gate를 설치한다.
-14. 생성된 샘플 저장소에서 `AGENTS.md`, `docs/ai/command-catalog.md`, `docs/ai/architecture-map.md`를 저장소 실정에 맞게 보정한다.
-15. DB를 소유하는 저장소면 [`database-rules.md`](./database-rules.md) 기준으로 naming, COMMENT, migration, 위험 SQL 원칙을 확정한다.
-16. [`../../checklists/project-interview.md`](../../checklists/project-interview.md), [`../../checklists/agent-role-selection.md`](../../checklists/agent-role-selection.md), [`../../checklists/project-creation.md`](../../checklists/project-creation.md) 를 완료한다.
-17. `docs/ai/prompts/examples/*`, `docs/ai/prompts/*.md`, `docs/ai/prompts/roles/*.md`를 사용해 첫 프롬프트를 실행한다.
-18. 첫 build/test/문서 세트를 만든다.
-19. 역할 간 분업이 있으면 [`../../checklists/agent-handoff.md`](../../checklists/agent-handoff.md) 를 사용해 handoff artifact를 정리한다.
-20. 첫 공유 전달 전 [`../../checklists/first-delivery.md`](../../checklists/first-delivery.md) 와 [`../../checklists/agent-completion-review.md`](../../checklists/agent-completion-review.md) 를 점검한다.
+12. spec 옆 `*.refinement.json` 또는 생성된 저장소의 `.agent-base/refinement-manifest.json`을 보고 high-priority 심화 모듈부터 처리한다.
+13. 생성된 저장소에서 `python3 scripts/update_refinement_status.py --interactive --append-to-overrides`를 실행해 다음 pending module부터 정리한다.
+14. spec 옆 `*.refinement-status.json` 또는 생성된 저장소의 `.agent-base/refinement-status.json`에 현재 결정을 기록한다.
+15. `docs/ai/repo-local-overrides.md`에 기본값 유지 이유, 예외, defer note를 남긴다.
+16. 생성된 샘플 저장소의 `.agent-base/context-manifest.json`을 보고 fast path 문서와 core roles를 먼저 확인한다.
+17. 생성된 샘플 저장소의 `.agent-base/agent-workboard.json`을 열어 design-freeze, runtime, validator, docs lane의 owned path와 next handoff를 확정한다.
+18. 생성된 저장소에서 `python3 scripts/update_agent_workboard.py --interactive --append-handoff`를 실행해 현재 실행 lane과 handoff history를 갱신한다.
+19. 생성된 샘플 저장소에서 `python3 scripts/install_git_hooks.py`를 실행해 local pre-commit gate를 설치한다.
+20. 생성된 샘플 저장소에서 `AGENTS.md`, `docs/ai/command-catalog.md`, `docs/ai/architecture-map.md`를 저장소 실정에 맞게 보정한다.
+21. DB를 소유하는 저장소면 [`database-rules.md`](./database-rules.md) 기준으로 naming, COMMENT, migration, 위험 SQL 원칙을 확정한다.
+22. [`../../checklists/project-interview.md`](../../checklists/project-interview.md), [`../../checklists/agent-role-selection.md`](../../checklists/agent-role-selection.md), [`../../checklists/project-creation.md`](../../checklists/project-creation.md) 를 완료한다.
+23. `docs/ai/prompts/examples/*`, `docs/ai/prompts/*.md`, `docs/ai/prompts/roles/*.md`를 사용해 첫 프롬프트를 실행한다.
+24. 첫 build/test/문서 세트를 만든다.
+25. 역할 간 분업이 있으면 [`../../checklists/agent-handoff.md`](../../checklists/agent-handoff.md) 와 `docs/ai/agent-handoff-log.md`로 handoff artifact를 정리한다.
+26. 첫 공유 전달 전 [`../../checklists/first-delivery.md`](../../checklists/first-delivery.md) 와 [`../../checklists/agent-completion-review.md`](../../checklists/agent-completion-review.md) 를 점검한다.
 
 ## 3. 대화형 인터뷰 질문 순서
 
@@ -141,12 +147,13 @@
 2. `project-spec-finalizer`
 3. `scaffold-planning`
 4. `project-generator-run`
-5. `build-guide`
-6. `test-plan`
-7. DB를 소유하면 `database-review` 예시 또는 `impact-analysis`
-8. 필요 시 `deployment-checklist`
-9. 운영 기능이면 `operations-manual`
-10. 구조가 흔들리면 `impact-analysis`
+5. `post-bootstrap-refinement`
+6. `build-guide`
+7. `test-plan`
+8. DB를 소유하면 `database-review` 예시 또는 `impact-analysis`
+9. 필요 시 `deployment-checklist`
+10. 운영 기능이면 `operations-manual`
+11. 구조가 흔들리면 `impact-analysis`
 
 실행 예시는 [`prompts/examples/README.md`](./prompts/examples/README.md) 를 따른다.
 
@@ -156,6 +163,7 @@
 - `project-generation-spec`이 모두 채워졌다.
 - 생성기로 별도 디렉토리에 샘플 저장소가 생성되었다.
 - 토큰 치환 규칙에 따라 저장소 메타데이터가 모두 반영되었다.
+- 조건부 refinement module이 high-priority 순서로 검토되었다.
 - `stack-matrix` 기준선과 예외가 문서화되었다.
 - DB를 소유하면 `database-rules` 기준과 migration 위치가 확정되었다.
 - command catalog에 첫 build/test/smoke 기준이 들어갔다.

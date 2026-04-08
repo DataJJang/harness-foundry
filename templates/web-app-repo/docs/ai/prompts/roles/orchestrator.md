@@ -19,13 +19,15 @@ Relevant files/docs:
 Your job:
 1. Identify required and optional agent roles.
 2. Define execution order and possible parallel work.
-3. Define handoff artifacts for each role.
-4. Call out unresolved risks and missing context.
+3. Freeze execution lanes, owned paths, and next handoff targets for `.agent-base/agent-workboard.json`.
+4. Define handoff artifacts for each role.
+5. Call out unresolved risks and missing context.
 
 Output format:
 - Role assignment
 - Execution order
 - Parallel work
+- Workboard lanes
 - Handoff artifacts
 - Risks / blockers
 ```

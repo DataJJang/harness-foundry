@@ -89,12 +89,23 @@ python3 source/scripts/generate_project.py \
 - `.agent-base/generation-manifest.json`
 - `.agent-base/context-manifest.json`
 - `.agent-base/agent-role-plan.json`
+- `.agent-base/refinement-manifest.json`
+- `.agent-base/refinement-status.json`
+- `.agent-base/agent-workboard.json`
+- `docs/ai/repo-local-overrides.md`
+- `docs/ai/agent-handoff-log.md`
 - 필요 시 `TODO_UNSUPPORTED_SCAFFOLD.md`
 
 ## 7. 후속 작업
 
 - `python3 scripts/install_git_hooks.py`로 local pre-commit gate를 활성화한다.
 - `.agent-base/context-manifest.json`을 보고 fast path 문서만 먼저 연다.
+- `.agent-base/refinement-manifest.json`을 보고 high-priority follow-up module부터 정리한다.
+- `python3 scripts/update_refinement_status.py --interactive --append-to-overrides`로 현재 pending module을 처리한다.
+- `.agent-base/refinement-status.json`과 `docs/ai/repo-local-overrides.md`에 결정과 defer note를 남긴다.
+- refinement 업데이트 후 `.agent-base/agent-workboard.json`의 blocker와 `design-freeze` 상태가 자동 동기화됐는지 확인한다.
+- `.agent-base/agent-workboard.json`을 열어 execution lane, owned path, next handoff를 고정한다.
+- `python3 scripts/update_agent_workboard.py --interactive --append-handoff`로 실행 중 baton을 갱신한다.
 - `.agent-base/pre-commit-config.json`의 preset profile과 저장소 실제 명령을 맞춘다.
 - `docs/ai/command-catalog.md`를 실제 명령으로 보정한다.
 - `AGENTS.md`와 `architecture-map.md`를 저장소 실정에 맞게 보정한다.

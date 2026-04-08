@@ -9,6 +9,8 @@ from pathlib import Path
 from generate_project import (
     TEMPLATE_BY_FAMILY,
     choose_scaffold,
+    derive_refinement_manifest,
+    derive_refinement_status,
     derive_agent_coordination,
     generate_project,
     normalize_spec,
@@ -609,11 +611,20 @@ def build_interactive_spec(args: argparse.Namespace) -> tuple[dict, Path, Path]:
     return spec, output_root, spec_path
 
 
+def refinement_path_for_spec(spec_path: Path) -> Path:
+    return spec_path.with_name(f"{spec_path.stem}.refinement.json")
+
+
+def refinement_status_path_for_spec(spec_path: Path) -> Path:
+    return spec_path.with_name(f"{spec_path.stem}.refinement-status.json")
+
+
 def print_summary(spec: dict, output_root: Path, spec_path: Path) -> None:
     print_header("확정된 project generation spec")
     print(json.dumps(spec, indent=2, ensure_ascii=False))
     template_name = TEMPLATE_BY_FAMILY[spec["projectFamily"]]
     scaffold_profile, support_level = choose_scaffold(spec)
+    refinement_manifest = derive_refinement_manifest(spec, scaffold_profile, support_level)
     print()
     print("선택 결과")
     print(f"- template: {template_name}")
@@ -624,14 +635,50 @@ def print_summary(spec: dict, output_root: Path, spec_path: Path) -> None:
     print(f"- role specializations: {', '.join(spec['roleSpecializations'])}")
     print(f"- output root: {output_root}")
     print(f"- spec path: {spec_path}")
+    print(f"- refinement path: {refinement_path_for_spec(spec_path)}")
+    print(f"- refinement status path: {refinement_status_path_for_spec(spec_path)}")
     print("- next context path: AGENTS.md -> context-profiles.md -> start-bootstrap.md")
     if spec["repositoryMode"] != "single-repo":
         print("- note: v1 generator는 샘플 저장소 1개만 만들고, monorepo/multi-repo 확장은 후속 수작업이 필요합니다.")
+    print()
+    print("Refinement preview")
+    print(f"- modules: {refinement_manifest['summary']['moduleCount']}")
+    high_priority = refinement_manifest["summary"]["highPriorityModuleIds"]
+    if high_priority:
+        print(f"- high-priority modules: {', '.join(high_priority)}")
+    print("- decision modes: decide-now, keep-default, defer-with-note")
+    for module in refinement_manifest["modules"]:
+        print(f"- {module['id']} [{module['priority']}]: {module['title']}")
 
 
 def write_spec(spec: dict, spec_path: Path) -> None:
     spec_path.parent.mkdir(parents=True, exist_ok=True)
     spec_path.write_text(json.dumps(spec, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
+def write_refinement_manifest(spec: dict, spec_path: Path) -> Path:
+    scaffold_profile, support_level = choose_scaffold(spec)
+    refinement_path = refinement_path_for_spec(spec_path)
+    refinement_path.parent.mkdir(parents=True, exist_ok=True)
+    refinement_manifest = derive_refinement_manifest(spec, scaffold_profile, support_level)
+    refinement_path.write_text(
+        json.dumps(refinement_manifest, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    return refinement_path
+
+
+def write_refinement_status(spec: dict, spec_path: Path) -> Path:
+    scaffold_profile, support_level = choose_scaffold(spec)
+    refinement_manifest = derive_refinement_manifest(spec, scaffold_profile, support_level)
+    refinement_status = derive_refinement_status(spec, refinement_manifest)
+    refinement_status_path = refinement_status_path_for_spec(spec_path)
+    refinement_status_path.parent.mkdir(parents=True, exist_ok=True)
+    refinement_status_path.write_text(
+        json.dumps(refinement_status, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    return refinement_status_path
 
 
 def main() -> int:
@@ -644,17 +691,53 @@ def main() -> int:
         return 0
 
     write_spec(spec, spec_path)
+    refinement_path = write_refinement_manifest(spec, spec_path)
+    refinement_status_path = write_refinement_status(spec, spec_path)
 
     if args.skip_generate:
-        print(json.dumps({"savedSpec": str(spec_path), "generated": None}, ensure_ascii=False))
+        print(
+            json.dumps(
+                {
+                    "savedSpec": str(spec_path),
+                    "savedRefinementManifest": str(refinement_path),
+                    "savedRefinementStatus": str(refinement_status_path),
+                    "generated": None,
+                },
+                ensure_ascii=False,
+            )
+        )
         return 0
 
     if not prompt_yes_no("이 spec으로 샘플 저장소를 생성할까요?", True):
-        print(json.dumps({"savedSpec": str(spec_path), "generated": None}, ensure_ascii=False))
+        print(
+            json.dumps(
+                {
+                    "savedSpec": str(spec_path),
+                    "savedRefinementManifest": str(refinement_path),
+                    "savedRefinementStatus": str(refinement_status_path),
+                    "generated": None,
+                },
+                ensure_ascii=False,
+            )
+        )
         return 0
 
     generated = generate_project(spec, output_root, args.force)
-    print(json.dumps({"savedSpec": str(spec_path), "generated": str(generated)}, ensure_ascii=False))
+    print(
+        json.dumps(
+                {
+                    "savedSpec": str(spec_path),
+                    "savedRefinementManifest": str(refinement_path),
+                    "savedRefinementStatus": str(refinement_status_path),
+                    "generated": str(generated),
+                    "generatedRefinementManifest": str(generated / ".agent-base" / "refinement-manifest.json"),
+                    "generatedRefinementStatus": str(generated / ".agent-base" / "refinement-status.json"),
+                    "generatedAgentWorkboard": str(generated / ".agent-base" / "agent-workboard.json"),
+                    "generatedHandoffLog": str(generated / "docs" / "ai" / "agent-handoff-log.md"),
+                },
+                ensure_ascii=False,
+            )
+        )
     return 0
 
 

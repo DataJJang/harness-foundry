@@ -23,6 +23,12 @@
 ## 3. 규약 문서 보정
 
 - [ ] `AGENTS.md`의 프로젝트 패밀리와 런타임 역할 설명을 맞췄다
+- [ ] `.agent-base/refinement-manifest.json`의 high-priority module을 검토했다
+- [ ] `python3 scripts/update_refinement_status.py --interactive --append-to-overrides` 또는 동등 절차로 refinement 상태를 갱신했다
+- [ ] `.agent-base/refinement-status.json`에 현재 refinement 상태를 반영했다
+- [ ] `docs/ai/repo-local-overrides.md`에 기본값 유지 이유, 예외, defer note를 기록했다
+- [ ] `.agent-base/agent-workboard.json`에서 execution lane과 owned path를 확정했다
+- [ ] `python3 scripts/update_agent_workboard.py --interactive --append-handoff` 또는 동등 절차로 첫 handoff를 남겼다
 - [ ] `docs/ai/command-catalog.md`에 첫 build/compile/test/smoke 기준을 기록했다
 - [ ] `python3 scripts/install_git_hooks.py`로 local pre-commit gate를 설치했다
 - [ ] `.agent-base/pre-commit-config.json`을 저장소 실정에 맞게 검토했다
@@ -36,10 +42,12 @@
 - [ ] `project-bootstrap-interview` 결과를 정리했다
 - [ ] `project-spec-finalizer`로 generation spec을 확정했다
 - [ ] `scaffold-planning`으로 초기 구조와 문서 세트를 정리했다
+- [ ] `post-bootstrap-refinement`로 decide-now / keep-default / defer-with-note를 정리했다
 - [ ] `build-guide` 문서를 생성했다
 - [ ] `test-plan` 문서를 생성했다
 - [ ] DB를 소유하는 저장소면 `database-review` 또는 `impact-analysis`를 생성했다
 - [ ] 필요 시 `deployment-checklist` 또는 `operations-manual` 초안을 생성했다
+- [ ] 실행 역할이 둘 이상이면 `docs/ai/agent-handoff-log.md`에 첫 baton이 기록되었다
 
 ## 5. 첫 기술 검증
 

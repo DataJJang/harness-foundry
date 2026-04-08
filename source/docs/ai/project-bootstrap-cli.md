@@ -67,13 +67,15 @@ CLI는 아래 순서로 질문한다.
 CLI는 아래를 만든다.
 
 - 정규화된 spec JSON
+- spec 옆 `*.refinement.json`
+- spec 옆 `*.refinement-status.json`
 - 자동 파생된 `requiredAgentRoles`, `optionalAgentRoles`, `roleSpecializations`, `agentWorkflowOrder`
 - 선택된 template 이름
 - 선택된 scaffold profile 이름
 - 생성 지원 수준
 - 필요 시 실제 샘플 저장소
 
-spec은 `.agent-base/project-generation-spec.json`으로도 생성 저장소 안에 다시 남고, generator는 `.agent-base/context-manifest.json`, `.agent-base/agent-role-plan.json`을 같이 만든다.
+spec은 `.agent-base/project-generation-spec.json`으로도 생성 저장소 안에 다시 남고, generator는 `.agent-base/context-manifest.json`, `.agent-base/agent-role-plan.json`, `.agent-base/refinement-manifest.json`, `.agent-base/refinement-status.json`, `.agent-base/agent-workboard.json`, `docs/ai/agent-handoff-log.md`를 같이 만든다.
 
 ## 6. 주의사항
 
@@ -87,9 +89,15 @@ spec은 `.agent-base/project-generation-spec.json`으로도 생성 저장소 안
 CLI와 generator 실행 후에는 아래를 이어서 수행한다.
 
 1. `docs/ai/command-catalog.md` 보정
-2. `python3 scripts/install_git_hooks.py` 실행
-3. `.agent-base/pre-commit-config.json`의 preset profile을 확인
-4. `docs/ai/architecture-map.md` 보정
-5. 첫 build/test/smoke 실행
-6. `checklists/project-creation.md` 완료
-7. `checklists/first-delivery.md` 완료
+2. spec 옆 `*.refinement.json` 또는 `.agent-base/refinement-manifest.json`의 high-priority module 확인
+3. `python3 scripts/update_refinement_status.py --interactive --append-to-overrides`로 다음 pending module 처리
+4. spec 옆 `*.refinement-status.json` 또는 `.agent-base/refinement-status.json`에 현재 결정을 반영
+5. `docs/ai/repo-local-overrides.md`에 예외와 defer note 정리
+6. `.agent-base/agent-workboard.json`에서 execution lane과 next handoff를 확인
+7. `python3 scripts/update_agent_workboard.py --interactive --append-handoff`로 baton 갱신
+8. `python3 scripts/install_git_hooks.py` 실행
+9. `.agent-base/pre-commit-config.json`의 preset profile을 확인
+10. `docs/ai/architecture-map.md` 보정
+11. 첫 build/test/smoke 실행
+12. `checklists/project-creation.md` 완료
+13. `checklists/first-delivery.md` 완료

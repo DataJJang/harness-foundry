@@ -13,6 +13,9 @@
 - [ ] 저장소 구성 방식과 generator v1 한계가 명확하다
 - [ ] 언어, 프레임워크, 런타임 버전이 확정되었다
 - [ ] 공통 권장값과 다른 항목은 repo-local 오버레이에 기록되었다
+- [ ] high-priority refinement module은 해결되었거나 defer 이유가 기록되었다
+- [ ] refinement-status가 최신 상태이고 pending/deferred가 설명 가능하다
+- [ ] agent-workboard가 최신 상태이고 lane별 owner, scope, next handoff가 설명 가능하다
 - [ ] 첫 build, compile, test 명령이 실제로 동작한다
 - [ ] pre-commit hook가 설치되었고 최소 1회 실행 확인이 있다
 - [ ] pre-commit preset이 과검사나 누락 없이 저장소 실정과 맞는다
@@ -31,3 +34,4 @@
 - [ ] 배포가 필요한 저장소면 deployment-checklist 초안이 준비되었다
 - [ ] 운영성 기능이면 operations-manual 또는 runbook 초안이 준비되었다
 - [ ] DB change가 있으면 rollback 또는 backup 메모가 준비되었다
+- [ ] 역할 분업이 있었다면 `docs/ai/agent-handoff-log.md`에 baton history가 남아 있다

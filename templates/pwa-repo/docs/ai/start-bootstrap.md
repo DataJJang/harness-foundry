@@ -49,7 +49,12 @@
 
 1. `.agent-base/project-generation-spec.json` 확인
 2. `.agent-base/agent-role-plan.json` 확인
-3. `python3 scripts/install_git_hooks.py`
-4. `docs/ai/command-catalog.md` 보정
-5. `checklists/project-creation.md`
-6. `checklists/first-delivery.md`
+3. `.agent-base/refinement-manifest.json` 확인
+4. `.agent-base/refinement-status.json`과 `docs/ai/repo-local-overrides.md` 준비
+5. `python3 scripts/update_refinement_status.py --interactive --append-to-overrides`
+6. `.agent-base/agent-workboard.json` 확인
+7. `python3 scripts/update_agent_workboard.py --interactive --append-handoff`
+8. `python3 scripts/install_git_hooks.py`
+9. `docs/ai/command-catalog.md` 보정
+10. `checklists/project-creation.md`
+11. `checklists/first-delivery.md`

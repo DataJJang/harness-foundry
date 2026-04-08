@@ -8,6 +8,7 @@
 - 한 사람 또는 한 agent가 여러 역할을 겸할 수는 있지만, 책임과 산출물은 분리해 기록한다.
 - 프로젝트 패밀리별 필수 역할은 [`project-selection-mapping.md`](../project-selection-mapping.md)를 따른다.
 - 역할 배정은 [`agent-role-selection.md`](../../../checklists/agent-role-selection.md), 역할 간 인수인계는 [`agent-handoff.md`](../../../checklists/agent-handoff.md)를 함께 쓴다.
+- 상위 설계 이후 실행 단계에서는 `.agent-base/agent-workboard.json`과 `docs/ai/agent-handoff-log.md`를 같이 쓴다.
 
 ## Core Roles
 

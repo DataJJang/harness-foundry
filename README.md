@@ -194,7 +194,14 @@ python3 ./source/scripts/project_bootstrap_cli.py \
 - `.agent-base/generation-manifest.json`
 - `.agent-base/context-manifest.json`
 - `.agent-base/pre-commit-config.json`
+- `.agent-base/refinement-manifest.json`
+- `.agent-base/refinement-status.json`
 - `.agent-base/agent-role-plan.json`
+- `.agent-base/agent-workboard.json`
+- `docs/ai/repo-local-overrides.md`
+- `docs/ai/agent-handoff-log.md`
+- `scripts/update_refinement_status.py`
+- `scripts/update_agent_workboard.py`
 - `.githooks/*`
 - `checklists/project-creation.md`
 - `checklists/first-delivery.md`
@@ -211,7 +218,17 @@ python3 ./source/scripts/project_bootstrap_cli.py \
 - 템플릿 복사 후에는 반드시 repo-local 명령과 환경 설정으로 보정
 - 템플릿 복사 후에는 local pre-commit hook와 실패 학습 루프를 저장소 운영 기준에 맞게 활성화
 - multi-agent로 진행할 때는 역할별 입력, 출력, handoff artifact를 명시한다
+- 설계가 끝난 뒤에는 `agent-role-plan`만 보지 말고 `agent-workboard`로 owned path, next handoff, blocker를 고정한다
 - 규칙 변경은 `source/`와 `template-build.json`을 먼저 수정하고 `tools/build_templates.py`로 `templates/*`를 다시 생성한다
+
+## 실행 협업 기준
+
+- `.agent-base/agent-role-plan.json`: 어떤 역할이 필요한지와 기본 순서를 정한다.
+- `.agent-base/refinement-status.json`: bootstrap 이후 결정과 defer 상태를 추적한다.
+- `.agent-base/agent-workboard.json`: 실제 실행 lane, owned path, blocker, next handoff를 관리한다.
+- `docs/ai/agent-handoff-log.md`: 에이전트 간 baton history를 시간순으로 남긴다.
+
+권장 흐름은 `update_refinement_status.py`로 high-priority refinement를 정리하고, 그 결과가 workboard에 자동 반영된 뒤 `update_agent_workboard.py`로 현재 lane과 handoff를 갱신하는 방식이다.
 
 ## Template Authoring 원칙
 

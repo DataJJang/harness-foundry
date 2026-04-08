@@ -103,7 +103,10 @@ sequenceDiagram
 - root `AGENTS.md`
 - `.agent-base/project-generation-spec.json`
 - `.agent-base/generation-manifest.json`
+- `.agent-base/refinement-manifest.json`
+- `.agent-base/refinement-status.json`
 - `.agent-base/pre-commit-config.json`
+- `docs/ai/repo-local-overrides.md`
 - `Packages/manifest.json`
 - `ProjectSettings/ProjectVersion.txt`
 - `Assets/Scripts/Bootstrap/GameBootstrap.cs`
@@ -115,11 +118,14 @@ sequenceDiagram
 생성 직후에는 아래 작업을 이어서 수행한다.
 
 1. `python3 scripts/install_git_hooks.py` 실행
-2. `.agent-base/pre-commit-config.json`의 preset이 `unity-game`으로 잡혔는지 확인
-3. `docs/ai/command-catalog.md`를 실제 Unity 명령 체계로 보정
-4. `docs/ai/architecture-map.md`에 씬, 스크립트, 에셋 책임 경계 보정
-5. 첫 scene bootstrap, 플레이 루프, validation 기준 정의
-6. `checklists/project-creation.md`와 `checklists/first-delivery.md` 완료
+2. `.agent-base/refinement-manifest.json`의 high-priority module을 먼저 확인
+3. `python3 scripts/update_refinement_status.py --interactive --append-to-overrides`로 다음 pending module을 처리
+4. `.agent-base/refinement-status.json`과 `docs/ai/repo-local-overrides.md`에 현재 결정과 defer note를 남김
+5. `.agent-base/pre-commit-config.json`의 preset이 `unity-game`으로 잡혔는지 확인
+6. `docs/ai/command-catalog.md`를 실제 Unity 명령 체계로 보정
+7. `docs/ai/architecture-map.md`에 씬, 스크립트, 에셋 책임 경계 보정
+8. 첫 scene bootstrap, 플레이 루프, validation 기준 정의
+9. `checklists/project-creation.md`와 `checklists/first-delivery.md` 완료
 
 ## Why This Example Matters
 

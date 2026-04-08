@@ -15,6 +15,7 @@
 
 - 역할 배정표
 - 실행 순서
+- 실행 workboard와 lane별 owned path
 - handoff artifact 요구사항
 - unresolved risk 목록
 
@@ -28,6 +29,7 @@
 ## Handoff Rules
 
 - 역할별 입력과 출력이 비어 있으면 다음 역할로 넘기지 않는다.
+- 상위 설계가 끝난 뒤에는 `.agent-base/agent-workboard.json`으로 실행 lane과 next handoff를 먼저 고정한다.
 - 구현이 끝나도 `qa-validator`, `docs-operator` 없이는 완료로 보지 않는다.
 
 ## Done Criteria

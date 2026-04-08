@@ -49,13 +49,19 @@
 5. [`../roles/README.md`](../roles/README.md)와 [`roles/README.md`](./roles/README.md), `checklists/agent-role-selection.md`로 core roles를 먼저 확정한다.
 6. generator가 남긴 `.agent-base/agent-role-plan.json`을 확인해 필수 역할과 specialization을 실제 실행 흐름에 반영한다.
 7. generator가 남긴 `.agent-base/context-manifest.json`을 확인해 fast path 문서만 먼저 연다.
-8. 필요한 경우 extended roles를 추가하고 역할별 specialist 프롬프트를 확장한다.
-9. `build-guide.md`를 이용해 첫 로컬 구축 문서를 만든다.
-10. `test-plan.md`로 첫 검증 계획을 만든다.
-11. DB를 소유하는 저장소면 `examples/database-review.md` 또는 `impact-analysis.md`를 사용해 DB change 기준을 확정한다.
-12. 배포가 필요한 저장소면 `deployment-checklist.md`를 만든다.
-13. 운영성 기능이면 `operations-manual.md`와 `impact-analysis.md`를 추가한다.
-14. 실패 케이스가 생기면 `agent-failure-review.md`와 `scripts/record_agent_failure.py`로 환류를 시작한다.
+8. generator가 남긴 `.agent-base/refinement-manifest.json`을 확인해 high-priority module부터 follow-up 질문을 진행한다.
+9. `.agent-base/refinement-status.json`과 `docs/ai/repo-local-overrides.md`에 현재 결정을 기록한다.
+10. 필요하면 `python3 scripts/update_refinement_status.py --interactive --append-to-overrides`로 module 상태를 갱신한다.
+11. `.agent-base/agent-workboard.json`을 확인해 execution lane, owned path, next handoff를 고정한다.
+12. 필요하면 `python3 scripts/update_agent_workboard.py --interactive --append-handoff`로 baton history를 남긴다.
+13. [`post-bootstrap-refinement.md`](./post-bootstrap-refinement.md)로 결정-now / keep-default / defer-with-note를 정리한다.
+14. 필요한 경우 extended roles를 추가하고 역할별 specialist 프롬프트를 확장한다.
+15. `build-guide.md`를 이용해 첫 로컬 구축 문서를 만든다.
+16. `test-plan.md`로 첫 검증 계획을 만든다.
+17. DB를 소유하는 저장소면 `examples/database-review.md` 또는 `impact-analysis.md`를 사용해 DB change 기준을 확정한다.
+18. 배포가 필요한 저장소면 `deployment-checklist.md`를 만든다.
+19. 운영성 기능이면 `operations-manual.md`와 `impact-analysis.md`를 추가한다.
+20. 실패 케이스가 생기면 `agent-failure-review.md`와 `scripts/record_agent_failure.py`로 환류를 시작한다.
 
 ## 기존 저장소 adoption / migration 시 권장 프롬프트 순서
 
@@ -71,6 +77,7 @@
 - [`project-spec-finalizer.md`](./project-spec-finalizer.md)
 - [`scaffold-planning.md`](./scaffold-planning.md)
 - [`project-generator-run.md`](./project-generator-run.md)
+- [`post-bootstrap-refinement.md`](./post-bootstrap-refinement.md)
 - [`adoption-repository-inventory.md`](./adoption-repository-inventory.md)
 - [`adoption-spec-finalizer.md`](./adoption-spec-finalizer.md)
 - [`migration-planning.md`](./migration-planning.md)

@@ -16,6 +16,7 @@
 | `docs/ai/project-family-map.md` | 패밀리 구조 | 프로젝트 패밀리와 런타임 역할의 관계 | 기능별 세부 구현 설계 |
 | `docs/ai/project-selection-mapping.md` | 선택값 매핑 | 인터뷰 결과가 템플릿, 명령, 초기 산출물로 이어지는 기준 | 장문 구현 설명 |
 | `docs/ai/stack-matrix.md` | 권장 기술 기준 | 언어, 프레임워크, 런타임, 버전 기본값과 허용 범위 | 실제 운영 절차 전부 |
+| `docs/ai/repo-local-overrides.md` | 저장소별 예외 메모 | 기본값 유지 이유, 예외 허용 근거, defer note, 후속 보정 포인트 | 공통 규칙 전체 본문 |
 | `checklists/project-creation.md` | 생성 체크 | 필수 치환값, 첫 명령, 첫 문서, 첫 검증 | 상세 구현 규약 |
 | `checklists/project-interview.md` | 인터뷰 체크 | 질문 누락, 선택값 확정, 프로젝트 패밀리와 역할 정합성 | 장문 배경 설명 |
 | `checklists/first-delivery.md` | 첫 전달 체크 | 첫 PR, 첫 배포, 첫 운영 문서 전 확인 항목 | 장문 배경 설명 |
@@ -46,6 +47,7 @@
 - 저장소 생성 절차
 - 프로젝트 패밀리와 런타임 역할 체계
 - 대화형 인터뷰 질문 구조
+- refinement manifest와 follow-up 질문 구조
 - 권장 언어, 프레임워크, 버전 기준
 - lifecycle 기준
 - 품질 게이트
@@ -60,6 +62,7 @@
 - 첫 build/test 기준
 - 첫 PR 또는 첫 배포 전 필수 문서
 - 저장소 생성 후 반드시 남겨야 할 오버레이 기준
+- high-priority refinement 상태와 defer note 확인 기준
 - DB naming, migration, verification, rollback 확인 기준
 
 ### 운영 문서
@@ -90,6 +93,7 @@
 - 신규 저장소를 시작할 때의 절차: `docs/ai/project-bootstrap.md`
 - 새 저장소의 프로젝트 패밀리와 역할 관계: `docs/ai/project-family-map.md`
 - 새 저장소의 언어/프레임워크/버전 기본값: `docs/ai/stack-matrix.md`
+- 새 저장소의 repo-local 예외와 defer note: `docs/ai/repo-local-overrides.md`
 - 새 저장소의 첫 build/test/문서 생성 체크: `checklists/project-creation.md`
 - 신규 테이블과 migration naming 기준: `docs/ai/database-rules.md`
 - DB 변경 실행 전 확인 항목: `checklists/database-change.md`

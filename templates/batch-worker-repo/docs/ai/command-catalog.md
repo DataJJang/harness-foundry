@@ -10,6 +10,7 @@
 - Web/app 계열은 `package.json`, `pubspec.yaml`, repo-local scripts, or engine docs
 - Java 계열은 `build.gradle`
 - Unity 계열은 Unity version docs, project settings, editor method, or repo-local scripts
+- refinement 중에 기본값을 유지하거나 예외를 허용한 이유는 `docs/ai/repo-local-overrides.md`에 남긴다.
 - commit 전 빠른 검사는 `.agent-base/pre-commit-config.json`과 `scripts/precommit_check.py`를 함께 본다.
 - profile, env key, 외부 의존성은 `application.yml`과 운영 문서를 함께 본다.
 - 새 저장소는 첫 공유 작업 전에 `build`, `compile`, `test`, `smoke`, `deploy-check` 기준을 문서화해야 한다.

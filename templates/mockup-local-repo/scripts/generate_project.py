@@ -131,6 +131,144 @@ CONTEXT_BUDGET = {
     "checklists": 2,
 }
 
+RUNTIME_REFINEMENT_BY_FAMILY = {
+    "game": {
+        "title": "Game Runtime Shape",
+        "questions": [
+            "core scene/bootstrap path를 어디까지 기본 구조로 둘지 정했는가?",
+            "asset, content pipeline, editor automation 중 무엇을 먼저 문서화할지 정했는가?",
+            "playmode/editmode 또는 validation method 중 첫 검증 기준은 무엇인가?",
+        ],
+        "recommendedOutputs": [
+            "docs/ai/architecture-map.md",
+            "docs/ai/command-catalog.md",
+            "build-guide or validation guide",
+        ],
+        "recommendedPrompts": ["post-bootstrap-refinement", "build-guide", "test-plan"],
+        "agentRoles": ["runtime-engineer", "qa-validator", "docs-operator"],
+    },
+    "web-app": {
+        "title": "Frontend Runtime Shape",
+        "questions": [
+            "route, page, shared component, API binding 구조를 어떤 기준으로 둘지 정했는가?",
+            "env 파일, API base URL, build target의 source of truth는 어디인가?",
+            "UI smoke와 build 검증 중 첫 전달 기준은 무엇인가?",
+        ],
+        "recommendedOutputs": [
+            "docs/ai/architecture-map.md",
+            "docs/ai/command-catalog.md",
+            "build-guide",
+        ],
+        "recommendedPrompts": ["post-bootstrap-refinement", "build-guide", "test-plan", "frontend"],
+        "agentRoles": ["runtime-engineer", "qa-validator", "docs-operator"],
+    },
+    "pwa": {
+        "title": "PWA Runtime Shape",
+        "questions": [
+            "offline/cache/installability 범위를 실제로 어디까지 지원할지 정했는가?",
+            "route, API binding, env source of truth를 어디에 둘지 정했는가?",
+            "installability/offline smoke 절차를 첫 검증에 포함할지 정했는가?",
+        ],
+        "recommendedOutputs": [
+            "docs/ai/architecture-map.md",
+            "docs/ai/command-catalog.md",
+            "deployment-checklist or runbook note for cache behavior",
+        ],
+        "recommendedPrompts": ["post-bootstrap-refinement", "build-guide", "test-plan", "frontend"],
+        "agentRoles": ["runtime-engineer", "qa-validator", "docs-operator"],
+    },
+    "mobile-app": {
+        "title": "Mobile Runtime Shape",
+        "questions": [
+            "platform config, signing, release versioning의 source of truth는 어디인가?",
+            "device/simulator smoke와 build 검증 중 첫 전달 기준은 무엇인가?",
+            "backend binding과 runtime env 분기 기준을 어디에 기록할지 정했는가?",
+        ],
+        "recommendedOutputs": [
+            "docs/ai/architecture-map.md",
+            "docs/ai/command-catalog.md",
+            "build-guide",
+        ],
+        "recommendedPrompts": ["post-bootstrap-refinement", "build-guide", "test-plan"],
+        "agentRoles": ["runtime-engineer", "qa-validator", "docs-operator"],
+    },
+    "backend-service": {
+        "title": "API Service Shape",
+        "questions": [
+            "controller/service/repository/query 책임 경계를 어디까지 분리할지 정했는가?",
+            "profile, env, security, DB config의 source of truth를 어디에 둘지 정했는가?",
+            "첫 compile/test/smoke와 health/auth 기준은 무엇인가?",
+        ],
+        "recommendedOutputs": [
+            "docs/ai/architecture-map.md",
+            "docs/ai/command-catalog.md",
+            "operations-manual",
+        ],
+        "recommendedPrompts": ["post-bootstrap-refinement", "build-guide", "test-plan", "api"],
+        "agentRoles": ["runtime-engineer", "security-reviewer", "qa-validator", "docs-operator"],
+    },
+    "batch-worker": {
+        "title": "Batch Runtime Shape",
+        "questions": [
+            "job, service, mapper, model, scheduler 경계를 어디까지 문서화할지 정했는가?",
+            "운영 SQL/runbook과 batch smoke 기준을 무엇으로 둘지 정했는가?",
+            "scheduler enable flag와 수동 실행 경로를 어디에 기록할지 정했는가?",
+        ],
+        "recommendedOutputs": [
+            "docs/ai/architecture-map.md",
+            "docs/ai/command-catalog.md",
+            "operations-manual",
+        ],
+        "recommendedPrompts": ["post-bootstrap-refinement", "build-guide", "test-plan", "batch"],
+        "agentRoles": ["runtime-engineer", "data-steward", "qa-validator", "docs-operator"],
+    },
+    "receiver-integration": {
+        "title": "Receiver Runtime Shape",
+        "questions": [
+            "ingress, parser, handler, publish 흐름을 어떤 파일 경계로 둘지 정했는가?",
+            "sample payload, retry, diagnostics 기준을 어디에 남길지 정했는가?",
+            "broker/port/topic/publish target 검증 절차를 무엇으로 둘지 정했는가?",
+        ],
+        "recommendedOutputs": [
+            "docs/ai/architecture-map.md",
+            "docs/ai/command-catalog.md",
+            "operations-manual",
+        ],
+        "recommendedPrompts": ["post-bootstrap-refinement", "build-guide", "test-plan", "receiver"],
+        "agentRoles": ["runtime-engineer", "security-reviewer", "qa-validator", "docs-operator"],
+    },
+    "mockup-local": {
+        "title": "Mockup Runtime Shape",
+        "questions": [
+            "로컬 실행 범위와 데모 시나리오를 어디까지 포함할지 정했는가?",
+            "실데이터/실연동 없이도 보여줄 핵심 흐름이 무엇인지 정했는가?",
+            "preview 명령과 walkthrough 절차를 어디에 기록할지 정했는가?",
+        ],
+        "recommendedOutputs": [
+            "docs/ai/architecture-map.md",
+            "docs/ai/command-catalog.md",
+            "build-guide",
+        ],
+        "recommendedPrompts": ["post-bootstrap-refinement", "build-guide", "test-plan"],
+        "agentRoles": ["runtime-engineer", "docs-operator"],
+    },
+    "library-tooling": {
+        "title": "Tooling Runtime Shape",
+        "questions": [
+            "library, CLI, helper script 중 무엇이 첫 public surface인지 정했는가?",
+            "sample invocation과 package smoke 기준을 어디에 기록할지 정했는가?",
+            "runtime dependency와 install path의 source of truth를 어디로 둘지 정했는가?",
+        ],
+        "recommendedOutputs": [
+            "docs/ai/architecture-map.md",
+            "docs/ai/command-catalog.md",
+            "build-guide",
+        ],
+        "recommendedPrompts": ["post-bootstrap-refinement", "build-guide", "test-plan"],
+        "agentRoles": ["runtime-engineer", "qa-validator", "docs-operator"],
+    },
+}
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Generate a sample project from harness-foundry.")
@@ -321,6 +459,793 @@ def derive_context_manifest(spec: dict) -> dict:
         "roleSpecializations": spec["roleSpecializations"],
         "contextBudget": dict(CONTEXT_BUDGET),
     }
+
+
+def derive_agent_role_plan(spec: dict) -> dict:
+    return {
+        "requiredAgentRoles": spec["requiredAgentRoles"],
+        "optionalAgentRoles": spec["optionalAgentRoles"],
+        "roleSpecializations": spec["roleSpecializations"],
+        "agentWorkflowOrder": spec["agentWorkflowOrder"],
+        "agentRoleOverrides": spec["agentRoleOverrides"],
+    }
+
+
+def make_refinement_module(
+    module_id: str,
+    title: str,
+    priority: str,
+    trigger_reason: str,
+    questions: list[str],
+    recommended_outputs: list[str],
+    recommended_prompts: list[str],
+    agent_roles: list[str],
+    done_when: list[str],
+) -> dict:
+    return {
+        "id": module_id,
+        "title": title,
+        "priority": priority,
+        "triggerReason": trigger_reason,
+        "questions": questions,
+        "recommendedOutputs": recommended_outputs,
+        "recommendedPrompts": recommended_prompts,
+        "agentRoles": agent_roles,
+        "doneWhen": done_when,
+    }
+
+
+def runtime_refinement_module(spec: dict) -> dict:
+    family = spec["projectFamily"]
+    baseline = RUNTIME_REFINEMENT_BY_FAMILY[family]
+    return make_refinement_module(
+        module_id="runtime-shape",
+        title=baseline["title"],
+        priority="medium",
+        trigger_reason=f"projectFamily is `{family}` and runtime details still need repo-local shaping.",
+        questions=list(baseline["questions"]),
+        recommended_outputs=list(baseline["recommendedOutputs"]),
+        recommended_prompts=list(baseline["recommendedPrompts"]),
+        agent_roles=list(baseline["agentRoles"]),
+        done_when=[
+            "runtime-specific structure, commands, and validation boundary are written down",
+            "repo-local source of truth files are named in architecture-map and command-catalog",
+        ],
+    )
+
+
+def derive_refinement_manifest(spec: dict, scaffold_profile: str | None, support_level: str) -> dict:
+    modules: list[dict] = []
+    target_environments = spec.get("targetEnvironments", [])
+    environment_labels = ", ".join(target_environments) or "local"
+
+    modules.append(
+        make_refinement_module(
+            module_id="repository-alignment",
+            title="Repository Alignment",
+            priority="medium",
+            trigger_reason="Every generated repository needs repo-local command, document, and pre-commit alignment.",
+            questions=[
+                "실제 첫 build, compile, test, smoke 명령은 무엇인가?",
+                "환경설정과 secret의 source of truth 파일은 어디인가?",
+                "생성된 문서 중 repo-local override가 필요한 파일은 무엇인가?",
+                "pre-commit hook에 넣을 최소 검증은 무엇인가?",
+            ],
+            recommended_outputs=[
+                "AGENTS.md",
+                "docs/ai/command-catalog.md",
+                "docs/ai/architecture-map.md",
+                ".agent-base/pre-commit-config.json",
+            ],
+            recommended_prompts=["post-bootstrap-refinement", "build-guide", "test-plan"],
+            agent_roles=["runtime-engineer", "qa-validator", "docs-operator"],
+            done_when=[
+                "first commands and source-of-truth files are documented",
+                "pre-commit profile is aligned with the real repository command set",
+                "repo-local overrides are named or intentionally deferred",
+            ],
+        )
+    )
+    modules.append(runtime_refinement_module(spec))
+
+    if spec.get("exceptions"):
+        modules.append(
+            make_refinement_module(
+                module_id="stack-exceptions",
+                title="Non-Default Stack Exceptions",
+                priority="medium",
+                trigger_reason="The spec already contains exceptions that differ from family defaults.",
+                questions=[
+                    "예외로 남긴 언어, 프레임워크, 빌드/테스트 도구 차이를 유지할 근거는 무엇인가?",
+                    "이 예외를 문서화할 repo-local overlay note는 어디에 남길 것인가?",
+                    "기본 preset과 다른 명령 체계가 있다면 pre-commit과 command-catalog를 어떻게 수정할 것인가?",
+                ],
+                recommended_outputs=[
+                    "repo-local overlay note for exceptions",
+                    "docs/ai/command-catalog.md",
+                    "docs/ai/architecture-map.md",
+                ],
+                recommended_prompts=["post-bootstrap-refinement", "scaffold-planning"],
+                agent_roles=["bootstrap-planner", "runtime-engineer", "docs-operator"],
+                done_when=[
+                    "every non-default decision has a reason and an owning document",
+                    "tooling presets and generated defaults no longer conflict with the chosen stack",
+                ],
+            )
+        )
+
+    if spec.get("datastore") != "없음":
+        schema_ownership = spec.get("schemaOwnership", "unspecified")
+        data_priority = "high" if schema_ownership in {"owned", "shared"} else "medium"
+        modules.append(
+            make_refinement_module(
+                module_id="data-and-schema",
+                title="Data Ownership And Schema Flow",
+                priority=data_priority,
+                trigger_reason=(
+                    f"datastore is `{spec['datastore']}` and schemaOwnership is `{schema_ownership}`."
+                ),
+                questions=[
+                    "schema, migration, seed, verification query 중 이 저장소가 실제로 소유하는 범위는 어디까지인가?",
+                    "migration 경로와 naming, rollback, verification 기준을 어디에 남길 것인가?",
+                    "seed, backfill, data correction이 생길 수 있다면 어떤 문서와 체크리스트를 기본으로 둘 것인가?",
+                ],
+                recommended_outputs=[
+                    "docs/ai/database-rules.md",
+                    "checklists/database-change.md",
+                    "impact-analysis or database review note",
+                ],
+                recommended_prompts=["post-bootstrap-refinement", "impact-analysis"],
+                agent_roles=["data-steward", "runtime-engineer", "qa-validator", "docs-operator"],
+                done_when=[
+                    "schema ownership and migration path are explicit",
+                    "verification and rollback expectations are documented before the first DB-affecting change",
+                ],
+            )
+        )
+
+    if spec.get("cache") != "없음":
+        modules.append(
+            make_refinement_module(
+                module_id="cache-policy",
+                title="Cache And State Policy",
+                priority="medium",
+                trigger_reason=f"cache is `{spec['cache']}`.",
+                questions=[
+                    "cache key, TTL, invalidation 책임을 어느 계층에 둘지 정했는가?",
+                    "cache miss/fallback과 local 개발 모드 동작을 어떻게 검증할 것인가?",
+                    "cache 관련 설정과 운영 점검 포인트를 어디에 기록할 것인가?",
+                ],
+                recommended_outputs=[
+                    "docs/ai/architecture-map.md",
+                    "docs/ai/command-catalog.md",
+                    "operations-manual or runbook note",
+                ],
+                recommended_prompts=["post-bootstrap-refinement", "operations-manual"],
+                agent_roles=["runtime-engineer", "qa-validator", "docs-operator"],
+                done_when=[
+                    "cache behavior and ownership are visible in the repo-local docs",
+                    "operators know where to check cache-related failures or toggles",
+                ],
+            )
+        )
+
+    if spec.get("externalIntegrations"):
+        modules.append(
+            make_refinement_module(
+                module_id="integration-contracts",
+                title="External Integration Contracts",
+                priority="medium",
+                trigger_reason=(
+                    "externalIntegrations are declared in the spec: "
+                    + ", ".join(spec["externalIntegrations"])
+                    + "."
+                ),
+                questions=[
+                    "각 외부 연동의 contract owner, timeout/retry, failure path를 어디에 기록할 것인가?",
+                    "로컬 또는 test 환경에서 stub, mock, sandbox 중 무엇을 사용할 것인가?",
+                    "smoke 검증에서 꼭 확인할 대표 연동 경로는 무엇인가?",
+                ],
+                recommended_outputs=[
+                    "docs/ai/architecture-map.md",
+                    "docs/ai/command-catalog.md",
+                    "operations-manual or impact-analysis",
+                ],
+                recommended_prompts=["post-bootstrap-refinement", "impact-analysis", "operations-manual"],
+                agent_roles=["runtime-engineer", "qa-validator", "docs-operator"],
+                done_when=[
+                    "integration boundaries and fallback expectations are documented",
+                    "one representative validation path exists for critical integrations",
+                ],
+            )
+        )
+
+    security_needed = spec.get("securityProfile") != "없음" or spec.get("deploymentType") != "local-only" or len(target_environments) > 1
+    if security_needed:
+        security_priority = "high" if spec.get("securityProfile") != "없음" or spec.get("projectNature") == "production" else "medium"
+        modules.append(
+            make_refinement_module(
+                module_id="security-and-environments",
+                title="Security And Environment Policy",
+                priority=security_priority,
+                trigger_reason=(
+                    f"securityProfile is `{spec['securityProfile']}` and target environments are `{environment_labels}`."
+                ),
+                questions=[
+                    "secret, token, env override는 어디서 주입되고 어떤 파일이 source of truth인가?",
+                    "인증/인가 경계와 민감 로그 금지 기준을 어디에 문서화할 것인가?",
+                    "환경별 차이를 default, override, or defer 중 어떻게 처리할 것인가?",
+                ],
+                recommended_outputs=[
+                    "docs/ai/architecture-map.md",
+                    "docs/ai/command-catalog.md",
+                    "repo-local env or security note",
+                ],
+                recommended_prompts=["post-bootstrap-refinement", "build-guide"],
+                agent_roles=["security-reviewer", "runtime-engineer", "docs-operator"],
+                done_when=[
+                    "secret injection path and security boundaries are named",
+                    "environment differences are documented or explicitly deferred with notes",
+                ],
+            )
+        )
+
+    delivery_needed = spec.get("deploymentType") != "local-only" or spec.get("projectNature") == "production" or any(env in {"stg", "prd"} for env in target_environments)
+    if delivery_needed:
+        delivery_priority = "high" if spec.get("projectNature") == "production" or spec.get("deploymentType") != "local-only" else "medium"
+        modules.append(
+            make_refinement_module(
+                module_id="delivery-and-rollout",
+                title="Delivery And Rollout",
+                priority=delivery_priority,
+                trigger_reason=(
+                    f"deploymentType is `{spec['deploymentType']}` and target environments are `{environment_labels}`."
+                ),
+                questions=[
+                    "배포 단위, 배포 순서, smoke owner를 어디까지 첫 문서에 넣을 것인가?",
+                    "rollback trigger와 운영 점검 포인트를 무엇으로 둘 것인가?",
+                    "deploy-check에서 반드시 확인할 env, secret, dependency 항목은 무엇인가?",
+                ],
+                recommended_outputs=[
+                    "deployment-checklist",
+                    "operations-manual",
+                    "release and rollback note",
+                ],
+                recommended_prompts=["post-bootstrap-refinement", "deployment-checklist", "operations-manual"],
+                agent_roles=["release-manager", "qa-validator", "docs-operator"],
+                done_when=[
+                    "deployment order and rollback trigger are explicit",
+                    "deploy-check and smoke responsibilities are visible before first delivery",
+                ],
+            )
+        )
+
+    if spec.get("repositoryMode") != "single-repo":
+        modules.append(
+            make_refinement_module(
+                module_id="repository-topology",
+                title="Repository Topology Expansion",
+                priority="high",
+                trigger_reason=(
+                    f"repositoryMode is `{spec['repositoryMode']}` but generator v1 creates only one sample repository."
+                ),
+                questions=[
+                    "workspace, package boundary, shared config를 어떤 구조로 확장할 것인가?",
+                    "root command와 package-local command를 어디에 나눠 기록할 것인가?",
+                    "multi-repo 또는 monorepo handoff 기준과 문서 경계를 어떻게 둘 것인가?",
+                ],
+                recommended_outputs=[
+                    "topology note or repo-local overlay plan",
+                    "docs/ai/architecture-map.md",
+                    "docs/ai/command-catalog.md",
+                ],
+                recommended_prompts=["post-bootstrap-refinement", "scaffold-planning"],
+                agent_roles=["bootstrap-planner", "solution-architect", "docs-operator"],
+                done_when=[
+                    "the expansion path beyond the single generated sample repo is explicit",
+                    "command ownership and document boundaries are clear for each repo or package",
+                ],
+            )
+        )
+
+    if support_level != "supported":
+        scaffold_priority = "high" if support_level == "docs-only" else "medium"
+        modules.append(
+            make_refinement_module(
+                module_id="scaffold-gap",
+                title="Scaffold Completion Plan",
+                priority=scaffold_priority,
+                trigger_reason=(
+                    f"scaffold support level is `{support_level}` with profile `{scaffold_profile or 'docs-only'}`."
+                ),
+                questions=[
+                    "생성기가 채우지 못한 최소 실행 구조는 무엇인가?",
+                    "repo-local scaffold를 어떤 파일과 디렉토리부터 직접 보완할 것인가?",
+                    "지원되지 않는 영역을 TODO, overlay note, or custom script 중 어디에 남길 것인가?",
+                ],
+                recommended_outputs=[
+                    "TODO_UNSUPPORTED_SCAFFOLD.md or repo-local scaffold plan",
+                    "build-guide",
+                    "test-plan",
+                ],
+                recommended_prompts=["post-bootstrap-refinement", "scaffold-planning", "project-generator-run"],
+                agent_roles=["bootstrap-planner", "runtime-engineer", "docs-operator"],
+                done_when=[
+                    "manual scaffold completion scope is visible",
+                    "the first executable or verifiable path is defined even when generation is partial",
+                ],
+            )
+        )
+
+    priority_order = {"high": 0, "medium": 1, "low": 2}
+    suggested_execution_order = [
+        module["id"]
+        for module in sorted(modules, key=lambda module: priority_order.get(module["priority"], 9))
+    ]
+    high_priority_modules = [module["id"] for module in modules if module["priority"] == "high"]
+
+    return {
+        "version": 1,
+        "projectFamily": spec["projectFamily"],
+        "repositoryName": spec["repositoryName"],
+        "scaffoldProfile": scaffold_profile,
+        "supportLevel": support_level,
+        "summary": {
+            "needsRefinement": bool(modules),
+            "moduleCount": len(modules),
+            "highPriorityModuleIds": high_priority_modules,
+            "suggestedExecutionOrder": suggested_execution_order,
+            "decisionModes": ["decide-now", "keep-default", "defer-with-note"],
+        },
+        "modules": modules,
+    }
+
+
+def derive_refinement_status(spec: dict, refinement_manifest: dict) -> dict:
+    module_entries = []
+    for module in refinement_manifest["modules"]:
+        module_entries.append(
+            {
+                "id": module["id"],
+                "title": module["title"],
+                "priority": module["priority"],
+                "status": "pending",
+                "decisionMode": "undecided",
+                "ownerHints": list(module["agentRoles"]),
+                "recommendedOutputs": list(module["recommendedOutputs"]),
+                "recommendedPrompts": list(module["recommendedPrompts"]),
+                "notes": "",
+                "deferredReason": "",
+                "resolver": "",
+                "lastUpdated": None,
+            }
+        )
+
+    return {
+        "version": 1,
+        "repositoryName": spec["repositoryName"],
+        "projectFamily": spec["projectFamily"],
+        "summary": {
+            "pendingModuleIds": [module["id"] for module in refinement_manifest["modules"]],
+            "highPriorityPendingModuleIds": list(refinement_manifest["summary"]["highPriorityModuleIds"]),
+            "resolvedModuleIds": [],
+            "deferredModuleIds": [],
+            "nextRecommendedPrompt": "post-bootstrap-refinement",
+            "decisionModes": ["decide-now", "keep-default", "defer-with-note"],
+        },
+        "modules": module_entries,
+    }
+
+
+def runtime_engineer_label(spec: dict) -> str:
+    specializations = []
+    for item in spec.get("roleSpecializations", []):
+        if item.startswith("runtime-engineer:"):
+            specializations.append(item.split(":", 1)[1].strip())
+    if not specializations:
+        return "runtime-engineer"
+    return f"runtime-engineer[{', '.join(specializations)}]"
+
+
+def default_runtime_owned_paths(spec: dict) -> list[str]:
+    family = spec["projectFamily"]
+    language = str(spec.get("language", "")).lower()
+    framework = str(spec.get("framework", "")).lower()
+
+    if family in {"web-app", "pwa", "mockup-local"}:
+        return ["src/", "public/", "package.json", "docs/ai/architecture-map.md"]
+    if family == "mobile-app":
+        return ["lib/", "test/", "pubspec.yaml", "docs/ai/architecture-map.md"]
+    if family == "game":
+        return ["Assets/", "Packages/", "ProjectSettings/", "docs/ai/architecture-map.md"]
+    if family in {"backend-service", "batch-worker", "receiver-integration"}:
+        return ["src/main/", "src/test/", "build.gradle", "docs/ai/architecture-map.md"]
+    if family == "library-tooling" and language == "java":
+        return ["src/main/", "src/test/", "build.gradle", "docs/ai/architecture-map.md"]
+    if family == "library-tooling" and language == "typescript":
+        return ["src/", "test/", "package.json", "docs/ai/architecture-map.md"]
+    if "spring" in framework:
+        return ["src/main/", "src/test/", "build.gradle", "docs/ai/architecture-map.md"]
+    return ["src/", "tests/", "docs/ai/architecture-map.md"]
+
+
+def make_work_lane(
+    lane_id: str,
+    title: str,
+    phase: str,
+    role: str,
+    status: str,
+    objective: str,
+    scope_summary: str,
+    depends_on: list[str],
+    owned_paths: list[str],
+    required_inputs: list[str],
+    expected_outputs: list[str],
+    handoff_targets: list[str],
+    done_when: list[str],
+    notes: str = "",
+    blockers: list[str] | None = None,
+    verification_status: str = "not-started",
+) -> dict:
+    return {
+        "id": lane_id,
+        "title": title,
+        "phase": phase,
+        "role": role,
+        "currentOwner": role,
+        "status": status,
+        "objective": objective,
+        "scopeSummary": scope_summary,
+        "dependsOn": depends_on,
+        "ownedPaths": owned_paths,
+        "requiredInputs": required_inputs,
+        "expectedOutputs": expected_outputs,
+        "handoffTargets": handoff_targets,
+        "doneWhen": done_when,
+        "latestSummary": "",
+        "notes": notes,
+        "verificationStatus": verification_status,
+        "nextHandoffTarget": handoff_targets[0] if handoff_targets else "",
+        "blockers": list(blockers or []),
+        "openQuestions": [],
+        "lastUpdated": None,
+    }
+
+
+def recompute_agent_workboard_summary(workboard: dict) -> None:
+    pending = [lane["id"] for lane in workboard["workLanes"] if lane["status"] == "pending"]
+    in_progress = [lane["id"] for lane in workboard["workLanes"] if lane["status"] == "in-progress"]
+    blocked = [lane["id"] for lane in workboard["workLanes"] if lane["status"] == "blocked"]
+    completed = [lane["id"] for lane in workboard["workLanes"] if lane["status"] == "completed"]
+
+    workboard["summary"]["pendingLaneIds"] = pending
+    workboard["summary"]["inProgressLaneIds"] = in_progress
+    workboard["summary"]["blockedLaneIds"] = blocked
+    workboard["summary"]["completedLaneIds"] = completed
+
+    completed_set = set(completed)
+    next_lane = None
+    for lane in workboard["workLanes"]:
+        if lane["status"] != "pending":
+            continue
+        if all(dep in completed_set for dep in lane["dependsOn"]):
+            next_lane = lane["id"]
+            break
+    workboard["summary"]["nextSuggestedLaneId"] = next_lane
+
+
+def sync_agent_workboard_with_refinement(workboard: dict, refinement_status: dict) -> None:
+    high_priority_pending = list(refinement_status["summary"]["highPriorityPendingModuleIds"])
+    workboard["summary"]["blockingHighPriorityModuleIds"] = high_priority_pending
+    workboard["summary"]["designReady"] = not high_priority_pending
+
+    design_lane = next((lane for lane in workboard["workLanes"] if lane["id"] == "design-freeze"), None)
+    if design_lane:
+        design_lane["blockers"] = list(high_priority_pending)
+        if high_priority_pending:
+            design_lane["status"] = "blocked"
+        elif design_lane["status"] == "blocked":
+            design_lane["status"] = "pending"
+
+    recompute_agent_workboard_summary(workboard)
+
+
+def derive_agent_workboard(
+    spec: dict,
+    context_manifest: dict,
+    refinement_manifest: dict,
+    refinement_status: dict,
+    path_map: dict[str, str],
+) -> dict:
+    high_priority_pending = list(refinement_status["summary"]["highPriorityPendingModuleIds"])
+    design_ready = not high_priority_pending
+    role_plan = derive_agent_role_plan(spec)
+    active_roles = list(role_plan["requiredAgentRoles"])
+    runtime_role = runtime_engineer_label(spec)
+    refinement_modules = {module["id"] for module in refinement_manifest["modules"]}
+    work_lanes = []
+
+    work_lanes.append(
+        make_work_lane(
+            lane_id="design-freeze",
+            title="Design Freeze And Task Framing",
+            phase="planning",
+            role="orchestrator" if "orchestrator" in active_roles else "bootstrap-planner",
+            status="completed" if design_ready else "pending",
+            objective="상위 설계와 refinement 결정을 실행 가능한 작업 범위와 handoff 기준으로 고정한다.",
+            scope_summary="high-priority refinement, 역할별 owned path, 검증 경계, 다음 handoff 순서를 합의한다.",
+            depends_on=[],
+            owned_paths=[
+                path_map["rolePlanPath"],
+                path_map["refinementStatusPath"],
+                path_map["repoLocalOverridesPath"],
+                path_map["workboardPath"],
+            ],
+            required_inputs=[
+                path_map["specPath"],
+                path_map["refinementManifestPath"],
+                path_map["refinementStatusPath"],
+                path_map["commandCatalogPath"],
+                path_map["architectureMapPath"],
+            ],
+            expected_outputs=[
+                path_map["workboardPath"],
+                path_map["handoffLogPath"],
+                path_map["repoLocalOverridesPath"],
+            ],
+            handoff_targets=[
+                runtime_role,
+                "qa-validator" if "qa-validator" in active_roles else "docs-operator",
+                "docs-operator" if "docs-operator" in active_roles else runtime_role,
+            ],
+            done_when=[
+                "high-priority refinement module이 resolved 또는 deferred with owner 상태다",
+                "각 실행 lane의 owned path와 next handoff target이 정리되었다",
+                "작업을 막는 open question과 blocker가 workboard에 남아 있다",
+            ],
+            blockers=high_priority_pending,
+            notes="설계가 끝난 뒤 runner에게 넘길 실행 기준선을 여기서 고정한다.",
+        )
+    )
+
+    work_lanes.append(
+        make_work_lane(
+            lane_id="runtime-implementation",
+            title="Runtime Implementation",
+            phase="implementation",
+            role=runtime_role,
+            status="pending",
+            objective="합의된 설계 기준 안에서 실제 코드와 설정을 구현한다.",
+            scope_summary="코드 변경은 agreed scope 안에서 진행하고, 새로운 설계 판단이 생기면 먼저 design-freeze lane으로 되돌린다.",
+            depends_on=["design-freeze"],
+            owned_paths=default_runtime_owned_paths(spec),
+            required_inputs=[
+                path_map["specPath"],
+                path_map["refinementStatusPath"],
+                path_map["commandCatalogPath"],
+                path_map["architectureMapPath"],
+                path_map["repoLocalOverridesPath"],
+            ],
+            expected_outputs=[
+                "code and config changes within owned paths",
+                path_map["commandCatalogPath"],
+                path_map["architectureMapPath"],
+            ],
+            handoff_targets=[
+                "qa-validator" if "qa-validator" in active_roles else "docs-operator",
+                "docs-operator" if "docs-operator" in active_roles else runtime_role,
+            ],
+            done_when=[
+                "변경 범위가 owned path 안에서 설명 가능하다",
+                "first build/test/smoke에 필요한 명령과 전제조건이 문서에 반영되었다",
+                "미해결 위험이 handoff log와 workboard에 기록되었다",
+            ],
+        )
+    )
+
+    if "data-steward" in active_roles or "data-and-schema" in refinement_modules:
+        work_lanes.append(
+            make_work_lane(
+                lane_id="data-contracts",
+                title="Data Ownership And Verification",
+                phase="implementation",
+                role="data-steward" if "data-steward" in active_roles else runtime_role,
+                status="pending",
+                objective="schema, migration, verification query, rollback 기준을 구현 범위와 분리해 고정한다.",
+                scope_summary="DB ownership이 있는 경우 코드보다 먼저 verification/rollback 기준을 분명히 한다.",
+                depends_on=["design-freeze"],
+                owned_paths=["docs/ai/database-rules.md", "checklists/database-change.md", "src/main/resources/"],
+                required_inputs=[
+                    path_map["refinementStatusPath"],
+                    path_map["architectureMapPath"],
+                    path_map["commandCatalogPath"],
+                ],
+                expected_outputs=[
+                    "schema ownership note",
+                    "migration and verification plan",
+                    "rollback or data safety note",
+                ],
+                handoff_targets=[runtime_role, "qa-validator", "docs-operator"],
+                done_when=[
+                    "schema ownership과 migration 경로가 문서에 적혔다",
+                    "verification query 또는 동등한 검증 기준이 준비되었다",
+                    "DB 영향이 있는 handoff에서 놓친 사항이 없다",
+                ],
+            )
+        )
+
+    if "security-reviewer" in active_roles or "security-and-environments" in refinement_modules:
+        work_lanes.append(
+            make_work_lane(
+                lane_id="security-review",
+                title="Security And Environment Review",
+                phase="governance",
+                role="security-reviewer" if "security-reviewer" in active_roles else runtime_role,
+                status="pending",
+                objective="auth, secret, env override, 민감 로그 기준을 구현 전후로 점검한다.",
+                scope_summary="보안 경계와 env source of truth를 확정하고 runtime lane과 validator lane에 공유한다.",
+                depends_on=["design-freeze"],
+                owned_paths=["docs/ai/architecture-map.md", "docs/ai/command-catalog.md", "docs/ai/repo-local-overrides.md"],
+                required_inputs=[
+                    path_map["refinementStatusPath"],
+                    path_map["repoLocalOverridesPath"],
+                    path_map["architectureMapPath"],
+                ],
+                expected_outputs=[
+                    "security decision notes",
+                    "env/source-of-truth update",
+                    "blocked actions or safe defaults",
+                ],
+                handoff_targets=[runtime_role, "qa-validator", "docs-operator"],
+                done_when=[
+                    "secret/env injection source of truth가 명확하다",
+                    "민감 로그와 권한 경계가 문서화되었다",
+                    "보안 리뷰가 필요한 변경이 validator에게 공유되었다",
+                ],
+            )
+        )
+
+    if "qa-validator" in active_roles:
+        validation_depends = ["runtime-implementation"]
+        if any(lane["id"] == "data-contracts" for lane in work_lanes):
+            validation_depends.append("data-contracts")
+        if any(lane["id"] == "security-review" for lane in work_lanes):
+            validation_depends.append("security-review")
+        work_lanes.append(
+            make_work_lane(
+                lane_id="qa-validation",
+                title="Validation And Smoke Review",
+                phase="validation",
+                role="qa-validator",
+                status="pending",
+                objective="실제 build/test/smoke 결과와 미검증 항목을 고정한다.",
+                scope_summary="runtime 변경과 side review 결과를 받아 검증 경계와 미실행 항목을 정리한다.",
+                depends_on=validation_depends,
+                owned_paths=["docs/ai/command-catalog.md", "checklists/first-delivery.md", path_map["handoffLogPath"]],
+                required_inputs=[
+                    path_map["commandCatalogPath"],
+                    path_map["workboardPath"],
+                    path_map["handoffLogPath"],
+                ],
+                expected_outputs=[
+                    "validation result summary",
+                    "smoke notes",
+                    "unverified items with reason",
+                ],
+                handoff_targets=["docs-operator", "release-manager" if "release-manager" in role_plan["optionalAgentRoles"] else "orchestrator"],
+                done_when=[
+                    "최소 1개 이상의 자동 검증 또는 동등 검증이 기록되었다",
+                    "미실행 검증과 이유가 handoff에 남아 있다",
+                    "final delivery가 설명 가능한 수준으로 정리되었다",
+                ],
+            )
+        )
+
+    if "docs-operator" in active_roles:
+        docs_depends = ["runtime-implementation"]
+        if "qa-validator" in active_roles:
+            docs_depends.append("qa-validation")
+        work_lanes.append(
+            make_work_lane(
+                lane_id="docs-alignment",
+                title="Docs And Operator Alignment",
+                phase="delivery",
+                role="docs-operator",
+                status="pending",
+                objective="명령, 운영, handoff, 예외 정보를 사람이 바로 사용할 수 있게 정리한다.",
+                scope_summary="repo-local overrides, command catalog, architecture map, handoff log를 최신 상태로 맞춘다.",
+                depends_on=docs_depends,
+                owned_paths=[
+                    path_map["repoLocalOverridesPath"],
+                    path_map["commandCatalogPath"],
+                    path_map["architectureMapPath"],
+                    path_map["handoffLogPath"],
+                ],
+                required_inputs=[
+                    path_map["workboardPath"],
+                    path_map["handoffLogPath"],
+                    path_map["refinementStatusPath"],
+                ],
+                expected_outputs=[
+                    path_map["repoLocalOverridesPath"],
+                    path_map["commandCatalogPath"],
+                    path_map["architectureMapPath"],
+                    path_map["handoffLogPath"],
+                ],
+                handoff_targets=["orchestrator"],
+                done_when=[
+                    "실행 중 바뀐 기준이 docs에 반영되었다",
+                    "handoff log만 봐도 누가 무엇을 넘겼는지 추적 가능하다",
+                    "첫 전달 시 필요한 문서와 체크리스트가 최신 상태다",
+                ],
+            )
+        )
+
+    if spec.get("deploymentType") != "local-only" or "delivery-and-rollout" in refinement_modules:
+        release_role = "release-manager" if "release-manager" in role_plan["optionalAgentRoles"] else "orchestrator"
+        release_depends = ["docs-alignment"] if any(lane["id"] == "docs-alignment" for lane in work_lanes) else ["runtime-implementation"]
+        if any(lane["id"] == "qa-validation" for lane in work_lanes):
+            release_depends.append("qa-validation")
+        work_lanes.append(
+            make_work_lane(
+                lane_id="release-readiness",
+                title="Release And Rollout Readiness",
+                phase="delivery",
+                role=release_role,
+                status="pending",
+                objective="배포/롤아웃/rollback 기준이 필요한 저장소라면 첫 실행 기준선을 고정한다.",
+                scope_summary="운영 영향이 있는 저장소에서 deploy-check와 rollback note가 없이 종료되지 않게 한다.",
+                depends_on=release_depends,
+                owned_paths=["deployment-checklist", "operations-manual", "docs/ai/repo-local-overrides.md"],
+                required_inputs=[
+                    path_map["handoffLogPath"],
+                    path_map["refinementStatusPath"],
+                    path_map["commandCatalogPath"],
+                ],
+                expected_outputs=[
+                    "deployment checklist or equivalent note",
+                    "rollback trigger memo",
+                    "release blocker summary",
+                ],
+                handoff_targets=["orchestrator"],
+                done_when=[
+                    "배포 영향과 rollback 기준이 문서화되었다",
+                    "release blocker가 있으면 명시적으로 defer 또는 block 처리되었다",
+                    "운영 변경이 validator/docs output과 모순되지 않는다",
+                ],
+            )
+        )
+
+    workboard = {
+        "version": 1,
+        "repositoryName": spec["repositoryName"],
+        "projectFamily": spec["projectFamily"],
+        "summary": {
+            "designReady": design_ready,
+            "blockingHighPriorityModuleIds": high_priority_pending,
+            "pendingLaneIds": [],
+            "inProgressLaneIds": [],
+            "blockedLaneIds": [],
+            "completedLaneIds": [],
+            "nextSuggestedLaneId": None,
+        },
+        "sharedContext": {
+            **path_map,
+            "fastPathDocs": list(context_manifest["fastPathDocs"]),
+            "coreRoles": list(context_manifest["coreRoles"]),
+            "extendedRoles": list(context_manifest["extendedRoles"]),
+        },
+        "coordinationRules": [
+            "high-priority refinement module이 unresolved 상태면 implementation 범위를 넓히지 않는다.",
+            "각 lane은 owned path를 먼저 선언하고, 다른 lane의 write scope를 덮어쓰지 않는다.",
+            "새 설계 판단이 필요해지면 runtime lane이 혼자 결정하지 말고 design-freeze lane으로 되돌린다.",
+            "handoff 때는 files, outputs, verification, open question을 docs/ai/agent-handoff-log.md에 남긴다.",
+            "qa-validator와 docs-operator 없이 작업을 최종 완료로 선언하지 않는다.",
+        ],
+        "workLanes": work_lanes,
+    }
+    sync_agent_workboard_with_refinement(workboard, refinement_status)
+    return workboard
 
 
 def normalize_spec(spec: dict) -> dict:
@@ -516,19 +1441,196 @@ def write_root_readme(target_dir: Path, spec: dict, scaffold_profile: str | None
 ## Next Steps
 
 1. Review `AGENTS.md`, `docs/ai/project-bootstrap.md`, and `docs/ai/command-catalog.md`.
-2. Install the local git hook pack with `python3 scripts/install_git_hooks.py`.
-3. Review `.agent-base/pre-commit-config.json` and align the preset with the real repository commands.
-4. Review `.agent-base/context-manifest.json` and load only the recommended fast-path docs first.
-5. Update commands, package names, env files, and runtime assumptions to the real repository state.
-6. Run the first build, compile, test, and smoke validation.
-7. Complete `checklists/project-creation.md` and `checklists/first-delivery.md`.
+2. Review `.agent-base/refinement-manifest.json` and resolve the high-priority follow-up modules first.
+3. Run `python3 scripts/update_refinement_status.py --interactive --append-to-overrides` to process the next pending refinement module.
+4. Review `.agent-base/agent-workboard.json` and confirm the first execution lane and owned paths.
+5. Run `python3 scripts/update_agent_workboard.py --interactive --append-handoff` after each major execution handoff.
+6. Update `.agent-base/refinement-status.json`, `.agent-base/agent-workboard.json`, and `docs/ai/repo-local-overrides.md` while making bootstrap follow-up decisions.
+7. Install the local git hook pack with `python3 scripts/install_git_hooks.py`.
+8. Review `.agent-base/pre-commit-config.json` and align the preset with the real repository commands.
+9. Review `.agent-base/context-manifest.json` and load only the recommended fast-path docs first.
+10. Update commands, package names, env files, and runtime assumptions to the real repository state.
+11. Run the first build, compile, test, and smoke validation.
+12. Complete `checklists/project-creation.md` and `checklists/first-delivery.md`.
 """
     (target_dir / "README.md").write_text(readme, encoding="utf-8")
+
+
+def write_repo_local_overrides(target_dir: Path, spec: dict, refinement_manifest: dict) -> None:
+    exceptions = spec.get("exceptions", [])
+    high_priority_modules = refinement_manifest["summary"]["highPriorityModuleIds"]
+    lines = [
+        "# Repo-Local Overrides",
+        "",
+        "이 문서는 공통 템플릿 기본값과 다른 선택, bootstrap 이후 refinement 결정, defer note를 저장소 로컬 기준으로 남긴다.",
+        "",
+        "## Bootstrap Snapshot",
+        "",
+        f"- Repository: `{spec['repositoryName']}`",
+        f"- Project family: `{spec['projectFamily']}`",
+        f"- Runtime roles: `{', '.join(spec['runtimeRoles'])}`",
+        f"- Language / framework: `{spec['language']} / {spec['framework']}`",
+        f"- Build tool: `{spec['buildTool']}`",
+        f"- Test tool: `{spec['testTool']}`",
+        f"- Deployment type: `{spec['deploymentType']}`",
+        f"- Security profile: `{spec['securityProfile']}`",
+        "",
+        "## Decision Modes",
+        "",
+        "- `decide-now`: 지금 확정하고 관련 문서/설정까지 같이 반영한다.",
+        "- `keep-default`: 공통 기본값을 의도적으로 유지한다.",
+        "- `defer-with-note`: 지금은 미루되 이유와 나중에 결정할 주체를 남긴다.",
+        "",
+        "## Non-Default Choices",
+        "",
+    ]
+    if exceptions:
+        for exception in exceptions:
+            lines.append(f"- {exception}")
+    else:
+        lines.append("- 없음")
+
+    lines.extend(
+        [
+            "",
+            "## High-Priority Refinement Modules",
+            "",
+        ]
+    )
+    if high_priority_modules:
+        for module_id in high_priority_modules:
+            lines.append(f"- `{module_id}`")
+    else:
+        lines.append("- 없음")
+
+    for module in refinement_manifest["modules"]:
+        lines.extend(
+            [
+                "",
+                f"## {module['title']} `{module['id']}`",
+                "",
+                f"- Priority: `{module['priority']}`",
+                f"- Trigger: {module['triggerReason']}",
+                f"- Suggested owners: {', '.join(module['agentRoles'])}",
+                "- Current decision: `pending`",
+                "- Resolution mode: `undecided`",
+                "- Deferred owner or next resolver: ",
+                "",
+                "Questions to answer:",
+            ]
+        )
+        for question in module["questions"]:
+            lines.append(f"- [ ] {question}")
+        lines.extend(
+            [
+                "",
+                "Recommended outputs:",
+            ]
+        )
+        for output in module["recommendedOutputs"]:
+            lines.append(f"- {output}")
+        lines.extend(
+            [
+                "",
+                "Recommended prompts:",
+            ]
+        )
+        for prompt in module["recommendedPrompts"]:
+            lines.append(f"- {prompt}")
+        lines.extend(
+            [
+                "",
+                "Notes:",
+                "- ",
+                "",
+            ]
+        )
+
+    target_path = target_dir / "docs" / "ai" / "repo-local-overrides.md"
+    target_path.parent.mkdir(parents=True, exist_ok=True)
+    target_path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
+
+
+def write_agent_handoff_log(target_dir: Path, workboard: dict) -> None:
+    shared = workboard["sharedContext"]
+    blockers = workboard["summary"]["blockingHighPriorityModuleIds"]
+    lines = [
+        "# Agent Handoff Log",
+        "",
+        "이 문서는 상위 설계 이후 실행 에이전트 간 baton, 범위, 검증 상태를 시간순으로 남긴다.",
+        "",
+        "## Shared Baseline",
+        "",
+        f"- Workboard: `{shared['workboardPath']}`",
+        f"- Role plan: `{shared['rolePlanPath']}`",
+        f"- Refinement status: `{shared['refinementStatusPath']}`",
+        f"- Repo-local overrides: `{shared['repoLocalOverridesPath']}`",
+        f"- Command catalog: `{shared['commandCatalogPath']}`",
+        f"- Architecture map: `{shared['architectureMapPath']}`",
+        "",
+        f"- Design ready: `{'yes' if workboard['summary']['designReady'] else 'no'}`",
+        "- Blocking high-priority modules:",
+    ]
+    if blockers:
+        for module_id in blockers:
+            lines.append(f"- `{module_id}`")
+    else:
+        lines.append("- 없음")
+
+    lines.extend(["", "## Initial Work Lane Snapshot", ""])
+    for lane in workboard["workLanes"]:
+        lines.extend(
+            [
+                f"### {lane['title']} `{lane['id']}`",
+                "",
+                f"- Phase: `{lane['phase']}`",
+                f"- Role: `{lane['role']}`",
+                f"- Status: `{lane['status']}`",
+                f"- Next handoff target: `{lane['nextHandoffTarget'] or '-'}`",
+                f"- Objective: {lane['objective']}",
+                f"- Scope: {lane['scopeSummary']}",
+                "",
+                "Owned paths:",
+            ]
+        )
+        for path in lane["ownedPaths"]:
+            lines.append(f"- {path}")
+        lines.extend(["", "Expected outputs:"])
+        for output in lane["expectedOutputs"]:
+            lines.append(f"- {output}")
+        lines.extend(["", "Done when:"])
+        for criterion in lane["doneWhen"]:
+            lines.append(f"- {criterion}")
+        lines.extend(["", "Notes:", f"- {lane['notes'] or '-'}", ""])
+
+    lines.extend(["## Chronological Handoffs", "", "- 아직 기록 없음"])
+
+    target_path = target_dir / "docs" / "ai" / "agent-handoff-log.md"
+    target_path.parent.mkdir(parents=True, exist_ok=True)
+    target_path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
 
 
 def write_generation_artifacts(target_dir: Path, spec: dict, template_name: str, scaffold_profile: str | None, support_level: str) -> None:
     meta_dir = target_dir / ".agent-base"
     meta_dir.mkdir(parents=True, exist_ok=True)
+    refinement_manifest = derive_refinement_manifest(spec, scaffold_profile, support_level)
+    refinement_status = derive_refinement_status(spec, refinement_manifest)
+    context_manifest = derive_context_manifest(spec)
+    role_plan = derive_agent_role_plan(spec)
+    path_map = {
+        "specPath": ".agent-base/project-generation-spec.json",
+        "rolePlanPath": ".agent-base/agent-role-plan.json",
+        "contextManifestPath": ".agent-base/context-manifest.json",
+        "refinementManifestPath": ".agent-base/refinement-manifest.json",
+        "refinementStatusPath": ".agent-base/refinement-status.json",
+        "workboardPath": ".agent-base/agent-workboard.json",
+        "repoLocalOverridesPath": "docs/ai/repo-local-overrides.md",
+        "handoffLogPath": "docs/ai/agent-handoff-log.md",
+        "commandCatalogPath": "docs/ai/command-catalog.md",
+        "architectureMapPath": "docs/ai/architecture-map.md",
+        "precommitConfigPath": ".agent-base/pre-commit-config.json",
+    }
+    agent_workboard = derive_agent_workboard(spec, context_manifest, refinement_manifest, refinement_status, path_map)
     (meta_dir / "project-generation-spec.json").write_text(
         json.dumps(spec, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
@@ -540,29 +1642,39 @@ def write_generation_artifacts(target_dir: Path, spec: dict, template_name: str,
         "optionalAgentRoles": spec["optionalAgentRoles"],
         "roleSpecializations": spec["roleSpecializations"],
         "agentWorkflowOrder": spec["agentWorkflowOrder"],
+        "refinementManifestPath": ".agent-base/refinement-manifest.json",
+        "refinementStatusPath": ".agent-base/refinement-status.json",
+        "agentWorkboardPath": ".agent-base/agent-workboard.json",
+        "repoLocalOverridesPath": "docs/ai/repo-local-overrides.md",
+        "handoffLogPath": "docs/ai/agent-handoff-log.md",
+        "refinementModuleIds": [module["id"] for module in refinement_manifest["modules"]],
+        "highPriorityRefinementModuleIds": refinement_manifest["summary"]["highPriorityModuleIds"],
     }
     (meta_dir / "generation-manifest.json").write_text(
         json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
     (meta_dir / "agent-role-plan.json").write_text(
-        json.dumps(
-            {
-                "requiredAgentRoles": spec["requiredAgentRoles"],
-                "optionalAgentRoles": spec["optionalAgentRoles"],
-                "roleSpecializations": spec["roleSpecializations"],
-                "agentWorkflowOrder": spec["agentWorkflowOrder"],
-                "agentRoleOverrides": spec["agentRoleOverrides"],
-            },
-            indent=2,
-            ensure_ascii=False,
-        )
+        json.dumps(role_plan, indent=2, ensure_ascii=False)
         + "\n",
         encoding="utf-8",
     )
     (meta_dir / "context-manifest.json").write_text(
-        json.dumps(derive_context_manifest(spec), indent=2, ensure_ascii=False) + "\n",
+        json.dumps(context_manifest, indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
     )
+    (meta_dir / "refinement-manifest.json").write_text(
+        json.dumps(refinement_manifest, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    (meta_dir / "refinement-status.json").write_text(
+        json.dumps(refinement_status, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    (meta_dir / "agent-workboard.json").write_text(
+        json.dumps(agent_workboard, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    write_agent_handoff_log(target_dir, agent_workboard)
     if support_level == "docs-only":
         (target_dir / "TODO_UNSUPPORTED_SCAFFOLD.md").write_text(
             "# Unsupported Scaffold\n\n"
@@ -603,6 +1715,7 @@ def generate_project(spec: dict, output_root: Path, force: bool) -> Path:
     apply_tokens(target_dir, tokens)
     write_root_readme(target_dir, spec, scaffold_profile, support_level)
     write_generation_artifacts(target_dir, spec, template_name, scaffold_profile, support_level)
+    write_repo_local_overrides(target_dir, spec, derive_refinement_manifest(spec, scaffold_profile, support_level))
     write_precommit_config(target_dir, spec)
     return target_dir
 

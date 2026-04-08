@@ -18,6 +18,7 @@
 
 - 엔트리: `AGENTS.md`
 - 상세 규칙: `docs/ai/*`
+- 저장소별 예외와 defer note: `docs/ai/repo-local-overrides.md`
 - 프롬프트 템플릿: `docs/ai/prompts/*`
 - 저장소 생성 절차: `docs/ai/project-bootstrap.md`
 - 생성 입력 규격: `docs/ai/project-generation-spec.md`
