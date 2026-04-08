@@ -39,4 +39,6 @@
 - 역할, refinement module, execution lane별 tier 정책은 generated repo의 `.agent-base/model-routing.json`에 저장한다.
 - 실제 모델명 매핑은 `CLAUDE.md`, `GEMINI.md`, `copilot-instructions`, `.cursor/rules` 같은 adapter에서만 관리한다.
 - 도구가 현재 모델 tier를 노출할 수 있으면 첫 질의 시점에 `model-routing.json`과 비교해 `below-minimum`, `below-recommended`, `above-recommended` 경고를 바로 띄우는 것이 좋다.
-- 도구가 현재 tier를 직접 노출하지 못하면 soft recommendation으로만 동작시키고, 필요 시 `HARNESS_MODEL_TIER` 환경변수나 helper script로 보완한다.
+- 도구가 tier를 직접 못 주고 모델명만 줄 수 있으면 `.agent-base/model-tier-map.json` 같은 adapter-local map으로 tier를 해석한다.
+- model name mapping 구조는 [`model-tier-mapping.md`](./model-tier-mapping.md)와 [`model-tier-map.sample.json`](./model-tier-map.sample.json)을 따른다.
+- map이 없거나 새 모델이 아직 map에 없으면 `missing-model-map` 또는 `unknown-model-mapping` warning으로 처리하고, 자동 차단 대신 soft recommendation으로 남긴다.

@@ -60,10 +60,11 @@
 3. blocker가 모두 풀리면 `python3 scripts/update_agent_workboard.py --finalize-design-freeze`로 첫 execution handoff packet을 만든다.
 4. `.agent-base/agent-workboard.json`에서 `nextSuggestedLaneId`와 `latestPacketPath`를 보고 현재 lane을 잡는다.
 5. 현재 도구가 사용하는 model tier를 알면 `.agent-base/model-routing.json`과 비교해 next lane 또는 blocking refinement 기준에서 `below-minimum` 경고가 없는지 먼저 본다.
-6. 구현 중 설계 판단이 다시 열리면 runtime lane이 혼자 밀지 말고 `design-freeze` lane으로 되돌린다.
-7. lane이 바뀌거나 다음 역할로 넘길 때 `python3 scripts/update_agent_workboard.py --append-handoff`로 baton을 남긴다.
-8. 첫 전달 전에는 `python3 scripts/update_agent_workboard.py --check-packets --strict`로 current packet freshness를 확인한다.
-9. workboard, handoff log, handoff packet, overrides, command catalog가 서로 모순되지 않는지 확인한다.
+6. tier를 직접 모를 때는 model name과 `.agent-base/model-tier-map.json`으로 tier를 먼저 해석한다.
+7. 구현 중 설계 판단이 다시 열리면 runtime lane이 혼자 밀지 말고 `design-freeze` lane으로 되돌린다.
+8. lane이 바뀌거나 다음 역할로 넘길 때 `python3 scripts/update_agent_workboard.py --append-handoff`로 baton을 남긴다.
+9. 첫 전달 전에는 `python3 scripts/update_agent_workboard.py --check-packets --strict`로 current packet freshness를 확인한다.
+10. workboard, handoff log, handoff packet, overrides, command catalog가 서로 모순되지 않는지 확인한다.
 
 두 updater는 기본적으로 `.agent-base/coordination.lock`을 공유해 같은 저장소의 상태 파일을 직렬화하고, JSON/Markdown을 atomic write로 반영한다.
 잠금 대기를 짧게 제한하고 싶으면 `update_refinement_status.py`, `update_agent_workboard.py`에 `--lock-timeout-seconds`를 줄 수 있다.
@@ -73,6 +74,7 @@
 ```bash
 python3 scripts/update_agent_workboard.py --list
 python3 scripts/show_start_path.py --current-model-tier standard
+python3 scripts/show_start_path.py --current-model-name gpt-5.4 --model-tier-map-path .agent-base/model-tier-map.json
 python3 scripts/update_agent_workboard.py --finalize-design-freeze
 python3 scripts/update_agent_workboard.py --check-packets --strict
 python3 scripts/update_agent_workboard.py --interactive --append-handoff

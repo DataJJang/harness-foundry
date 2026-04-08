@@ -21,4 +21,6 @@ Use [`AGENTS.md`](../AGENTS.md) as the canonical repo-wide AI entrypoint.
 - Roles: [`docs/ai/roles/README.md`](../docs/ai/roles/README.md)
 - Quality gates: [`docs/ai/governance/quality-gates.md`](../docs/ai/governance/quality-gates.md)
 - Prompt templates: [`docs/ai/prompts/README.md`](../docs/ai/prompts/README.md)
+- Model tier policy: [`docs/ai/governance/model-routing.md`](../docs/ai/governance/model-routing.md)
+- Model name mapping fallback: [`docs/ai/tools/model-tier-mapping.md`](../docs/ai/tools/model-tier-mapping.md)
 - Path-specific instructions: `./instructions/*.instructions.md`

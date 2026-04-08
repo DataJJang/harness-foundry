@@ -22,3 +22,5 @@ This repository uses `AGENTS.md` as the canonical AI rules entrypoint.
 - Batch rules: [`docs/ai/services/batch.md`](./docs/ai/services/batch.md)
 - Receiver rules: [`docs/ai/services/receiver.md`](./docs/ai/services/receiver.md)
 - Prompt templates: [`docs/ai/prompts/README.md`](./docs/ai/prompts/README.md)
+- Model tier policy: [`docs/ai/governance/model-routing.md`](./docs/ai/governance/model-routing.md)
+- Model name mapping fallback: [`docs/ai/tools/model-tier-mapping.md`](./docs/ai/tools/model-tier-mapping.md)

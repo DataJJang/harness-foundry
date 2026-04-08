@@ -11,6 +11,7 @@ canonical 기준은 실제 모델명이 아니라 `economy`, `standard`, `high-r
 
 이 정책은 generated repo의 `.agent-base/model-routing.json`으로 내려간다.
 starter helper는 `python3 scripts/show_start_path.py --current-model-tier <tier>`로 현재 tier를 비교해 경고를 보여줄 수 있다.
+도구가 tier 대신 모델명만 알려주면 `.agent-base/model-tier-map.json`을 함께 써서 tier를 해석할 수 있다.
 
 ## Tier 정의
 
@@ -28,6 +29,9 @@ starter helper는 `python3 scripts/show_start_path.py --current-model-tier <tier
 - generated repo는 역할별 policy 외에도 refinement module과 execution lane 기준 policy를 같이 저장한다.
 - minimum 아래로 내려가면 즉시 경고하고, recommended보다 높으면 비용/토큰 note를 준다.
 - 도구가 현재 tier를 모르면 hard enforcement 없이 soft recommendation만 적용한다.
+- 도구가 모델명만 알면 `.agent-base/model-tier-map.json` 같은 adapter-local map으로 먼저 tier를 해석한다.
+- 새 모델이 map에 없으면 억지 추정 대신 `unknown-model-mapping` warning으로 남긴다.
+- mapping 구조 자체는 [`../tools/model-tier-mapping.md`](../tools/model-tier-mapping.md)를 따른다.
 
 ## 권장 적용 범위
 
@@ -77,6 +81,28 @@ python3 scripts/show_start_path.py --current-model-tier standard
 ```bash
 HARNESS_MODEL_TIER=high-reasoning python3 scripts/show_start_path.py
 ```
+
+- 도구가 모델명만 알려줄 수 있으면 아래처럼 model name과 map 파일을 같이 넘긴다.
+
+```bash
+python3 scripts/show_start_path.py \
+  --current-model-name gpt-5.4 \
+  --model-tier-map-path .agent-base/model-tier-map.json
+```
+
+## Unknown Model Handling
+
+- `missing-model-map`
+  - 현재 모델명은 알지만 map 파일이 없다.
+  - 즉시 판정 대신 soft recommendation만 남긴다.
+- `unknown-model-mapping`
+  - map 파일은 있지만 현재 모델명이 없다.
+  - 새 모델일 가능성이 높으므로 map을 갱신하기 전까지는 보수적으로 경고만 남긴다.
+- `unknown-tier`
+  - tier도 모델명도 모른다.
+  - 현재는 기준 정책만 보여주고 즉시 비교는 하지 않는다.
+
+이 세 경우 모두 자동 차단보다 `warning-first`가 기본이다.
 
 ## 복잡도에 대한 판단
 

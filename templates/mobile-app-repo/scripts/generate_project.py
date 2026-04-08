@@ -1765,6 +1765,14 @@ Why this mode:
 python3 scripts/show_start_path.py --current-model-tier standard
 ```
 
+현재 tier는 모르고 모델명만 알면 `.agent-base/model-tier-map.json` 같은 adapter-local map을 함께 써서 비교할 수 있다.
+
+```bash
+python3 scripts/show_start_path.py \
+  --current-model-name gpt-5.4 \
+  --model-tier-map-path .agent-base/model-tier-map.json
+```
+
 ## Mode Baseline
 
 {next_steps_lines}

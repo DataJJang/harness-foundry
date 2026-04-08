@@ -14,6 +14,8 @@ alwaysApply: true
 - Confirm core roles first and add extended roles only when needed.
 - Use `docs/ai/project-generation-spec.md`, `docs/ai/project-family-map.md`, and `docs/ai/project-selection-mapping.md` when bootstrapping or reshaping a repository.
 - Use `docs/ai/stack-matrix.md` before changing language, framework, runtime, or build defaults.
+- Use `docs/ai/governance/model-routing.md` for vendor-neutral tier policy.
+- If Cursor only exposes the model name, use `docs/ai/tools/model-tier-mapping.md` and a repo-local `model-tier-map.json` before trusting automated tier warnings.
 - Follow the nearest existing pattern before introducing new structure.
 - Keep changes scoped to the request.
 - Do not commit secrets, tokens, production credentials, or real chat IDs.

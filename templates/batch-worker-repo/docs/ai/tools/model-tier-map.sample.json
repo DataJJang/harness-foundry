@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "adapter": "codex",
+  "models": {
+    "gpt-5.4-mini": "economy",
+    "gpt-5.4": "standard",
+    "gpt-5.4-reasoning": "high-reasoning"
+  },
+  "patterns": [
+    {
+      "glob": "gpt-5.4-mini*",
+      "tier": "economy"
+    },
+    {
+      "glob": "*reasoning*",
+      "tier": "high-reasoning"
+    }
+  ],
+  "notes": [
+    "Prefer exact model ids first.",
+    "Do not guess a tier for unknown models.",
+    "Update this file when the tool adds new model ids."
+  ]
+}

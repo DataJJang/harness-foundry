@@ -12,3 +12,5 @@
 - For large or multi-layer changes, prefer planning before implementation.
 - When a change spans code, config, DB, docs, and rollout, consult `docs/ai/lifecycle.md`.
 - When generating new documentation, use `docs/ai/prompts/README.md`.
+- If Claude can expose the current model tier, compare it with `.agent-base/model-routing.json`.
+- If Claude only exposes the model name, resolve it with `.agent-base/model-tier-map.json` before trusting automated tier warnings.

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+from fnmatch import fnmatchcase
 import json
 import os
 from pathlib import Path
@@ -16,7 +17,9 @@ DEFAULT_REFINEMENT_STATUS_PATH = REPO_ROOT / ".agent-base" / "refinement-status.
 DEFAULT_WORKBOARD_PATH = REPO_ROOT / ".agent-base" / "agent-workboard.json"
 DEFAULT_GENERATION_MANIFEST_PATH = REPO_ROOT / ".agent-base" / "generation-manifest.json"
 DEFAULT_MODEL_ROUTING_PATH = REPO_ROOT / ".agent-base" / "model-routing.json"
+DEFAULT_MODEL_TIER_MAP_PATH = REPO_ROOT / ".agent-base" / "model-tier-map.json"
 CURRENT_MODEL_TIER_ENV = "HARNESS_MODEL_TIER"
+CURRENT_MODEL_NAME_ENV = "HARNESS_MODEL_NAME"
 
 ESCALATION_HINTS = {
     "lite": "shared ownership, data/security coordination, or release risk becomes part of the normal path.",
@@ -58,6 +61,15 @@ def parse_args() -> argparse.Namespace:
         "--current-model-tier",
         help="Current AI model tier: economy, standard, or high-reasoning",
     )
+    parser.add_argument(
+        "--current-model-name",
+        help="Current AI model name or slug when the tool can expose it",
+    )
+    parser.add_argument(
+        "--model-tier-map-path",
+        default=str(DEFAULT_MODEL_TIER_MAP_PATH),
+        help="Path to a tool-specific model-name-to-tier mapping JSON file",
+    )
     parser.add_argument("--json", action="store_true", help="Print the starter path as JSON")
     return parser.parse_args()
 
@@ -95,14 +107,118 @@ def normalize_model_tier(tier: str | None) -> str:
     return ""
 
 
-def detect_current_model_tier(explicit_tier: str | None) -> tuple[str, str]:
-    normalized = normalize_model_tier(explicit_tier)
-    if normalized:
-        return normalized, "--current-model-tier"
+def normalize_model_name(model_name: str | None) -> str:
+    if not model_name:
+        return ""
+    return model_name.strip()
+
+
+def resolve_model_tier_from_map(model_name: str, model_tier_map: dict | None) -> tuple[str, str]:
+    if not model_tier_map:
+        return "", ""
+
+    exact_models = model_tier_map.get("models", {})
+    if isinstance(exact_models, dict):
+        for candidate, tier in exact_models.items():
+            if normalize_model_name(candidate).lower() == model_name.lower():
+                normalized_tier = normalize_model_tier(str(tier))
+                if normalized_tier:
+                    return normalized_tier, f"exact:{candidate}"
+
+    for rule in model_tier_map.get("patterns", []):
+        if not isinstance(rule, dict):
+            continue
+        glob = normalize_model_name(rule.get("glob"))
+        tier = normalize_model_tier(str(rule.get("tier", "")))
+        if glob and tier and fnmatchcase(model_name.lower(), glob.lower()):
+            return tier, f"pattern:{glob}"
+
+    return "", ""
+
+
+def detect_current_model_context(
+    explicit_tier: str | None,
+    explicit_model_name: str | None,
+    model_tier_map: dict | None,
+    model_tier_map_path: Path,
+) -> dict:
+    normalized_tier = normalize_model_tier(explicit_tier)
+    if normalized_tier:
+        return {
+            "currentTier": normalized_tier,
+            "detectedFrom": "--current-model-tier",
+            "modelName": "",
+            "status": "tier-provided",
+            "message": "",
+            "mappingPath": "",
+            "matchedRule": "",
+        }
+
     env_tier = normalize_model_tier(os.environ.get(CURRENT_MODEL_TIER_ENV))
     if env_tier:
-        return env_tier, CURRENT_MODEL_TIER_ENV
-    return "", ""
+        return {
+            "currentTier": env_tier,
+            "detectedFrom": CURRENT_MODEL_TIER_ENV,
+            "modelName": "",
+            "status": "tier-provided",
+            "message": "",
+            "mappingPath": "",
+            "matchedRule": "",
+        }
+
+    model_name = normalize_model_name(explicit_model_name) or normalize_model_name(os.environ.get(CURRENT_MODEL_NAME_ENV))
+    if not model_name:
+        return {
+            "currentTier": "",
+            "detectedFrom": "",
+            "modelName": "",
+            "status": "unknown-tier",
+            "message": (
+                "현재 model tier를 모르면 즉시 경고를 낼 수 없다. "
+                f"`--current-model-tier`, `{CURRENT_MODEL_TIER_ENV}`, `--current-model-name`, 또는 `{CURRENT_MODEL_NAME_ENV}`를 주면 비교를 시도한다."
+            ),
+            "mappingPath": "",
+            "matchedRule": "",
+        }
+
+    tier, matched_rule = resolve_model_tier_from_map(model_name, model_tier_map)
+    if tier:
+        return {
+            "currentTier": tier,
+            "detectedFrom": "model-tier-map",
+            "modelName": model_name,
+            "status": "mapped-model",
+            "message": "",
+            "mappingPath": str(model_tier_map_path),
+            "matchedRule": matched_rule,
+        }
+
+    if model_tier_map:
+        return {
+            "currentTier": "",
+            "detectedFrom": "--current-model-name" if explicit_model_name else CURRENT_MODEL_NAME_ENV,
+            "modelName": model_name,
+            "status": "unknown-model-mapping",
+            "message": (
+                f"현재 model `{model_name}`은 tier map에 없다. "
+                f"`{model_tier_map_path}`를 갱신하기 전까지는 soft recommendation만 적용한다."
+            ),
+            "mappingPath": str(model_tier_map_path),
+            "matchedRule": "",
+        }
+
+    return {
+        "currentTier": "",
+        "detectedFrom": "--current-model-name" if explicit_model_name else CURRENT_MODEL_NAME_ENV,
+        "modelName": model_name,
+        "status": "missing-model-map",
+        "message": (
+            f"현재 model `{model_name}`은 알지만 tier map 파일 `{model_tier_map_path}`가 없다. "
+            "map을 추가하거나 `--current-model-tier`로 직접 지정해야 즉시 경고를 낼 수 있다."
+        ),
+        "mappingPath": str(model_tier_map_path),
+        "matchedRule": "",
+    }
 
 
 def max_model_tier(*tiers: str) -> str:
@@ -194,12 +310,17 @@ def select_model_policy(model_routing: dict | None, state: dict) -> dict | None:
     return None
 
 
-def evaluate_model_tier(policy: dict | None, current_tier: str, detected_from: str) -> dict:
+def evaluate_model_tier(policy: dict | None, model_context: dict) -> dict:
+    current_tier = model_context.get("currentTier", "")
+    detected_from = model_context.get("detectedFrom", "")
     if not policy:
         return {
             "status": "no-policy",
             "currentTier": current_tier,
             "detectedFrom": detected_from,
+            "modelName": model_context.get("modelName", ""),
+            "mappingPath": model_context.get("mappingPath", ""),
+            "matchedRule": model_context.get("matchedRule", ""),
             "recommendedTier": "",
             "minimumTier": "",
             "targetKind": "",
@@ -214,6 +335,9 @@ def evaluate_model_tier(policy: dict | None, current_tier: str, detected_from: s
         "status": "unknown",
         "currentTier": current_tier,
         "detectedFrom": detected_from,
+        "modelName": model_context.get("modelName", ""),
+        "mappingPath": model_context.get("mappingPath", ""),
+        "matchedRule": model_context.get("matchedRule", ""),
         "recommendedTier": recommended,
         "minimumTier": minimum,
         "targetKind": policy.get("targetKind", ""),
@@ -223,10 +347,8 @@ def evaluate_model_tier(policy: dict | None, current_tier: str, detected_from: s
     }
 
     if not current_tier:
-        result["message"] = (
-            "현재 model tier를 모르면 즉시 경고를 낼 수 없다. "
-            f"`--current-model-tier` 또는 `{CURRENT_MODEL_TIER_ENV}`를 주면 바로 비교한다."
-        )
+        result["status"] = model_context.get("status", "unknown")
+        result["message"] = model_context.get("message", "")
         return result
 
     current_rank = MODEL_TIER_ORDER.get(current_tier, -1)
@@ -476,8 +598,7 @@ def build_report(
     workboard: dict | None,
     generation_manifest: dict | None,
     model_routing: dict | None,
-    current_model_tier: str,
-    detected_from: str,
+    model_context: dict,
 ) -> dict:
     mode = context_manifest.get("recommendedCoordinationMode") or (
         generation_manifest or {}
@@ -513,7 +634,7 @@ def build_report(
         "latestPacketPath": latest_packet_path(workboard),
     }
     active_model_policy = select_model_policy(model_routing, state)
-    model_tier_check = evaluate_model_tier(active_model_policy, current_model_tier, detected_from)
+    model_tier_check = evaluate_model_tier(active_model_policy, model_context)
 
     return {
         "mode": mode,
@@ -543,8 +664,14 @@ def print_report(report: dict) -> None:
     if model_tier_check:
         print(f"- Model tier status: {model_tier_check.get('status', '-')}")
         print(f"- Current model tier: {model_tier_check.get('currentTier') or '-'}")
+        if model_tier_check.get("modelName"):
+            print(f"- Current model name: {model_tier_check['modelName']}")
         if model_tier_check.get("detectedFrom"):
             print(f"- Tier source: {model_tier_check['detectedFrom']}")
+        if model_tier_check.get("mappingPath"):
+            print(f"- Tier map path: {model_tier_check['mappingPath']}")
+        if model_tier_check.get("matchedRule"):
+            print(f"- Tier map match: {model_tier_check['matchedRule']}")
         if model_tier_check.get("minimumTier"):
             print(f"- Minimum tier: {model_tier_check['minimumTier']}")
         if model_tier_check.get("recommendedTier"):
@@ -596,7 +723,14 @@ def main() -> int:
     workboard = load_optional_json(Path(args.workboard_path).expanduser().resolve())
     generation_manifest = load_optional_json(Path(args.generation_manifest_path).expanduser().resolve())
     model_routing = load_optional_json(Path(args.model_routing_path).expanduser().resolve())
-    current_model_tier, detected_from = detect_current_model_tier(args.current_model_tier)
+    model_tier_map_path = Path(args.model_tier_map_path).expanduser().resolve()
+    model_tier_map = load_optional_json(model_tier_map_path)
+    model_context = detect_current_model_context(
+        args.current_model_tier,
+        args.current_model_name,
+        model_tier_map,
+        model_tier_map_path,
+    )
 
     report = build_report(
         repo_root,
@@ -605,8 +739,7 @@ def main() -> int:
         workboard,
         generation_manifest,
         model_routing,
-        current_model_tier,
-        detected_from,
+        model_context,
     )
     if args.json:
         print(json.dumps(report, indent=2, ensure_ascii=False))

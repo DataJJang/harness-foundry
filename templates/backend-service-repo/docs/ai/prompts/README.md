@@ -19,6 +19,7 @@
 - generated repo는 `.agent-base/model-routing.json`에 역할, refinement module, execution lane별 권장/최소 tier를 남긴다.
 - 도구가 현재 모델 tier를 알면 프롬프트 시작 전에 `.agent-base/model-routing.json`과 비교해 경고를 먼저 보여준다.
 - 도구가 tier를 직접 넘기지 못하면, 프롬프트 본문에 현재 tier를 적거나 `python3 scripts/show_start_path.py --current-model-tier <tier>` 같은 helper 출력으로 보완한다.
+- 도구가 모델명만 알면 `.agent-base/model-tier-map.json`과 `docs/ai/tools/model-tier-mapping.md` 기준으로 tier를 해석한 뒤 비교한다.
 - `below-minimum`은 즉시 경고 대상으로 보고, `below-recommended`는 추가 reviewer 또는 검증 강화를 붙일지 판단한다.
 
 ## 공통 입력 구조

@@ -28,6 +28,7 @@
 
 - 저장소를 처음 열면 먼저 `fastPathDocs`만 읽는다.
 - generated repo라면 `python3 scripts/show_start_path.py`를 먼저 실행해 현재 repo state 기준 top 3 action만 본다.
+- 현재 tier를 알면 `--current-model-tier`를, 모델명만 알면 `--current-model-name`과 `.agent-base/model-tier-map.json`을 함께 넘긴다.
 - 그 다음 `recommendedCoordinationMode`를 보고 `Lite`, `Coordinated`, `Full` 중 어느 절차를 기본값으로 쓸지 고른다.
 - deep path 문서는 schema ownership, migration, rollout, repeated failure 같은 조건이 생길 때만 추가한다.
 - `coreRoles`를 먼저 확정하고, `extendedRoles`는 필요 조건이 생겼을 때만 실제 실행 흐름에 넣는다.
