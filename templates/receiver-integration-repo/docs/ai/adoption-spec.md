@@ -40,8 +40,8 @@
   "migrationScope": ["application", "config", "docs"],
   "targetStack": {
     "language": "Java",
-    "framework": "Spring Boot 2.3.x",
-    "runtimeVersion": "11"
+    "framework": "Spring Boot 3.5.x",
+    "runtimeVersion": "17"
   },
   "parityRequirement": "API contract and batch side effects must remain compatible",
   "cutoverStrategy": "phased",

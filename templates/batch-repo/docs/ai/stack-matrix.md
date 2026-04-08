@@ -15,14 +15,14 @@
 | 프로젝트 패밀리 | 권장 언어/런타임 | 권장 프레임워크 | 권장 빌드 도구 | 권장 테스트 기준 | 예외 시 문서화 |
 | --- | --- | --- | --- | --- | --- |
 | `game` | C# + Unity LTS | Unity LTS | Unity Hub + repo-local scripts | playmode/editmode 또는 validation method | engine version doc, overlay, command-catalog |
-| `web-app` | TypeScript + Node.js 18 LTS | React 18.x, Vite 4.x | npm | `npm run build.dev`, `npm test` 또는 repo-local test | `package.json`, overlay, command-catalog |
-| `pwa` | TypeScript + Node.js 18 LTS | React 18.x, Vite 4.x, PWA plugin | npm | `npm run build.dev`, `npm test` 또는 repo-local test | `package.json`, overlay, command-catalog |
-| `mobile-app` | Dart 3.x 또는 TypeScript + Node.js 18 LTS | Flutter 기본, React Native 허용 | Flutter CLI 또는 npm | repo-local build and test command | manifest, overlay, command-catalog |
-| `backend-service` | Java 11 | Spring Boot 2.3.x, JPA, Querydsl 중심 | Gradle | `./gradlew compileJava`, `./gradlew test` | `build.gradle`, overlay, command-catalog |
-| `batch-worker` | Java 11 | Spring Boot 2.7.x, MyBatis, Quartz 또는 scheduled job 패턴 | Gradle | `./gradlew compileJava`, `./gradlew test` | `build.gradle`, overlay, command-catalog |
-| `receiver-integration` | Java 11 | Spring Boot 2.7.x, protocol adapter + handler/service/publish 패턴 | Gradle | `./gradlew compileJava`, `./gradlew test` | `build.gradle`, overlay, command-catalog |
-| `mockup-local` | TypeScript + Node.js 18 LTS 또는 repo-local lightweight stack | Vite, lightweight UI tool, static mockup | npm 또는 repo-local tool | build or local preview smoke | manifest, overlay, command-catalog |
-| `library-tooling` | Java 11, TypeScript, or repo-local language | library or CLI-friendly minimal framework | Gradle, npm, or repo-local tool | compile and package smoke | manifest, overlay, command-catalog |
+| `web-app` | TypeScript + Node.js 22 LTS | React 19.2, Vite 8.x | npm | `npm run build`, `npm test` 또는 repo-local test | `package.json`, overlay, command-catalog |
+| `pwa` | TypeScript + Node.js 22 LTS | React 19.2, Vite 8.x, PWA plugin | npm | `npm run build`, `npm test` 또는 repo-local test | `package.json`, overlay, command-catalog |
+| `mobile-app` | Dart 3.x 또는 TypeScript + Node.js 22 LTS | Flutter 기본, React Native 허용 | Flutter CLI 또는 npm | repo-local build and test command | manifest, overlay, command-catalog |
+| `backend-service` | Java 17 | Spring Boot 3.5.x, JPA, Querydsl 중심 | Gradle | `./gradlew compileJava`, `./gradlew test` | `build.gradle`, overlay, command-catalog |
+| `batch-worker` | Java 17 | Spring Boot 3.5.x, Spring Batch 5, MyBatis 또는 scheduled job 패턴 | Gradle | `./gradlew compileJava`, `./gradlew test` | `build.gradle`, overlay, command-catalog |
+| `receiver-integration` | Java 17 | Spring Boot 3.5.x, protocol adapter + handler/service/publish 패턴 | Gradle | `./gradlew compileJava`, `./gradlew test` | `build.gradle`, overlay, command-catalog |
+| `mockup-local` | TypeScript + Node.js 22 LTS 또는 repo-local lightweight stack | Vite 8.x, lightweight UI tool, static mockup | npm 또는 repo-local tool | build or local preview smoke | manifest, overlay, command-catalog |
+| `library-tooling` | Java 17, TypeScript + Node.js 22 LTS, or repo-local language | library or CLI-friendly minimal framework | Gradle, npm, or repo-local tool | compile and package smoke | manifest, overlay, command-catalog |
 
 ## 4. 허용 범위
 
@@ -34,9 +34,11 @@
 
 ### Web App / PWA
 
-- React는 `18.x`를 기본으로 본다.
-- TypeScript는 `4.9.x`를 기본으로 보고, `5.x` 계열은 repo-local 검증 기준이 있으면 허용한다.
-- Node.js는 `18 LTS`를 기본으로 보고, 다른 LTS는 저장소 로컬 문서에 근거를 남긴다.
+- React는 `19.2` 계열을 기본으로 본다.
+- TypeScript는 `5.x` 계열을 기본으로 본다.
+- Node.js는 `22 LTS`를 기본으로 보고, current Vite 지원선인 `20.19+ / 22.12+`도 호환 범위로 본다.
+- Vite는 current docs line인 `8.x`를 기본으로 본다.
+- `Node.js 18`, `React 18`, `Vite 4/5`는 legacy baseline으로 간주한다.
 - `pwa`는 offline, cache, installability가 필요 없으면 `web-app`로 낮춘다.
 
 ### Mobile App
@@ -47,20 +49,26 @@
 
 ### Backend Service
 
-- JDK는 `11`을 기본으로 본다.
-- Spring Boot는 `2.3.x` 계열을 기본으로 본다.
+- JDK는 `17`을 기본으로 본다.
+- Spring Boot는 보수안으로 `3.5.x` 계열을 기본으로 본다.
+- 공격안은 `4.0.x` 계열이며, 더 빠른 baseline adoption이 필요할 때만 repo-local overlay와 함께 선택한다.
+- `Java 11`, `Spring Boot 2.x`는 legacy baseline으로 간주한다.
 - JPA + Querydsl 패턴을 우선하고, 복잡 조회는 query repository 또는 native query로 분리한다.
 
 ### Batch Worker
 
-- JDK는 `11`을 기본으로 본다.
-- Spring Boot는 `2.7.x` 계열을 기본으로 본다.
+- JDK는 `17`을 기본으로 본다.
+- Spring Boot는 `3.5.x` 계열을 기본으로 본다.
+- Spring Batch 5 기준으로 `JobBuilderFactory`, `StepBuilderFactory` 없는 구성을 우선한다.
+- `Java 11`, `Spring Boot 2.7.x`는 legacy baseline으로 간주한다.
 - mapper XML과 운영 SQL 문서가 필요한 구조를 기본으로 본다.
 
 ### Receiver Integration
 
-- JDK는 `11`을 기본으로 본다.
-- Spring Boot는 `2.7.x` 계열을 기본으로 본다.
+- JDK는 `17`을 기본으로 본다.
+- Spring Boot는 `3.5.x` 계열을 기본으로 본다.
+- validation과 servlet API는 `jakarta.*` namespace 기준을 우선한다.
+- `Java 11`, `Spring Boot 2.7.x`는 legacy baseline으로 간주한다.
 - 수신 프로토콜 차이는 repo-local 오버레이에서 정의한다.
 
 ### Mockup Local / Library Tooling

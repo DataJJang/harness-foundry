@@ -1,7 +1,7 @@
 package __PACKAGE_NAME__.controller;
 
 import java.util.Map;
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import __PACKAGE_NAME__.model.InboundMessageRequest;
 import __PACKAGE_NAME__.service.InboundMessageService;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,4 +28,3 @@ public class InboundController {
         );
     }
 }
-

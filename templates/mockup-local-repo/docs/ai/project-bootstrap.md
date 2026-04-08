@@ -79,19 +79,20 @@
 | `web-app` | 브라우저 기반 일반 웹 애플리케이션 | TypeScript, React, Vite |
 | `pwa` | 설치형 웹앱, 오프라인/캐시 전략이 필요한 웹 서비스 | TypeScript, React, Vite, PWA 플러그인 |
 | `mobile-app` | Android/iOS 중심 앱 | Flutter 또는 React Native 기본 |
-| `backend-service` | API, admin backend, 인증, 비즈니스 처리 중심 | Java 11, Spring Boot |
-| `batch-worker` | 스케줄러, 집계, 대량 처리, 동기화, 배치성 작업 | Java 11, Spring Boot, MyBatis |
-| `receiver-integration` | MQTT, webhook, queue consumer, 프로토콜 수신 | Java 11, Spring Boot |
+| `backend-service` | API, admin backend, 인증, 비즈니스 처리 중심 | Java 17, Spring Boot 3.5.x |
+| `batch-worker` | 스케줄러, 집계, 대량 처리, 동기화, 배치성 작업 | Java 17, Spring Boot 3.5.x, Spring Batch 5 |
+| `receiver-integration` | MQTT, webhook, queue consumer, 프로토콜 수신 | Java 17, Spring Boot 3.5.x |
 | `mockup-local` | 로컬 목업, 데모, 화면 시안, 검증용 툴 | 가장 가벼운 스택 우선 |
 | `library-tooling` | 공통 SDK, CLI, editor tooling, build helper | 목적 맞춤 경량 스택 |
 
 ## 5. 의사결정 트리 기본 규칙
 
 - `game + Unity`를 선택하면 `C# + Unity LTS`를 먼저 제안한다.
-- `web-app`과 `pwa`는 `TypeScript + React + Vite`를 기본으로 제안한다.
+- `web-app`과 `pwa`는 `TypeScript + Node.js 22 LTS + React 19 + Vite 8`을 기본으로 제안한다.
 - `mobile-app`은 `Flutter`를 기본 권장으로 제안하고, 팀 경험이나 native 요구가 있으면 `React Native`, `Kotlin`, `Swift`를 선택지로 제공한다.
-- `backend-service`는 `Java 11 + Spring Boot 2.3.x`를 기본으로 제안한다.
-- `batch-worker`, `receiver-integration`은 `Java 11 + Spring Boot 2.7.x`를 기본으로 제안한다.
+- `backend-service`는 `Java 17 + Spring Boot 3.5.x`를 기본으로 제안한다.
+- `batch-worker`, `receiver-integration`은 `Java 17 + Spring Boot 3.5.x`를 기본으로 제안한다.
+- Spring Boot `4.0.x`는 공격안으로 문서화하고, `2.x`는 legacy baseline으로만 남긴다.
 - `mockup-local`은 DB, cache, 배포를 `없음` 또는 최소 옵션으로 허용한다.
 - `production` 성격이면 보안, 배포, 운영 문서를 필수로 생성한다.
 - `local-only` 성격이면 운영/배포 문서는 축약 가능하나 첫 build/test 기준은 생략하지 않는다.

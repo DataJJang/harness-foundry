@@ -24,6 +24,6 @@
 
 ## 4. 기록 예시
 
-- `Java 8 -> Java 11`: compatible-with-note
-- `Spring Boot 2.1.x -> 2.3.x`: compatible-with-note
+- `Java 11 -> Java 17`: compatible-with-note
+- `Spring Boot 2.7.x -> 3.5.x`: breaking
 - `custom auth filter -> Spring Security standard`: breaking

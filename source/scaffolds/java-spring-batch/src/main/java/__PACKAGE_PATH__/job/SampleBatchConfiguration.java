@@ -2,32 +2,31 @@ package __PACKAGE_NAME__.job;
 
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
-import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
-import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.job.builder.JobBuilder;
+import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.transaction.PlatformTransactionManager;
 
 @Configuration
-@EnableBatchProcessing
 public class SampleBatchConfiguration {
 
     @Bean
-    public Job sampleJob(JobBuilderFactory jobBuilderFactory, Step sampleStep) {
-        return jobBuilderFactory.get("sampleJob")
+    public Job sampleJob(JobRepository jobRepository, Step sampleStep) {
+        return new JobBuilder("sampleJob", jobRepository)
             .start(sampleStep)
             .build();
     }
 
     @Bean
-    public Step sampleStep(StepBuilderFactory stepBuilderFactory) {
-        return stepBuilderFactory.get("sampleStep")
+    public Step sampleStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
+        return new StepBuilder("sampleStep", jobRepository)
             .tasklet((contribution, chunkContext) -> {
                 System.out.println("Running batch bootstrap for __PROJECT_NAME__");
                 return RepeatStatus.FINISHED;
-            })
+            }, transactionManager)
             .build();
     }
 }
-

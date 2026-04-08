@@ -5,7 +5,12 @@ plugins {
 
 group = '__PACKAGE_NAME__'
 version = '0.1.0-SNAPSHOT'
-sourceCompatibility = '11'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
 
 repositories {
     mavenCentral()
@@ -22,4 +27,3 @@ application {
 test {
     useJUnitPlatform()
 }
-

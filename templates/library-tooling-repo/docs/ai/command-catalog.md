@@ -61,8 +61,8 @@
 | 프로젝트 패밀리 | Build | Compile | Test | Smoke | Deploy-check |
 | --- | --- | --- | --- | --- | --- |
 | `game` | repo-local engine build or export | editor or compile validation | editmode/playmode or validation method | boot scene, core loop, or main scene validation | engine version, platform target, asset pipeline check |
-| `web-app` | `npm install`, `npm run build.dev` | build가 compile 역할을 겸할 수 있음 | `npm test` 또는 repo-local test command | 핵심 라우트 렌더, API base URL 확인 | env 파일, 정적 자산, API endpoint 연결 확인 |
-| `pwa` | `npm install`, `npm run build.dev` | build가 compile 역할을 겸할 수 있음 | `npm test` 또는 repo-local test command | offline, installability, 핵심 라우트 확인 | env 파일, manifest, service worker, API endpoint 확인 |
+| `web-app` | `npm install`, `npm run build` | build가 compile 역할을 겸할 수 있음 | `npm test` 또는 repo-local test command | 핵심 라우트 렌더, API base URL 확인 | env 파일, 정적 자산, API endpoint 연결 확인 |
+| `pwa` | `npm install`, `npm run build` | build가 compile 역할을 겸할 수 있음 | `npm test` 또는 repo-local test command | offline, installability, 핵심 라우트 확인 | env 파일, manifest, service worker, API endpoint 확인 |
 | `mobile-app` | repo-local app build | repo-local compile | repo-local test | simulator or device smoke | signing, target store, backend endpoint 확인 |
 | `backend-service` | `./gradlew build` 또는 repo-local build | `./gradlew compileJava` | `./gradlew test` | 핵심 API 1건 호출, health 또는 auth 경로 확인 | profile, DB, external API, security key, DB verification query 확인 |
 | `batch-worker` | `./gradlew build` 또는 repo-local build | `./gradlew compileJava` | `./gradlew test` | 핵심 job 진입 또는 validation method 확인 | scheduler enable flag, DB, SQL, 외부 토큰, DB verification query 확인 |

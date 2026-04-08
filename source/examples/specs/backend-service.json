@@ -15,8 +15,8 @@
     "api"
   ],
   "language": "Java",
-  "runtimeVersion": "11",
-  "framework": "Spring Boot",
+  "runtimeVersion": "17",
+  "framework": "Spring Boot 3.5.x",
   "buildTool": "Gradle",
   "testTool": "Gradle test",
   "datastore": "MariaDB",

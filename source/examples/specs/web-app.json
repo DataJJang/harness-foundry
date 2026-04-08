@@ -15,7 +15,7 @@
     "frontend"
   ],
   "language": "TypeScript",
-  "runtimeVersion": "18",
+  "runtimeVersion": "22 LTS",
   "framework": "React",
   "buildTool": "npm",
   "testTool": "npm test",

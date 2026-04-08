@@ -32,7 +32,7 @@ python3 scripts/install_git_hooks.py
 기본 모드는 `auto`다.
 
 - Web/app 저장소:
-  - `package.json`과 staged file을 보고 preset profile에 맞는 `lint`, `typecheck`, `build.dev`, `build`, `test` 중 가능한 명령을 고른다.
+  - `package.json`과 staged file을 보고 preset profile에 맞는 `lint`, `typecheck`, `build`, `test` 중 가능한 명령을 고른다.
 - Java 저장소:
   - `gradlew`와 staged file을 보고 preset profile에 맞는 `./gradlew compileJava`, `./gradlew build`, `./gradlew test`를 고른다.
 - Flutter 저장소:

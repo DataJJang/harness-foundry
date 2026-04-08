@@ -43,7 +43,7 @@ Requirements:
 - Follow AGENTS.md and docs/ai/services/frontend.md.
 - Use current page naming patterns such as ListPage, DetailPage, RegistrationPage, ModifyPage, Shared, and Api.
 - Call out route, menu, i18n, type, and API normalization changes together.
-- Include `npm run build.dev` in the validation plan unless a different command is confirmed by source.
+- Include `npm run build` in the validation plan unless a different command is confirmed by source.
 - Explicitly note any manual UI verification that still remains.
 
 Output format:

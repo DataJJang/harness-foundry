@@ -1,6 +1,6 @@
 package __PACKAGE_NAME__.model;
 
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 
 public class InboundMessageRequest {
 
@@ -37,4 +37,3 @@ public class InboundMessageRequest {
         this.payload = payload;
     }
 }
-

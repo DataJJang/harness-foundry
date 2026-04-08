@@ -1,12 +1,16 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '2.7.18'
-    id 'io.spring.dependency-management' version '1.1.4'
+    id 'org.springframework.boot' version '3.5.13'
 }
 
 group = '__PACKAGE_NAME__'
 version = '0.1.0-SNAPSHOT'
-sourceCompatibility = '11'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
 
 repositories {
     mavenCentral()
@@ -23,4 +27,3 @@ dependencies {
 test {
     useJUnitPlatform()
 }
-
