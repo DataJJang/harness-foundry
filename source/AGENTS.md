@@ -8,7 +8,7 @@ This file is the canonical AI entrypoint for a repository that uses this templat
 - Existing repository, conversion, migration, or onboarding: read [`docs/ai/start-adoption.md`](./docs/ai/start-adoption.md)
 - Context-loading and light vs deep read paths: read [`docs/ai/context-profiles.md`](./docs/ai/context-profiles.md)
 - Collaboration depth for generated repos: check `.agent-base/context-manifest.json` or the root `README.md` for the recommended `Lite`, `Coordinated`, or `Full` path
-- Generated repository quick start: run `python3 scripts/show_start_path.py` to see the current top 3 actions before opening deeper docs
+- Generated repository quick start: ask the AI to inspect `AGENTS.md`, `.agent-base/context-manifest.json`, and the current workboard for the top 3 actions, or run `python3 scripts/show_start_path.py` for the scripted view
 
 ## Fast Path
 

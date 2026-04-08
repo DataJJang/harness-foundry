@@ -6,53 +6,73 @@
 
 ## Start Here
 
-이 README는 전체 설명보다 빠른 진입을 우선한다. 먼저 아래 3개 중 하나만 고르면 된다.
+이 README는 전체 설명보다 빠른 진입을 우선한다. 기본 진입점은 `Python 스크립트 실행`보다 `AI IDE 질의`다. 먼저 아래 3개 중 하나만 고르면 된다.
 
-### 1. 새 프로젝트를 만들고 싶다
+### 1. AI IDE로 새 프로젝트를 시작하고 싶다
 
-```bash
-python3 ./source/scripts/project_bootstrap_cli.py \
-  --output-root /tmp/generated-projects \
-  --force
-```
+AI에게 아래처럼 요청하면 된다.
 
-그 다음 생성된 저장소로 이동해서 아래 명령부터 실행한다.
-
-```bash
-python3 scripts/show_start_path.py
+```text
+`source/AGENTS.md`와 `source/docs/ai/start-bootstrap.md`를 읽고,
+이 저장소 기준으로 새 프로젝트 bootstrap을 도와줘.
+먼저 필요한 질문부터 좁혀서 진행하고,
+필요한 경우에만 CLI나 스크립트 실행을 제안해줘.
 ```
 
 관련 문서:
 
 - [`source/AGENTS.md`](./source/AGENTS.md)
 - [`source/docs/ai/start-bootstrap.md`](./source/docs/ai/start-bootstrap.md)
-- [`source/docs/ai/project-generator.md`](./source/docs/ai/project-generator.md)
+- [`source/docs/ai/prompts/README.md`](./source/docs/ai/prompts/README.md)
 
-### 2. 기존 저장소에 기준을 이식하고 싶다
+### 2. AI IDE로 기존 저장소에 기준을 이식하고 싶다
 
-이 순서로 시작하면 된다.
+AI에게 아래처럼 요청하면 된다.
 
-1. [`source/AGENTS.md`](./source/AGENTS.md)
-2. [`source/docs/ai/start-adoption.md`](./source/docs/ai/start-adoption.md)
-3. [`source/docs/ai/repository-inventory.md`](./source/docs/ai/repository-inventory.md)
-4. [`source/docs/ai/migration-strategy.md`](./source/docs/ai/migration-strategy.md)
+```text
+`source/AGENTS.md`와 `source/docs/ai/start-adoption.md`를 읽고,
+현재 저장소에 harness-foundry 기준을 도입하기 위한
+inventory와 adoption plan부터 잡아줘.
+```
 
-### 3. 이미 생성된 저장소를 바로 쓰고 싶다
+이후 필요하면 inventory, migration, compatibility 문서로 확장하면 된다.
 
-생성된 저장소 안에서는 긴 문서보다 이 명령이 첫 진입점이다.
+- [`source/AGENTS.md`](./source/AGENTS.md)
+- [`source/docs/ai/start-adoption.md`](./source/docs/ai/start-adoption.md)
+- [`source/docs/ai/repository-inventory.md`](./source/docs/ai/repository-inventory.md)
+- [`source/docs/ai/migration-strategy.md`](./source/docs/ai/migration-strategy.md)
+
+### 3. 이미 생성된 저장소를 AI IDE로 바로 진행하고 싶다
+
+생성된 저장소 안에서는 긴 문서보다 아래처럼 요청하는 편이 가장 빠르다.
+
+```text
+`AGENTS.md`, `.agent-base/context-manifest.json`,
+`.agent-base/refinement-manifest.json`을 읽고
+지금 할 3가지 액션만 먼저 정리해줘.
+필요하면 `.agent-base/agent-workboard.json`도 같이 봐줘.
+```
+
+### 4. CLI로 직접 실행하고 싶다
+
+스크립트 실행은 여전히 지원하지만, 기본 진입점이라기보다 `자동화`, `재현`, `도우미 출력 확인` 용도로 보는 편이 맞다.
 
 ```bash
+python3 ./source/scripts/project_bootstrap_cli.py \
+  --output-root /tmp/generated-projects \
+  --force
+
 python3 scripts/show_start_path.py
 ```
 
-이 명령은 현재 저장소의 추천 coordination mode, blocker, workboard 상태를 읽고 지금 바로 할 3가지 액션만 보여준다.
+`show_start_path.py`는 현재 저장소의 추천 coordination mode, blocker, workboard 상태를 읽고 지금 바로 할 3가지 액션만 보여주는 optional helper다.
 
 ## Try It In 2 Minutes
 
-1. `project_bootstrap_cli.py`로 샘플 저장소를 만든다.
-2. 생성된 저장소에서 `python3 scripts/show_start_path.py`를 실행한다.
-3. 추천 mode에 맞는 첫 3개 액션만 따라간다.
-4. 더 깊은 절차가 필요할 때만 refinement, workboard, handoff packet으로 확장한다.
+1. 이 저장소를 AI IDE에서 연다.
+2. 위 `AI IDE` 예시 중 하나를 그대로 질의한다.
+3. AI가 `AGENTS.md`와 fast-path 문서를 읽고 다음 액션을 정리하게 한다.
+4. 자동화나 helper 출력이 필요할 때만 Python 스크립트를 직접 실행한다.
 
 ## Coordination Depth
 
