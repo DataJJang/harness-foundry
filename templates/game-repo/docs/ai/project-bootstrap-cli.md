@@ -80,6 +80,7 @@ CLI는 아래를 만든다.
 spec은 `.agent-base/project-generation-spec.json`으로도 생성 저장소 안에 다시 남고, generator는 `.agent-base/generation-manifest.json`, `.agent-base/context-manifest.json`, `.agent-base/agent-role-plan.json`, `.agent-base/refinement-manifest.json`, `.agent-base/refinement-status.json`, `.agent-base/agent-workboard.json`, `.agent-base/model-routing.json`, `docs/ai/agent-handoff-log.md`를 같이 만든다. 이 중 `.agent-base/context-manifest.json`과 root `README.md`에는 추천 coordination mode와 이유가 같이 들어간다.
 또한 생성된 저장소에는 `scripts/show_start_path.py`가 들어가며, 현재 repo state 기준 top 3 action, model tier warning, foundry provenance를 바로 보여줄 수 있다.
 `organizationProfile`이 `egov-public-sector`라면 `context-manifest`, `generation-manifest`, root `README.md`에서 그 profile과 공공 특화 guide 경로를 같이 확인할 수 있다.
+신규 전자정부 프로젝트에서 `backend-service`, `web-app`, `batch-worker`를 함께 시작한다면 생성 직후 후속 작업은 [`org-specific/egov-new-project-playbook.md`](./org-specific/egov-new-project-playbook.md) 순서로 정리하는 편이 좋다.
 
 ## 6. 주의사항
 

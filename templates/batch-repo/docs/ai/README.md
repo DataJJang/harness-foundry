@@ -15,6 +15,7 @@
 - 공공/전자정부 특화:
   - [`org-specific/README.md`](./org-specific/README.md)
   - [`org-specific/egov-public-sector-guide.md`](./org-specific/egov-public-sector-guide.md)
+  - [`org-specific/egov-new-project-playbook.md`](./org-specific/egov-new-project-playbook.md)
 
 ## 문서 구조
 

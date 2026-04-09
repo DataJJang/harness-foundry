@@ -33,6 +33,7 @@ AI에게 아래처럼 요청하면 된다.
 - [`source/AGENTS.md`](./source/AGENTS.md)
 - [`source/docs/ai/start-bootstrap.md`](./source/docs/ai/start-bootstrap.md)
 - [`source/docs/ai/org-specific/egov-public-sector-guide.md`](./source/docs/ai/org-specific/egov-public-sector-guide.md)
+- [`source/docs/ai/org-specific/egov-new-project-playbook.md`](./source/docs/ai/org-specific/egov-new-project-playbook.md)
 - [`source/docs/ai/prompts/README.md`](./source/docs/ai/prompts/README.md)
 
 공공/전자정부 프로젝트라면 AI에게 `organizationProfile = egov-public-sector` 기준으로 진행해 달라고 같이 적는 편이 좋다.
@@ -129,6 +130,7 @@ generator는 생성된 root `README.md`와 `.agent-base/context-manifest.json`�
 - 새 프로젝트 bootstrap: [`source/docs/ai/start-bootstrap.md`](./source/docs/ai/start-bootstrap.md)
 - 기존 저장소 adoption: [`source/docs/ai/start-adoption.md`](./source/docs/ai/start-adoption.md)
 - 공공/전자정부 특화 가이드: [`source/docs/ai/org-specific/egov-public-sector-guide.md`](./source/docs/ai/org-specific/egov-public-sector-guide.md)
+- 공공 신규 구축 실행 가이드: [`source/docs/ai/org-specific/egov-new-project-playbook.md`](./source/docs/ai/org-specific/egov-new-project-playbook.md)
 - organization profile 설명: [`source/docs/ai/org-specific/README.md`](./source/docs/ai/org-specific/README.md)
 - context loading: [`source/docs/ai/context-profiles.md`](./source/docs/ai/context-profiles.md)
 - 역할 정의: [`source/docs/ai/roles/README.md`](./source/docs/ai/roles/README.md)

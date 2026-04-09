@@ -50,6 +50,7 @@
 7. `examples/` 아래 복사형 실행 예시
 
 전자정부프레임워크, KRDS, 공공기관 brownfield 작업이면 `org-specific/egov-public-sector/` pack을 먼저 검토하는 편이 좋다.
+신규 공공 프로젝트에서 `frontend + backend + batch`를 함께 시작한다면 `org-specific/egov-public-sector/egov-new-project-kickoff.md`를 먼저 쓰는 편이 좋다.
 
 ## 새 프로젝트 시작 시 권장 프롬프트 순서
 

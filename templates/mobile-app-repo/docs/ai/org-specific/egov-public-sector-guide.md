@@ -15,6 +15,8 @@
 - Spring MVC, JSP, MyBatis, 공통컴포넌트, 운영 배치가 섞인 legacy brownfield
 - 최신 baseline보다 실제 운영 환경 제약이 더 강한 공공 유지보수 프로젝트
 
+신규 구축을 실제로 시작할 때는 [`egov-new-project-playbook.md`](./egov-new-project-playbook.md)를 같이 보는 편이 좋다.
+
 ## 3. 기본 원칙
 
 - `프로젝트 패밀리`는 그대로 사용한다.
@@ -40,6 +42,7 @@
 
 - 보통 `web-app` + `backend-service` + `batch-worker`
 - 권한, 결재/상태 전이, 엑셀 다운로드, 대량 배치, 운영 로그 요구를 early refinement에 넣는다
+- 실제 착수용 후속 작업은 [`egov-new-project-playbook.md`](./egov-new-project-playbook.md) 기준으로 `frontend / backend / batch / 통합` 순서로 정리하는 편이 좋다
 
 ### 기관 간 연계/수신 시스템
 

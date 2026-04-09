@@ -17,7 +17,10 @@
 5. [`roles/README.md`](./roles/README.md)
 6. [`project-generator.md`](./project-generator.md)
 
-공공/전자정부/KRDS 성격이 강하면 여기에 [`org-specific/egov-public-sector-guide.md`](./org-specific/egov-public-sector-guide.md)도 같이 읽는 편이 좋다.
+공공/전자정부/KRDS 성격이 강하면 여기에 아래 문서도 같이 읽는 편이 좋다.
+
+- [`org-specific/egov-public-sector-guide.md`](./org-specific/egov-public-sector-guide.md)
+- [`org-specific/egov-new-project-playbook.md`](./org-specific/egov-new-project-playbook.md)
 
 ## Coordination Mode Quick Pick
 

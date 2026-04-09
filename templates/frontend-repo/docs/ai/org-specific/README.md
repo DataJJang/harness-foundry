@@ -18,6 +18,7 @@
 `organizationProfile = egov-public-sector`을 쓰면 아래를 같이 읽는 편이 좋다.
 
 - `docs/ai/org-specific/egov-public-sector-guide.md`
+- `docs/ai/org-specific/egov-new-project-playbook.md`
 - `docs/ai/prompts/org-specific/egov-public-sector/README.md`
 - `checklists/public-sector-ui-review.md`
 

@@ -6,7 +6,7 @@ This file is the canonical AI entrypoint for a repository that uses this templat
 
 - New repository or new project: read [`docs/ai/start-bootstrap.md`](./docs/ai/start-bootstrap.md)
 - Existing repository, conversion, migration, or onboarding: read [`docs/ai/start-adoption.md`](./docs/ai/start-adoption.md)
-- Korean public-sector, eGovFrame, KRDS, or brownfield SI work: also read [`docs/ai/org-specific/egov-public-sector-guide.md`](./docs/ai/org-specific/egov-public-sector-guide.md)
+- Korean public-sector, eGovFrame, KRDS, or brownfield SI work: also read [`docs/ai/org-specific/egov-public-sector-guide.md`](./docs/ai/org-specific/egov-public-sector-guide.md) and [`docs/ai/org-specific/egov-new-project-playbook.md`](./docs/ai/org-specific/egov-new-project-playbook.md) for new-project execution details
 - If a generated repo records `organizationProfile`, follow that overlay before widening custom rules.
 - Context-loading and light vs deep read paths: read [`docs/ai/context-profiles.md`](./docs/ai/context-profiles.md)
 - Collaboration depth for generated repos: check `.agent-base/context-manifest.json` or the root `README.md` for the recommended `Lite`, `Coordinated`, or `Full` path
@@ -25,6 +25,7 @@ Read only these first:
    - [`docs/ai/start-bootstrap.md`](./docs/ai/start-bootstrap.md)
    - [`docs/ai/start-adoption.md`](./docs/ai/start-adoption.md)
    - If the repo is public-sector or eGovFrame flavored: [`docs/ai/org-specific/egov-public-sector-guide.md`](./docs/ai/org-specific/egov-public-sector-guide.md)
+   - If it is a new public-sector project with backend/frontend/batch split: [`docs/ai/org-specific/egov-new-project-playbook.md`](./docs/ai/org-specific/egov-new-project-playbook.md)
 4. [`docs/ai/project-selection-mapping.md`](./docs/ai/project-selection-mapping.md)
 5. [`docs/ai/roles/README.md`](./docs/ai/roles/README.md)
 6. [`docs/ai/governance/quality-gates.md`](./docs/ai/governance/quality-gates.md)
@@ -68,6 +69,7 @@ Default to the lightest mode that still covers the current risk. Move up only wh
   - [`docs/ai/project-generation-spec.md`](./docs/ai/project-generation-spec.md)
   - [`docs/ai/project-generator.md`](./docs/ai/project-generator.md)
   - [`docs/ai/org-specific/egov-public-sector-guide.md`](./docs/ai/org-specific/egov-public-sector-guide.md)
+  - [`docs/ai/org-specific/egov-new-project-playbook.md`](./docs/ai/org-specific/egov-new-project-playbook.md)
 - Adoption flow:
   - [`docs/ai/project-adoption.md`](./docs/ai/project-adoption.md)
   - [`docs/ai/adoption-spec.md`](./docs/ai/adoption-spec.md)
