@@ -13,6 +13,7 @@
 7. 필요 시 [`operations-manual.md`](./operations-manual.md)
 8. 구조나 영향이 클 때 [`impact-analysis.md`](./impact-analysis.md)
 9. 반복 실수나 규약 갭이 보이면 [`agent-failure-review.md`](./agent-failure-review.md)
+10. 공공/전자정부 UI 검토가 필요하면 [`egov-public-ui-review.md`](./egov-public-ui-review.md)
 
 ## 주의사항
 

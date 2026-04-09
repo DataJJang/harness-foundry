@@ -14,7 +14,7 @@
 
 ## 3. 기본 순서
 
-1. `scripts/analyze_repository.py`로 현재 저장소 inventory를 만든다.
+1. `scripts/analyze_repository.py`로 현재 저장소 inventory bundle을 만든다.
 2. [`repository-inventory.md`](./repository-inventory.md) 기준으로 누락된 사실을 보완한다.
 3. [`adoption-spec.md`](./adoption-spec.md) 형태로 현재 상태와 목표 상태를 정리한다.
 4. [`migration-strategy.md`](./migration-strategy.md)로 전환 전략을 고른다.
@@ -22,10 +22,13 @@
 6. [`parity-validation.md`](./parity-validation.md)로 동등성 검증 기준을 정의한다.
 7. [`checklists/project-adoption.md`](../../checklists/project-adoption.md)와 [`checklists/migration-readiness.md`](../../checklists/migration-readiness.md)를 완료한다.
 8. 필요한 overlay 문서를 저장소에 주입하고 command catalog, architecture map, pre-commit gate를 보정한다.
+9. 공공 UI가 포함되면 [`checklists/public-sector-ui-review.md`](../../checklists/public-sector-ui-review.md)와 [`prompts/org-specific/egov-public-sector/egov-public-form-list-review.md`](./prompts/org-specific/egov-public-sector/egov-public-form-list-review.md)를 같이 열어 대표 화면 패턴을 정리한다.
 
 ## 4. 핵심 산출물
 
 - `.agent-base/repository-inventory.json`
+- `.agent-base/docs-gap-report.md`
+- `.agent-base/role-recommendation.json`
 - `.agent-base/adoption-spec.json`
 - migration plan 또는 impact analysis
 - parity validation plan
@@ -43,6 +46,7 @@
 ## 6. 완료 기준
 
 - 현재 저장소 inventory가 정리되었다
+- docs gap과 역할 추천이 함께 정리되었다
 - adoption spec가 확정되었다
 - migration strategy와 parity requirement가 정의되었다
 - 필요한 specialist role이 지정되었다

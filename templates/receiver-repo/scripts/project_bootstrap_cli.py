@@ -588,10 +588,6 @@ def quick_start_defaults(project_family: str, project_nature: str, runtime_roles
 
 def apply_constraint_defaults(defaults: dict, hard_constraints: dict) -> dict:
     adjusted = dict(defaults)
-    if hard_constraints.get("runtimeVersionPolicy"):
-        adjusted["runtimeVersion"] = hard_constraints["runtimeVersionPolicy"]
-    if hard_constraints.get("frameworkVersionPolicy"):
-        adjusted["framework"] = hard_constraints["frameworkVersionPolicy"]
     if hard_constraints.get("containerAllowed") is False and adjusted.get("deploymentType") == "container":
         adjusted["deploymentType"] = "VM"
     return adjusted
@@ -603,6 +599,7 @@ def prompt_hard_constraints(defaults: dict, constraint_mode: str) -> dict:
 
     print_header("고정 운영 제약")
     print("이 모드는 최신 scaffold baseline보다 실제 target 환경과 운영 제약을 우선합니다.")
+    print("다음 단계에서 runtimeVersion, framework, deploymentType은 실제 target 값으로 다시 확정합니다.")
     operating_environment = prompt_text("고정 운영 환경 설명", "", required=False)
     operating_system_version = prompt_text("운영체제/플랫폼 제약", "", required=False)
     runtime_version_policy = prompt_text("허용 런타임 버전/정책", defaults["runtimeVersion"])

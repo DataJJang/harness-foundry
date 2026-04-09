@@ -35,3 +35,15 @@
 - `receiver-integration`은 메시지 수신, 프로토콜 파싱, 이벤트 처리 중심이면 선택한다.
 - `mockup-local`은 local-only, demo, click-through, low-risk prototype이면 선택한다.
 - `library-tooling`은 SDK, CLI, editor tooling, reusable package 성격이면 선택한다.
+
+## 5. 전자정부 / 공공 프로젝트에서 흔한 매핑
+
+| 실무 형태 | 추천 패밀리 조합 | 메모 |
+| --- | --- | --- |
+| 대민 포털/민원 서비스 | `web-app` + `backend-service` | KRDS, 접근성, 인증, 첨부파일, 민원형 폼을 early refinement에 넣는다 |
+| 내부 업무/행정 시스템 | `web-app` + `backend-service` + `batch-worker` | 권한, 상태 전이, 엑셀/대량 처리, 운영 로그를 먼저 본다 |
+| 기관 간 연계/전문 수신 | `receiver-integration` + `backend-service` | 수신 포맷, 재처리, retry, 추적 가능성을 먼저 본다 |
+| UI 선검토/제안 단계 | `mockup-local` 또는 `web-app` | KRDS component fit과 접근성 검토를 우선한다 |
+| 공통 모듈/기관 공용 도구 | `library-tooling` | 기관 공통 배포 형식, 설치 경로, 운영 절차를 같이 문서화한다 |
+
+전자정부 프로젝트라고 해서 별도 family를 강제로 만들 필요는 없다. 보통은 기존 family를 고르고, `constraintMode`, `legacy-exception-policy`, `compatibility-matrix`, `migration-strategy`로 공공 특유의 제약을 표현하는 편이 더 안정적이다.

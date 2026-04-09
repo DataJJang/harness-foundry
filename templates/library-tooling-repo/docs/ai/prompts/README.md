@@ -49,6 +49,8 @@
 6. 필요 시 저장소 또는 조직 특화 프롬프트
 7. `examples/` 아래 복사형 실행 예시
 
+전자정부프레임워크, KRDS, 공공기관 brownfield 작업이면 `org-specific/egov-public-sector/` pack을 먼저 검토하는 편이 좋다.
+
 ## 새 프로젝트 시작 시 권장 프롬프트 순서
 
 먼저 generator가 남긴 `.agent-base/context-manifest.json`의 `recommendedCoordinationMode`를 확인하고 아래 중 하나를 기본 경로로 고른다.
@@ -168,6 +170,7 @@ helper가 필요하면 `python3 scripts/show_start_path.py --current-model-tier 
 
 - [`org-specific/README.md`](./org-specific/README.md)
 - [`org-specific/aitelecom/README.md`](./org-specific/aitelecom/README.md)
+- [`org-specific/egov-public-sector/README.md`](./org-specific/egov-public-sector/README.md)
 
 ## 실행 예시
 

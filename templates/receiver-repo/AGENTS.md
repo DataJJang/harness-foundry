@@ -6,6 +6,7 @@ This file is the canonical AI entrypoint for a repository that uses this templat
 
 - New repository or new project: read [`docs/ai/start-bootstrap.md`](./docs/ai/start-bootstrap.md)
 - Existing repository, conversion, migration, or onboarding: read [`docs/ai/start-adoption.md`](./docs/ai/start-adoption.md)
+- Korean public-sector, eGovFrame, KRDS, or brownfield SI work: also read [`docs/ai/org-specific/egov-public-sector-guide.md`](./docs/ai/org-specific/egov-public-sector-guide.md)
 - Context-loading and light vs deep read paths: read [`docs/ai/context-profiles.md`](./docs/ai/context-profiles.md)
 - Collaboration depth for generated repos: check `.agent-base/context-manifest.json` or the root `README.md` for the recommended `Lite`, `Coordinated`, or `Full` path
 - Generated repository quick start: ask the AI to inspect `AGENTS.md`, `.agent-base/context-manifest.json`, `.agent-base/generation-manifest.json`, and the current workboard for the top 3 actions, or run `python3 scripts/show_start_path.py` for the scripted view
@@ -22,6 +23,7 @@ Read only these first:
 3. One of:
    - [`docs/ai/start-bootstrap.md`](./docs/ai/start-bootstrap.md)
    - [`docs/ai/start-adoption.md`](./docs/ai/start-adoption.md)
+   - If the repo is public-sector or eGovFrame flavored: [`docs/ai/org-specific/egov-public-sector-guide.md`](./docs/ai/org-specific/egov-public-sector-guide.md)
 4. [`docs/ai/project-selection-mapping.md`](./docs/ai/project-selection-mapping.md)
 5. [`docs/ai/roles/README.md`](./docs/ai/roles/README.md)
 6. [`docs/ai/governance/quality-gates.md`](./docs/ai/governance/quality-gates.md)
@@ -45,6 +47,8 @@ Default to the lightest mode that still covers the current risk. Move up only wh
 
 - Project families:
   - `game`, `web-app`, `pwa`, `mobile-app`, `backend-service`, `batch-worker`, `receiver-integration`, `mockup-local`, `library-tooling`
+- Public-sector/eGov work:
+  - keep the existing project families, but bias toward `legacy-maintenance`, `fixed-target`, compatibility, parity, and rollout documentation
 - Runtime roles:
   - `frontend`, `api`, `batch`, `receiver`, `client`, `tooling`, `worker`
 - Core agent roles:
@@ -62,6 +66,7 @@ Default to the lightest mode that still covers the current risk. Move up only wh
   - [`docs/ai/project-bootstrap-cli.md`](./docs/ai/project-bootstrap-cli.md)
   - [`docs/ai/project-generation-spec.md`](./docs/ai/project-generation-spec.md)
   - [`docs/ai/project-generator.md`](./docs/ai/project-generator.md)
+  - [`docs/ai/org-specific/egov-public-sector-guide.md`](./docs/ai/org-specific/egov-public-sector-guide.md)
 - Adoption flow:
   - [`docs/ai/project-adoption.md`](./docs/ai/project-adoption.md)
   - [`docs/ai/adoption-spec.md`](./docs/ai/adoption-spec.md)

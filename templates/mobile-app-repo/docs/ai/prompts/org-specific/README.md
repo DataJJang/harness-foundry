@@ -12,3 +12,4 @@
 현재 포함된 예시:
 
 - [`aitelecom/README.md`](./aitelecom/README.md)
+- [`egov-public-sector/README.md`](./egov-public-sector/README.md)

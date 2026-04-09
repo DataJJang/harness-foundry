@@ -12,6 +12,8 @@
   - [`start-bootstrap.md`](./start-bootstrap.md)
 - 기존 저장소:
   - [`start-adoption.md`](./start-adoption.md)
+- 공공/전자정부 특화:
+  - [`org-specific/egov-public-sector-guide.md`](./org-specific/egov-public-sector-guide.md)
 
 ## 문서 구조
 
