@@ -11,13 +11,16 @@ from generate_project import (
     ORGANIZATION_PROFILES,
     TEMPLATE_BY_FAMILY,
     choose_scaffold_plan,
+    default_frontend_architecture_policy,
     derive_agent_coordination,
     derive_coordination_mode,
     derive_refinement_manifest,
     derive_refinement_status,
     generate_project,
     normalize_constraint_mode,
+    normalize_frontend_architecture_policy,
     normalize_hard_constraints,
+    normalize_public_web_constraints,
     normalize_spec,
     validate_spec,
 )
@@ -131,6 +134,48 @@ TARGET_ENVIRONMENTS = [
     "dev",
     "stg",
     "prd",
+]
+
+FRONTEND_ARCHITECTURE_OPTIONS = [
+    "jsp-mvc",
+    "separated-frontend-api",
+    "mpa-plus-ajax",
+    "undecided",
+    "spa",
+]
+
+SEO_SENSITIVITY_OPTION_VALUES = [
+    "rfp-dependent",
+    "high",
+    "normal",
+    "low",
+]
+
+PAGE_DELIVERY_POLICY_OPTION_VALUES = [
+    "rfp-dependent",
+    "mpa-required",
+    "mpa-preferred",
+    "hybrid",
+    "spa-allowed",
+]
+
+AJAX_POLICY_OPTION_VALUES = [
+    "rfp-dependent",
+    "core-sections-only",
+    "broadly-allowed",
+    "none",
+]
+
+REQUIREMENT_LEVEL_OPTIONS = [
+    "unknown",
+    "required",
+    "not-required",
+]
+
+LEGACY_BROWSER_SUPPORT_OPTION_VALUES = [
+    "rfp-dependent",
+    "required",
+    "not-required",
 ]
 
 DOCUMENT_SET_OPTIONS = [
@@ -316,7 +361,7 @@ DEFAULTS_BY_FAMILY = {
 
 LANGUAGE_OPTIONS_BY_FAMILY = {
     "game": ["C#", "TypeScript"],
-    "web-app": ["TypeScript", "JavaScript"],
+    "web-app": ["TypeScript", "JavaScript", "Java"],
     "pwa": ["TypeScript", "JavaScript"],
     "mobile-app": ["Dart", "TypeScript", "Kotlin", "Swift"],
     "backend-service": ["Java", "Kotlin"],
@@ -328,11 +373,19 @@ LANGUAGE_OPTIONS_BY_FAMILY = {
 
 FRAMEWORK_OPTIONS_BY_FAMILY = {
     "game": ["Unity", "Godot", "custom"],
-    "web-app": ["React", "Vue", "Svelte", "custom"],
+    "web-app": ["React", "Vue", "Svelte", "eGovFrame 4.3 JSP/Spring MVC", "custom"],
     "pwa": ["React", "Vue", "Svelte", "custom"],
     "mobile-app": ["Flutter", "React Native", "Kotlin Android", "Swift iOS", "custom"],
-    "backend-service": ["Spring Boot 3.5.x", "Spring Boot 4.0.x (aggressive)", "Spring Boot 2.7.x (legacy)", "Micronaut", "Quarkus", "custom"],
-    "batch-worker": ["Spring Boot 3.5.x", "Spring Batch 5", "Spring Boot 2.7.x (legacy)", "custom"],
+    "backend-service": [
+        "Spring Boot 3.5.x",
+        "Spring Boot 4.0.x (aggressive)",
+        "Spring Boot 2.7.x (legacy)",
+        "eGovFrame 4.3 REST + MyBatis",
+        "Micronaut",
+        "Quarkus",
+        "custom",
+    ],
+    "batch-worker": ["Spring Boot 3.5.x", "Spring Batch 5", "Spring Boot 2.7.x (legacy)", "eGovFrame 4.3 Batch + MyBatis", "custom"],
     "receiver-integration": ["Spring Boot 3.5.x", "Spring Boot 4.0.x (aggressive)", "Spring Boot 2.7.x (legacy)", "custom"],
     "mockup-local": ["Vite", "Static HTML", "custom"],
     "library-tooling": ["Node.js tooling", "Spring Boot CLI", "custom"],
@@ -340,7 +393,7 @@ FRAMEWORK_OPTIONS_BY_FAMILY = {
 
 STARTUP_OPTIONS_BY_FAMILY = {
     "game": ["Unity player", "editor tooling"],
-    "web-app": ["SPA", "SSR"],
+    "web-app": ["SPA", "SSR", "server-rendered-webapp"],
     "pwa": ["SPA", "installable PWA"],
     "mobile-app": ["mobile-package"],
     "backend-service": ["long-running-service"],
@@ -435,6 +488,122 @@ def unique(items: list[str]) -> list[str]:
     return result
 
 
+def requirement_level_to_bool(value: str) -> bool | None:
+    mapping = {
+        "unknown": None,
+        "required": True,
+        "not-required": False,
+    }
+    return mapping.get(value)
+
+
+def requirement_level_from_bool(value: object) -> str:
+    if value is True:
+        return "required"
+    if value is False:
+        return "not-required"
+    return "unknown"
+
+
+def apply_organization_profile_defaults(project_family: str, organization_profile: str, defaults: dict) -> dict:
+    adjusted = dict(defaults)
+    if organization_profile != "egov-public-sector":
+        return adjusted
+
+    if project_family == "web-app":
+        adjusted.update(
+            {
+                "targetUsers": ["citizens", "public-operators"],
+                "externalIntegrations": ["backend-service", "public-auth"],
+            }
+        )
+    elif project_family == "backend-service":
+        adjusted.update(
+            {
+                "targetUsers": ["public-operators", "internal-services"],
+                "language": "Java",
+                "runtimeVersion": "17",
+                "framework": "eGovFrame 4.3 REST + MyBatis",
+                "buildTool": "Maven",
+                "testTool": "mvn test",
+                "datastore": "MariaDB",
+                "cache": "없음",
+                "deploymentType": "VM",
+                "loggingMode": "mixed",
+                "targetOs": ["Linux"],
+                "externalIntegrations": ["frontend-webapp", "database"],
+            }
+        )
+    elif project_family == "batch-worker":
+        adjusted.update(
+            {
+                "language": "Java",
+                "runtimeVersion": "17",
+                "framework": "eGovFrame 4.3 Batch + MyBatis",
+                "buildTool": "Maven",
+                "testTool": "mvn test",
+                "datastore": "MariaDB",
+                "cache": "없음",
+                "deploymentType": "VM",
+                "loggingMode": "file",
+                "targetOs": ["Linux"],
+                "externalIntegrations": ["scheduler", "database"],
+            }
+        )
+    return adjusted
+
+
+def apply_frontend_architecture_defaults(project_family: str, organization_profile: str, defaults: dict) -> dict:
+    adjusted = dict(defaults)
+    frontend_architecture_policy = adjusted.get("frontendArchitecturePolicy", "not-applicable")
+    adjusted["publicWebConstraints"] = normalize_public_web_constraints(
+        adjusted.get("publicWebConstraints"),
+        organization_profile,
+        frontend_architecture_policy,
+    )
+    if project_family != "web-app":
+        return adjusted
+
+    if organization_profile == "egov-public-sector":
+        adjusted.update(
+            {
+                "targetUsers": ["citizens", "public-operators"],
+                "externalIntegrations": ["backend-service", "public-auth"],
+            }
+        )
+        if frontend_architecture_policy in {"jsp-mvc", "mpa-plus-ajax"}:
+            adjusted.update(
+                {
+                    "language": "Java",
+                    "runtimeVersion": "17",
+                    "framework": "eGovFrame 4.3 JSP/Spring MVC",
+                    "buildTool": "Maven",
+                    "testTool": "mvn test",
+                    "deploymentType": "VM",
+                    "startupMode": "server-rendered-webapp",
+                    "loggingMode": "file",
+                    "targetOs": ["Linux"],
+                    "securityProfile": "session",
+                }
+            )
+        elif frontend_architecture_policy == "separated-frontend-api":
+            adjusted.update(
+                {
+                    "language": "TypeScript",
+                    "runtimeVersion": "22 LTS",
+                    "framework": "React",
+                    "buildTool": "npm",
+                    "testTool": "npm test",
+                    "deploymentType": "static-hosting",
+                    "startupMode": "SPA",
+                    "loggingMode": "console",
+                    "targetOs": ["Windows", "macOS", "Linux"],
+                    "securityProfile": "없음",
+                }
+            )
+    return adjusted
+
+
 def derive_base_document_set(spec: dict) -> list[str]:
     docs = ["README", "build-guide", "test-plan"]
     if spec["deploymentType"] != "local-only":
@@ -450,7 +619,16 @@ def derive_base_document_set(spec: dict) -> list[str]:
 
 def detect_exceptions(spec: dict, family_defaults: dict) -> list[str]:
     exceptions: list[str] = []
-    for key in ["language", "runtimeVersion", "framework", "buildTool", "testTool", "deploymentType", "startupMode"]:
+    for key in [
+        "language",
+        "runtimeVersion",
+        "framework",
+        "buildTool",
+        "testTool",
+        "deploymentType",
+        "startupMode",
+        "frontendArchitecturePolicy",
+    ]:
         default = family_defaults.get(key)
         actual = spec.get(key)
         if default and actual and actual != default:
@@ -559,11 +737,95 @@ def prompt_list(label: str, default: list[str] | None = None) -> list[str]:
     return unique([item.strip() for item in raw.split(",") if item.strip()])
 
 
-def family_defaults(project_family: str, project_nature: str) -> dict:
+def prompt_frontend_architecture_policy(
+    project_family: str,
+    organization_profile: str,
+    default_policy: str,
+) -> str:
+    if organization_profile != "egov-public-sector" or project_family != "web-app":
+        return normalize_frontend_architecture_policy(default_policy, project_family, organization_profile)
+    selection = prompt_choice("공공 웹 프론트 전달 방식", FRONTEND_ARCHITECTURE_OPTIONS, default_policy)
+    return normalize_frontend_architecture_policy(selection, project_family, organization_profile)
+
+
+def prompt_public_web_constraints(
+    project_family: str,
+    organization_profile: str,
+    frontend_architecture_policy: str,
+    defaults: dict,
+    interview_mode: str,
+) -> dict:
+    normalized_defaults = normalize_public_web_constraints(defaults, organization_profile, frontend_architecture_policy)
+    if organization_profile != "egov-public-sector" or project_family not in {"web-app", "pwa"}:
+        return normalized_defaults
+    if interview_mode == "quick-start":
+        return normalized_defaults
+
+    print_header("공공 웹 제약")
+    seo_sensitivity = prompt_choice("SEO 민감도", SEO_SENSITIVITY_OPTION_VALUES, normalized_defaults["seoSensitivity"])
+    page_delivery_policy = prompt_choice(
+        "페이지 전달 정책",
+        PAGE_DELIVERY_POLICY_OPTION_VALUES,
+        normalized_defaults["pageDeliveryPolicy"],
+    )
+    ajax_policy = prompt_choice("AJAX 허용 범위", AJAX_POLICY_OPTION_VALUES, normalized_defaults["ajaxPolicy"])
+    cross_browser_parity = prompt_choice(
+        "크로스브라우저 동등 서비스 요구",
+        REQUIREMENT_LEVEL_OPTIONS,
+        requirement_level_from_bool(normalized_defaults["crossBrowserParityRequired"]),
+    )
+    mobile_parity = prompt_choice(
+        "모바일 동등 서비스 요구",
+        REQUIREMENT_LEVEL_OPTIONS,
+        requirement_level_from_bool(normalized_defaults["mobileParityRequired"]),
+    )
+    legacy_browser_support = prompt_choice(
+        "구형 브라우저 지원",
+        LEGACY_BROWSER_SUPPORT_OPTION_VALUES,
+        normalized_defaults["legacyBrowserSupport"],
+    )
+    frontend_framework_allowed = prompt_list(
+        "허용 프론트 프레임워크 (쉼표 구분)",
+        normalized_defaults["frontendFrameworkAllowed"],
+    )
+    notes = prompt_list("공공 웹 제약 메모 (쉼표 구분, 없으면 Enter)", normalized_defaults["notes"])
+    return normalize_public_web_constraints(
+        {
+            "seoSensitivity": seo_sensitivity,
+            "pageDeliveryPolicy": page_delivery_policy,
+            "ajaxPolicy": ajax_policy,
+            "crossBrowserParityRequired": requirement_level_to_bool(cross_browser_parity),
+            "mobileParityRequired": requirement_level_to_bool(mobile_parity),
+            "legacyBrowserSupport": legacy_browser_support,
+            "frontendFrameworkAllowed": frontend_framework_allowed,
+            "notes": notes,
+        },
+        organization_profile,
+        frontend_architecture_policy,
+    )
+
+
+def family_defaults(
+    project_family: str,
+    project_nature: str,
+    organization_profile: str = "none",
+    frontend_architecture_policy: str | None = None,
+) -> dict:
     defaults = dict(DEFAULTS_BY_FAMILY[project_family])
     defaults["repositoryMode"] = "single-repo"
     defaults["targetEnvironments"] = default_target_environments(project_nature)
-    return defaults
+    defaults = apply_organization_profile_defaults(project_family, organization_profile, defaults)
+    defaults["frontendArchitecturePolicy"] = normalize_frontend_architecture_policy(
+        frontend_architecture_policy,
+        project_family,
+        organization_profile,
+    )
+    defaults["publicWebConstraints"] = normalize_public_web_constraints(
+        defaults.get("publicWebConstraints"),
+        organization_profile,
+        defaults["frontendArchitecturePolicy"],
+    )
+    return apply_frontend_architecture_defaults(project_family, organization_profile, defaults)
 
 
 def recommended_security_profile(project_family: str, runtime_roles: list[str], family_default: str) -> str:
@@ -577,15 +839,22 @@ def recommended_security_profile(project_family: str, runtime_roles: list[str], 
     return family_default
 
 
-def quick_start_defaults(project_family: str, project_nature: str, runtime_roles: list[str]) -> dict:
-    defaults = family_defaults(project_family, project_nature)
+def quick_start_defaults(
+    project_family: str,
+    project_nature: str,
+    runtime_roles: list[str],
+    organization_profile: str = "none",
+    frontend_architecture_policy: str | None = None,
+) -> dict:
+    defaults = family_defaults(project_family, project_nature, organization_profile, frontend_architecture_policy)
     defaults["runtimeRoles"] = list(runtime_roles)
     defaults["repositoryMode"] = "single-repo"
-    defaults["datastore"] = "없음"
-    defaults["cache"] = "없음"
-    defaults["deploymentType"] = "local-only"
-    defaults["targetEnvironments"] = ["local"]
-    defaults["externalIntegrations"] = []
+    if organization_profile != "egov-public-sector":
+        defaults["datastore"] = "없음"
+        defaults["cache"] = "없음"
+        defaults["deploymentType"] = "local-only"
+        defaults["targetEnvironments"] = ["local"]
+        defaults["externalIntegrations"] = []
     defaults["securityProfile"] = recommended_security_profile(
         project_family,
         runtime_roles,
@@ -645,18 +914,29 @@ def print_baseline_summary(
     organization_profile: str,
     defaults: dict,
 ) -> None:
+    public_web_constraints = normalize_public_web_constraints(
+        defaults.get("publicWebConstraints"),
+        organization_profile,
+        defaults.get("frontendArchitecturePolicy", "not-applicable"),
+    )
     print_header("추천 baseline")
     print(f"- project family: {project_family}")
     print(f"- project nature: {project_nature}")
     print(f"- organization profile: {organization_profile}")
     print(f"- runtime roles: {', '.join(runtime_roles)}")
     print(f"- repository mode: {defaults['repositoryMode']}")
+    print(f"- frontend architecture policy: {defaults.get('frontendArchitecturePolicy', 'not-applicable')}")
     print(f"- language / framework: {defaults['language']} / {defaults['framework']}")
     print(f"- build / test: {defaults['buildTool']} / {defaults['testTool']}")
     print(f"- datastore / cache: {defaults['datastore']} / {defaults['cache']}")
     print(f"- deployment type: {defaults['deploymentType']}")
     print(f"- security profile: {defaults['securityProfile']}")
     print(f"- target environments: {', '.join(defaults['targetEnvironments'])}")
+    if organization_profile == "egov-public-sector" and defaults.get("frontendArchitecturePolicy") != "not-applicable":
+        print(
+            f"- public web constraints: SEO {public_web_constraints['seoSensitivity']}, "
+            f"page delivery {public_web_constraints['pageDeliveryPolicy']}, AJAX {public_web_constraints['ajaxPolicy']}"
+        )
     integrations = ", ".join(defaults["externalIntegrations"]) or "없음"
     print(f"- external integrations: {integrations}")
     print("이 baseline은 일반적인 quick-start를 위한 기본 추천이며, production 또는 운영 이슈는 이후 review 단계에서 확장한다.")
@@ -675,13 +955,36 @@ def build_interactive_spec(args: argparse.Namespace) -> tuple[dict, Path, Path]:
     if organization_profile not in ORGANIZATION_PROFILES:
         organization_profile = "none"
 
-    family_detail_defaults = family_defaults(project_family, project_nature)
+    initial_frontend_architecture_policy = default_frontend_architecture_policy(project_family, organization_profile)
+    family_detail_defaults = family_defaults(
+        project_family,
+        project_nature,
+        organization_profile,
+        initial_frontend_architecture_policy,
+    )
     runtime_roles = prompt_multi("런타임 역할", RUNTIME_ROLES, family_detail_defaults["runtimeRoles"])
+    frontend_architecture_policy = prompt_frontend_architecture_policy(
+        project_family,
+        organization_profile,
+        family_detail_defaults["frontendArchitecturePolicy"],
+    )
+    family_detail_defaults = family_defaults(
+        project_family,
+        project_nature,
+        organization_profile,
+        frontend_architecture_policy,
+    )
     constraint_mode = normalize_constraint_mode(
         prompt_choice("운영 제약 모드", CONSTRAINT_MODE_OPTIONS, "recommended-baseline")
     )
     hard_constraints = prompt_hard_constraints(family_detail_defaults, constraint_mode)
-    recommended_defaults = quick_start_defaults(project_family, project_nature, runtime_roles)
+    recommended_defaults = quick_start_defaults(
+        project_family,
+        project_nature,
+        runtime_roles,
+        organization_profile,
+        frontend_architecture_policy,
+    )
     family_detail_defaults = apply_constraint_defaults(family_detail_defaults, hard_constraints)
     recommended_defaults = apply_constraint_defaults(recommended_defaults, hard_constraints)
     interview_mode = prompt_choice(
@@ -692,6 +995,14 @@ def build_interactive_spec(args: argparse.Namespace) -> tuple[dict, Path, Path]:
     if constraint_mode != "recommended-baseline" and interview_mode == "quick-start":
         print("고정 운영 제약이 있으면 runtime/framework/deployment를 직접 확인해야 하므로 guided-review로 전환합니다.")
         interview_mode = "guided-review"
+    if (
+        organization_profile == "egov-public-sector"
+        and project_family == "web-app"
+        and frontend_architecture_policy == "undecided"
+        and interview_mode == "quick-start"
+    ):
+        print("공공 web-app의 프론트 전달 방식이 아직 미정이므로 quick-start 대신 guided-review로 전환합니다.")
+        interview_mode = "guided-review"
     if interview_mode == "quick-start":
         print_baseline_summary(project_family, project_nature, runtime_roles, organization_profile, recommended_defaults)
         if not prompt_yes_no("위 baseline을 그대로 채우고 계속할까요?", True):
@@ -699,7 +1010,12 @@ def build_interactive_spec(args: argparse.Namespace) -> tuple[dict, Path, Path]:
 
     if interview_mode == "full-detail" or constraint_mode != "recommended-baseline":
         active_defaults = dict(family_detail_defaults)
-        baseline_defaults = dict(DEFAULTS_BY_FAMILY[project_family])
+        baseline_defaults = family_defaults(
+            project_family,
+            project_nature,
+            organization_profile,
+            frontend_architecture_policy,
+        )
     else:
         active_defaults = dict(recommended_defaults)
         baseline_defaults = dict(active_defaults)
@@ -746,6 +1062,14 @@ def build_interactive_spec(args: argparse.Namespace) -> tuple[dict, Path, Path]:
         safe_deployments = [option for option in DEPLOYMENT_TYPES if option != "container"]
         deployment_type = prompt_choice("배포 유형 (container 제외)", safe_deployments, "VM")
 
+    public_web_constraints = prompt_public_web_constraints(
+        project_family,
+        organization_profile,
+        frontend_architecture_policy,
+        active_defaults.get("publicWebConstraints", {}),
+        interview_mode,
+    )
+
     spec: dict = {
         "repositoryName": repository_name,
         "projectName": project_name,
@@ -757,6 +1081,8 @@ def build_interactive_spec(args: argparse.Namespace) -> tuple[dict, Path, Path]:
         "targetUsers": target_users,
         "targetPlatforms": target_platforms,
         "runtimeRoles": runtime_roles,
+        "frontendArchitecturePolicy": frontend_architecture_policy,
+        "publicWebConstraints": public_web_constraints,
         "language": language,
         "runtimeVersion": runtime_version,
         "framework": framework,
@@ -829,11 +1155,25 @@ def print_summary(spec: dict, output_root: Path, spec_path: Path) -> None:
     support_level = scaffold_plan["supportLevel"]
     refinement_manifest = derive_refinement_manifest(spec, scaffold_profile, support_level)
     coordination_mode = derive_coordination_mode(spec)
+    public_web_constraints = normalize_public_web_constraints(
+        spec.get("publicWebConstraints"),
+        spec.get("organizationProfile", "none"),
+        spec.get("frontendArchitecturePolicy", "not-applicable"),
+    )
     print()
     print("선택 결과")
     print(f"- template: {template_name}")
     print(f"- constraint mode: {spec.get('constraintMode', 'recommended-baseline')}")
     print(f"- organization profile: {spec.get('organizationProfile', 'none')}")
+    print(f"- frontend architecture policy: {spec.get('frontendArchitecturePolicy', 'not-applicable')}")
+    if (
+        spec.get("organizationProfile") == "egov-public-sector"
+        and spec.get("frontendArchitecturePolicy") != "not-applicable"
+    ):
+        print(
+            f"- public web constraints: SEO {public_web_constraints['seoSensitivity']}, "
+            f"page delivery {public_web_constraints['pageDeliveryPolicy']}, AJAX {public_web_constraints['ajaxPolicy']}"
+        )
     print(f"- scaffold profile: {scaffold_profile or 'docs-only'}")
     print(f"- scaffold support level: {support_level}")
     if scaffold_plan["reason"]:

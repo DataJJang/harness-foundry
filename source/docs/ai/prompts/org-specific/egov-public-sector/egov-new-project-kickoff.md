@@ -23,6 +23,7 @@
 
 - 대민 서비스인지 내부 업무 시스템인지
 - KRDS 또는 기관 UI/UX 기준 적용 여부
+- frontend 전달 방식이 JSP/Spring MVC 고정인지, FE/BE 분리 허용인지, MPA 우선 + 일부 AJAX인지
 - 전자정부프레임워크 버전, WAS, JDK, OS 같은 고정 운영 제약 여부
 - DB ownership과 batch 운영 여부
 - 공통 코드, 공통 JS/CSS, 공통 메시지, 공통 코드 테이블 같은 공통 자산 존재 여부

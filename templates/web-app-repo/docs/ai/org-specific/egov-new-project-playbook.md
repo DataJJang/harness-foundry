@@ -91,6 +91,10 @@
 
 ### 6.1 화면 구조와 공통 자산 범위 확정
 
+- `frontendArchitecturePolicy`
+  - `jsp-mvc`
+  - `separated-frontend-api`
+  - `mpa-plus-ajax`
 - 라우트 구조
 - 화면 유형 분류
   - 검색/목록
@@ -100,6 +104,15 @@
   - 팝업
 - 공통 레이아웃, 헤더, 푸터, 탭, breadcrumb
 - 공통 JS/CSS, include, template 재사용 범위
+
+### 6.1-1 RFP 웹 전달 제약 먼저 고정
+
+- JSP/Spring MVC 고정 여부
+- FE/BE 분리 허용 여부
+- MPA 우선 여부
+- AJAX 허용 범위
+- SEO 민감도
+- 크로스브라우징과 모바일 동등 서비스 요구
 
 ### 6.2 KRDS / 기관 UI 기준 반영
 

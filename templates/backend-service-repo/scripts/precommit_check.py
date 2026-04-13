@@ -132,6 +132,8 @@ def infer_preset_profile(config: dict, spec: dict) -> str:
         "receiver-integration": "receiver-integration",
         "mockup-local": "mockup-local",
     }
+    if family == "web-app" and language == "java":
+        return "web-app-java"
     if family in mapping:
         return mapping[family]
     if family == "game":
@@ -185,6 +187,8 @@ def autodetect_commands(staged_files: list[str], config: dict, spec: dict) -> tu
 
     package_json = REPO_ROOT / "package.json"
     gradlew = REPO_ROOT / "gradlew"
+    pom_xml = REPO_ROOT / "pom.xml"
+    mvnw = REPO_ROOT / "mvnw"
     pubspec = REPO_ROOT / "pubspec.yaml"
     unity_version = REPO_ROOT / "ProjectSettings" / "ProjectVersion.txt"
 
@@ -196,7 +200,19 @@ def autodetect_commands(staged_files: list[str], config: dict, spec: dict) -> tu
     java_changed = path_matches(
         staged_files,
         {".java", ".kt", ".kts", ".sql", ".xml", ".yml", ".yaml", ".properties"},
-        ("src/main/", "src/test/", "build.gradle", "settings.gradle", "gradle/", "docs/sql/", "db/", "src/main/resources/"),
+        (
+            "src/main/",
+            "src/test/",
+            "build.gradle",
+            "settings.gradle",
+            "gradle/",
+            "pom.xml",
+            "mvnw",
+            ".mvn/",
+            "docs/sql/",
+            "db/",
+            "src/main/resources/",
+        ),
     )
     unity_changed = path_matches(
         staged_files,
@@ -234,18 +250,28 @@ def autodetect_commands(staged_files: list[str], config: dict, spec: dict) -> tu
             if test_script:
                 commands.append(f"npm run {test_script}")
 
-    if gradlew.exists() and preset in {
+    java_presets = {
+        "web-app-java",
         "backend-service",
         "batch-worker",
         "receiver-integration",
         "library-tooling-java",
         "java-service",
-    } and java_changed:
-        commands.append("./gradlew compileJava")
-        if config.get("runBuildOnHook"):
-            commands.append("./gradlew build")
-        if config.get("runTestOnHook") or path_matches(staged_files, {".java", ".kt", ".kts"}, ("src/test/",)):
-            commands.append("./gradlew test")
+    }
+    if preset in java_presets and java_changed:
+        if gradlew.exists():
+            commands.append("./gradlew compileJava")
+            if config.get("runBuildOnHook"):
+                commands.append("./gradlew build")
+            if config.get("runTestOnHook") or path_matches(staged_files, {".java", ".kt", ".kts"}, ("src/test/",)):
+                commands.append("./gradlew test")
+        elif pom_xml.exists():
+            maven_command = "./mvnw" if mvnw.exists() else "mvn"
+            commands.append(f"{maven_command} -q -DskipTests compile")
+            if config.get("runBuildOnHook"):
+                commands.append(f"{maven_command} -q -DskipTests package")
+            if config.get("runTestOnHook") or path_matches(staged_files, {".java", ".kt", ".kts"}, ("src/test/",)):
+                commands.append(f"{maven_command} -q test")
 
     if pubspec.exists() and preset in {"mobile-flutter", "mobile-app"} and flutter_changed:
         if (config.get("runLintOnHook") or config.get("runTypecheckOnHook")) and command_exists("flutter"):

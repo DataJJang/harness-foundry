@@ -1,0 +1,75 @@
+{
+  "repositoryName": "egov-back",
+  "projectName": "eGov Back",
+  "projectPurpose": "Provide a test public-sector API starter based on eGovFrame REST and MyBatis.",
+  "projectFamily": "backend-service",
+  "projectNature": "prototype",
+  "organizationProfile": "egov-public-sector",
+  "constraintMode": "recommended-baseline",
+  "hardConstraints": {
+    "operatingEnvironment": "",
+    "operatingSystemVersion": "",
+    "runtimeVersionPolicy": "",
+    "frameworkVersionPolicy": "",
+    "containerAllowed": null,
+    "blockCurrentBaselineScaffold": false,
+    "notes": []
+  },
+  "repositoryMode": "single-repo",
+  "targetUsers": [
+    "public-operators",
+    "internal-services"
+  ],
+  "targetPlatforms": [
+    "server"
+  ],
+  "runtimeRoles": [
+    "api"
+  ],
+  "frontendArchitecturePolicy": "not-applicable",
+  "publicWebConstraints": {
+    "seoSensitivity": "not-applicable",
+    "pageDeliveryPolicy": "not-applicable",
+    "ajaxPolicy": "not-applicable",
+    "crossBrowserParityRequired": null,
+    "mobileParityRequired": null,
+    "legacyBrowserSupport": "not-applicable",
+    "frontendFrameworkAllowed": [],
+    "notes": []
+  },
+  "language": "Java",
+  "runtimeVersion": "17",
+  "framework": "eGovFrame 4.3 REST + MyBatis",
+  "buildTool": "Maven",
+  "testTool": "mvn test",
+  "datastore": "MariaDB",
+  "cache": "없음",
+  "deploymentType": "VM",
+  "startupMode": "long-running-service",
+  "loggingMode": "mixed",
+  "targetOs": [
+    "Linux"
+  ],
+  "securityProfile": "JWT",
+  "packageName": "com.example.egovback",
+  "targetEnvironments": [
+    "local",
+    "dev"
+  ],
+  "externalIntegrations": [
+    "egov-front",
+    "database"
+  ],
+  "dbEngine": "MariaDB 10.x",
+  "schemaOwnership": "owned",
+  "migrationPath": "db/migration",
+  "baseDocumentSet": [
+    "README",
+    "build-guide",
+    "test-plan",
+    "deployment-checklist",
+    "operations-manual",
+    "impact-analysis"
+  ],
+  "exceptions": []
+}

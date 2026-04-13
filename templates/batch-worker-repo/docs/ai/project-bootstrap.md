@@ -73,11 +73,11 @@
 | 패밀리 | 선택 기준 | 기본 권장 방향 |
 | --- | --- | --- |
 | `game` | Unity 등 게임 클라이언트, 도구, 레벨/컨텐츠, 게임 서버 연계 | Unity LTS, C#, client 중심 |
-| `web-app` | 브라우저 기반 일반 웹 애플리케이션 | TypeScript, React, Vite |
+| `web-app` | 브라우저 기반 일반 웹 애플리케이션 | TypeScript, React, Vite 또는 Java 17, eGovFrame JSP/Spring MVC |
 | `pwa` | 설치형 웹앱, 오프라인/캐시 전략이 필요한 웹 서비스 | TypeScript, React, Vite, PWA 플러그인 |
 | `mobile-app` | Android/iOS 중심 앱 | Flutter 또는 React Native 기본 |
-| `backend-service` | API, admin backend, 인증, 비즈니스 처리 중심 | Java 17, Spring Boot 3.5.x |
-| `batch-worker` | 스케줄러, 집계, 대량 처리, 동기화, 배치성 작업 | Java 17, Spring Boot 3.5.x, Spring Batch 5 |
+| `backend-service` | API, admin backend, 인증, 비즈니스 처리 중심 | Java 17, Spring Boot 3.5.x 또는 eGovFrame REST + MyBatis |
+| `batch-worker` | 스케줄러, 집계, 대량 처리, 동기화, 배치성 작업 | Java 17, Spring Boot 3.5.x, Spring Batch 5 또는 eGovFrame Batch + MyBatis |
 | `receiver-integration` | MQTT, webhook, queue consumer, 프로토콜 수신 | Java 17, Spring Boot 3.5.x |
 | `mockup-local` | 로컬 목업, 데모, 화면 시안, 검증용 툴 | 가장 가벼운 스택 우선 |
 | `library-tooling` | 공통 SDK, CLI, editor tooling, build helper | 목적 맞춤 경량 스택 |
@@ -86,8 +86,13 @@
 
 - `game + Unity`를 선택하면 `C# + Unity LTS`를 먼저 제안한다.
 - `web-app`과 `pwa`는 `TypeScript + Node.js 22 LTS + React 19 + Vite 8`을 기본으로 제안한다.
+- `organizationProfile = egov-public-sector`인 `web-app`은 먼저 `frontendArchitecturePolicy`를 확인한다.
+- `frontendArchitecturePolicy = jsp-mvc` 또는 `mpa-plus-ajax`면 `Java 17 + Maven + eGovFrame 4.3 JSP/Spring MVC`를 기본 제안으로 사용한다.
+- `frontendArchitecturePolicy = separated-frontend-api`면 `TypeScript + React`를 유지하되 공공 웹 제약과 API 분리 기준을 같이 기록한다.
+- 공공 `web-app`에서 `frontendArchitecturePolicy = undecided`면 quick-start 대신 `guided-review`로 전환한다.
 - `mobile-app`은 `Flutter`를 기본 권장으로 제안하고, 팀 경험이나 native 요구가 있으면 `React Native`, `Kotlin`, `Swift`를 선택지로 제공한다.
 - `backend-service`는 `Java 17 + Spring Boot 3.5.x`를 기본으로 제안한다.
+- `organizationProfile = egov-public-sector`인 `backend-service`, `batch-worker`는 `Java 17 + Maven + eGovFrame 4.3` 계열도 기본 제안으로 사용한다.
 - `batch-worker`, `receiver-integration`은 `Java 17 + Spring Boot 3.5.x`를 기본으로 제안한다.
 - Spring Boot `4.0.x`는 공격안으로 문서화하고, `2.x`는 legacy baseline으로만 남긴다.
 - `mockup-local`은 DB, cache, 배포를 `없음` 또는 최소 옵션으로 허용한다.
@@ -119,15 +124,15 @@
 
 ### Frontend
 
-- `package.json` 기준 build/test 명령을 확정한다.
+- `package.json` 또는 `pom.xml` 기준 build/test 명령을 확정한다.
 - 기본 route, env 파일, API base URL, 정적 자산 전략을 정리한다.
-- 화면 구조와 `ListPage/DetailPage/RegistrationPage/ModifyPage/Shared/Api` 패턴을 쓸지 결정한다.
+- 화면 구조와 `ListPage/DetailPage/RegistrationPage/ModifyPage/Shared/Api` 패턴 또는 JSP/include/layout 구조를 쓸지 결정한다.
 
 ### API
 
-- `build.gradle` 기준 Java, Spring Boot, Gradle 기준선을 확정한다.
+- `build.gradle` 또는 `pom.xml` 기준 Java, Spring Boot/eGovFrame 기준선을 확정한다.
 - controller/service/repository/query repository 책임 분리를 문서화한다.
-- `application.yml`의 profile, 보안, DB 연결 기준을 정리한다.
+- `application.yml` 또는 spring context/property 파일의 profile, 보안, DB 연결 기준을 정리한다.
 
 ### Batch
 

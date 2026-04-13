@@ -24,6 +24,7 @@
 - 전자정부 프로젝트라고 해서 별도 family를 억지로 만들지 않는다.
 - 대신 아래 3가지를 우선 적용한다.
   - `organizationProfile = egov-public-sector`
+  - `frontendArchitecturePolicy`
   - `constraintMode`
   - `legacy-exception-policy`
   - `compatibility / parity / migration` 문서 세트

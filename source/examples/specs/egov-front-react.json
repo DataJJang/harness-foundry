@@ -1,0 +1,76 @@
+{
+  "repositoryName": "egov-front-react",
+  "projectName": "eGov Front React",
+  "projectPurpose": "Provide a test public-sector frontend starter for a separated frontend/backend architecture.",
+  "projectFamily": "web-app",
+  "projectNature": "prototype",
+  "organizationProfile": "egov-public-sector",
+  "constraintMode": "recommended-baseline",
+  "hardConstraints": {
+    "operatingEnvironment": "",
+    "operatingSystemVersion": "",
+    "runtimeVersionPolicy": "",
+    "frameworkVersionPolicy": "",
+    "containerAllowed": null,
+    "blockCurrentBaselineScaffold": false,
+    "notes": []
+  },
+  "repositoryMode": "single-repo",
+  "targetUsers": [
+    "citizens",
+    "public-operators"
+  ],
+  "targetPlatforms": [
+    "browser"
+  ],
+  "runtimeRoles": [
+    "frontend"
+  ],
+  "frontendArchitecturePolicy": "separated-frontend-api",
+  "publicWebConstraints": {
+    "seoSensitivity": "high",
+    "pageDeliveryPolicy": "rfp-dependent",
+    "ajaxPolicy": "broadly-allowed",
+    "crossBrowserParityRequired": true,
+    "mobileParityRequired": true,
+    "legacyBrowserSupport": "rfp-dependent",
+    "frontendFrameworkAllowed": [
+      "React",
+      "Vue",
+      "Next.js"
+    ],
+    "notes": []
+  },
+  "language": "TypeScript",
+  "runtimeVersion": "22 LTS",
+  "framework": "React",
+  "buildTool": "npm",
+  "testTool": "npm test",
+  "datastore": "없음",
+  "cache": "없음",
+  "deploymentType": "static-hosting",
+  "startupMode": "SPA",
+  "loggingMode": "console",
+  "targetOs": [
+    "Windows",
+    "macOS",
+    "Linux"
+  ],
+  "securityProfile": "없음",
+  "targetEnvironments": [
+    "local",
+    "dev"
+  ],
+  "externalIntegrations": [
+    "egov-back",
+    "public-auth"
+  ],
+  "baseDocumentSet": [
+    "README",
+    "build-guide",
+    "test-plan",
+    "deployment-checklist",
+    "impact-analysis"
+  ],
+  "exceptions": []
+}

@@ -28,6 +28,47 @@ ORGANIZATION_PROFILES = {
     "egov-public-sector",
 }
 
+FRONTEND_ARCHITECTURE_POLICIES = {
+    "not-applicable",
+    "undecided",
+    "jsp-mvc",
+    "separated-frontend-api",
+    "mpa-plus-ajax",
+    "spa",
+}
+
+SEO_SENSITIVITY_OPTIONS = {
+    "not-applicable",
+    "rfp-dependent",
+    "high",
+    "normal",
+    "low",
+}
+
+PAGE_DELIVERY_POLICIES = {
+    "not-applicable",
+    "rfp-dependent",
+    "mpa-required",
+    "mpa-preferred",
+    "hybrid",
+    "spa-allowed",
+}
+
+AJAX_POLICIES = {
+    "not-applicable",
+    "rfp-dependent",
+    "core-sections-only",
+    "broadly-allowed",
+    "none",
+}
+
+LEGACY_BROWSER_SUPPORT_OPTIONS = {
+    "not-applicable",
+    "rfp-dependent",
+    "required",
+    "not-required",
+}
+
 TEMPLATE_BY_FAMILY = {
     "game": "game-repo",
     "web-app": "web-app-repo",
@@ -55,6 +96,7 @@ TEXT_SUFFIXES = {
     ".jsx",
     ".css",
     ".html",
+    ".jsp",
     ".dart",
     ".java",
     ".cs",
@@ -272,6 +314,7 @@ RUNTIME_REFINEMENT_BY_FAMILY = {
     "web-app": {
         "title": "Frontend Runtime Shape",
         "questions": [
+            "server-rendered MPA, FE/BE 분리, 부분 AJAX 중 어느 전달 모델을 기준으로 둘지 정했는가?",
             "route, page, shared component, API binding 구조를 어떤 기준으로 둘지 정했는가?",
             "env 파일, API base URL, build target의 source of truth는 어디인가?",
             "UI smoke와 build 검증 중 첫 전달 기준은 무엇인가?",
@@ -493,6 +536,120 @@ def normalize_hard_constraints(value: object) -> dict:
     return normalized
 
 
+def default_frontend_architecture_policy(project_family: str, organization_profile: str) -> str:
+    if project_family == "web-app" and organization_profile == "egov-public-sector":
+        return "undecided"
+    if project_family in {"web-app", "pwa"}:
+        return "spa"
+    return "not-applicable"
+
+
+def normalize_frontend_architecture_policy(
+    value: object,
+    project_family: str,
+    organization_profile: str,
+) -> str:
+    default_policy = default_frontend_architecture_policy(project_family, organization_profile)
+    candidate = str(value or "").strip() or default_policy
+    if candidate not in FRONTEND_ARCHITECTURE_POLICIES:
+        candidate = default_policy
+    if project_family == "pwa" and candidate in {"jsp-mvc", "mpa-plus-ajax"}:
+        return "spa"
+    if project_family not in {"web-app", "pwa"} and candidate == "undecided":
+        return "not-applicable"
+    return candidate
+
+
+def default_public_web_constraints(
+    organization_profile: str,
+    frontend_architecture_policy: str,
+) -> dict:
+    if organization_profile != "egov-public-sector":
+        return {
+            "seoSensitivity": "not-applicable",
+            "pageDeliveryPolicy": "not-applicable",
+            "ajaxPolicy": "not-applicable",
+            "crossBrowserParityRequired": None,
+            "mobileParityRequired": None,
+            "legacyBrowserSupport": "not-applicable",
+            "frontendFrameworkAllowed": [],
+            "notes": [],
+        }
+
+    defaults = {
+        "seoSensitivity": "high",
+        "pageDeliveryPolicy": "rfp-dependent",
+        "ajaxPolicy": "rfp-dependent",
+        "crossBrowserParityRequired": True,
+        "mobileParityRequired": True,
+        "legacyBrowserSupport": "rfp-dependent",
+        "frontendFrameworkAllowed": [],
+        "notes": [],
+    }
+
+    if frontend_architecture_policy == "jsp-mvc":
+        defaults["pageDeliveryPolicy"] = "mpa-required"
+        defaults["ajaxPolicy"] = "core-sections-only"
+    elif frontend_architecture_policy == "mpa-plus-ajax":
+        defaults["pageDeliveryPolicy"] = "mpa-preferred"
+        defaults["ajaxPolicy"] = "core-sections-only"
+    elif frontend_architecture_policy == "separated-frontend-api":
+        defaults["ajaxPolicy"] = "broadly-allowed"
+        defaults["frontendFrameworkAllowed"] = ["React", "Vue", "Next.js"]
+    elif frontend_architecture_policy == "spa":
+        defaults["seoSensitivity"] = "normal"
+        defaults["pageDeliveryPolicy"] = "spa-allowed"
+        defaults["ajaxPolicy"] = "broadly-allowed"
+
+    return defaults
+
+
+def normalize_public_web_constraints(
+    value: object,
+    organization_profile: str,
+    frontend_architecture_policy: str,
+) -> dict:
+    normalized = default_public_web_constraints(organization_profile, frontend_architecture_policy)
+    if not isinstance(value, dict):
+        return normalized
+
+    seo_sensitivity = str(value.get("seoSensitivity") or "").strip()
+    if seo_sensitivity in SEO_SENSITIVITY_OPTIONS:
+        normalized["seoSensitivity"] = seo_sensitivity
+
+    page_delivery_policy = str(value.get("pageDeliveryPolicy") or "").strip()
+    if page_delivery_policy in PAGE_DELIVERY_POLICIES:
+        normalized["pageDeliveryPolicy"] = page_delivery_policy
+
+    ajax_policy = str(value.get("ajaxPolicy") or "").strip()
+    if ajax_policy in AJAX_POLICIES:
+        normalized["ajaxPolicy"] = ajax_policy
+
+    for key in ["crossBrowserParityRequired", "mobileParityRequired"]:
+        candidate = value.get(key)
+        if isinstance(candidate, bool) or candidate is None:
+            normalized[key] = candidate
+
+    legacy_browser_support = str(value.get("legacyBrowserSupport") or "").strip()
+    if legacy_browser_support in LEGACY_BROWSER_SUPPORT_OPTIONS:
+        normalized["legacyBrowserSupport"] = legacy_browser_support
+
+    framework_allowed = value.get("frontendFrameworkAllowed", [])
+    if isinstance(framework_allowed, list):
+        normalized["frontendFrameworkAllowed"] = unique(
+            [str(item).strip() for item in framework_allowed if str(item).strip()]
+        )
+    elif isinstance(framework_allowed, str) and framework_allowed.strip():
+        normalized["frontendFrameworkAllowed"] = [framework_allowed.strip()]
+
+    notes = value.get("notes", [])
+    if isinstance(notes, list):
+        normalized["notes"] = unique([str(item).strip() for item in notes if str(item).strip()])
+    elif isinstance(notes, str) and notes.strip():
+        normalized["notes"] = [notes.strip()]
+    return normalized
+
+
 def normalize_constraint_mode(value: object) -> str:
     candidate = str(value or "").strip() or "recommended-baseline"
     return candidate if candidate in CONSTRAINT_MODES else "recommended-baseline"
@@ -516,6 +673,14 @@ def scaffold_constraint_reasons(spec: dict) -> list[str]:
     family = spec["projectFamily"]
     language = str(spec["language"]).lower()
     framework = str(spec["framework"]).lower()
+    uses_node_frontend = family == "mockup-local" or (
+        family in {"web-app", "pwa"} and language in {"typescript", "javascript", "html/css/js"}
+    )
+    uses_java_stack = (
+        family in {"backend-service", "batch-worker", "receiver-integration"}
+        or (family == "web-app" and language == "java" and "egovframe" in framework)
+        or (family == "library-tooling" and language == "java")
+    )
     runtime_major = parse_major_version(spec.get("runtimeVersion"))
     runtime_policy_major = parse_major_version(hard_constraints["runtimeVersionPolicy"])
     effective_runtime_major = runtime_policy_major if runtime_policy_major is not None else runtime_major
@@ -536,7 +701,7 @@ def scaffold_constraint_reasons(spec: dict) -> list[str]:
     if hard_constraints["containerAllowed"] is False and spec.get("deploymentType") == "container":
         reasons.append("container deployment is blocked by hardConstraints.containerAllowed")
 
-    if family in {"web-app", "pwa", "mockup-local"} or (family == "library-tooling" and language == "typescript"):
+    if uses_node_frontend or (family == "library-tooling" and language == "typescript"):
         if effective_runtime_major is not None and effective_runtime_major < 20:
             reasons.append(
                 f"runtimeVersion policy `{hard_constraints['runtimeVersionPolicy'] or spec['runtimeVersion']}` is below the current scaffold baseline `Node 20.19+ / 22.12+`"
@@ -544,7 +709,7 @@ def scaffold_constraint_reasons(spec: dict) -> list[str]:
         if "react 18" in combined_policy or "vite 4" in combined_policy or "vite 5" in combined_policy:
             reasons.append("framework policy pins a legacy React/Vite line")
 
-    if family in {"backend-service", "batch-worker", "receiver-integration"} or (family == "library-tooling" and language == "java"):
+    if uses_java_stack:
         if effective_runtime_major is not None and effective_runtime_major < 17:
             reasons.append(
                 f"runtimeVersion policy `{hard_constraints['runtimeVersionPolicy'] or spec['runtimeVersion']}` is below the current Java 17 scaffold baseline"
@@ -588,6 +753,8 @@ def validate_spec(spec: dict) -> None:
         "securityProfile",
         "targetEnvironments",
         "externalIntegrations",
+        "frontendArchitecturePolicy",
+        "publicWebConstraints",
         "baseDocumentSet",
     ]
     missing = [key for key in required if key not in spec]
@@ -609,12 +776,21 @@ def validate_spec(spec: dict) -> None:
     if not isinstance(spec.get("hardConstraints"), dict):
         raise ValueError("hardConstraints must be an object")
 
+    if spec.get("frontendArchitecturePolicy") not in FRONTEND_ARCHITECTURE_POLICIES:
+        raise ValueError(f"Unsupported frontendArchitecturePolicy: {spec.get('frontendArchitecturePolicy')}")
+
+    if not isinstance(spec.get("publicWebConstraints"), dict):
+        raise ValueError("publicWebConstraints must be an object")
+
     if spec["language"].lower() == "java" and not spec.get("packageName"):
         raise ValueError("packageName is required for Java-based scaffolds")
 
     hard_constraints = normalize_hard_constraints(spec.get("hardConstraints"))
     if hard_constraints["containerAllowed"] is False and spec.get("deploymentType") == "container":
         raise ValueError("deploymentType `container` conflicts with hardConstraints.containerAllowed=false")
+
+    if spec["projectFamily"] in {"web-app", "pwa"} and spec["frontendArchitecturePolicy"] == "not-applicable":
+        raise ValueError("frontendArchitecturePolicy must be set for web-app and pwa projects")
 
     coordination_keys = [
         "requiredAgentRoles",
@@ -1030,10 +1206,12 @@ def derive_refinement_manifest(spec: dict, scaffold_profile: str | None, support
     modules.append(runtime_refinement_module(spec))
 
     if organization_profile == "egov-public-sector":
+        frontend_architecture_policy = spec.get("frontendArchitecturePolicy", "not-applicable")
         public_priority = "high" if (
             spec.get("constraintMode") != "recommended-baseline"
             or "frontend" in spec.get("runtimeRoles", [])
             or spec.get("projectFamily") in {"web-app", "pwa", "mockup-local"}
+            or frontend_architecture_policy == "undecided"
         ) else "medium"
         modules.append(
             make_refinement_module(
@@ -1042,7 +1220,9 @@ def derive_refinement_manifest(spec: dict, scaffold_profile: str | None, support
                 priority=public_priority,
                 trigger_reason="organizationProfile is `egov-public-sector`.",
                 questions=[
+                    "RFP나 과업지시서가 JSP/Spring MVC 고정, FE/BE 분리 허용, MPA 우선 + 일부 AJAX 중 어디를 요구하는가?",
                     "전자정부/KRDS 기준에서 먼저 맞춰야 할 문서와 검증 항목은 무엇인가?",
+                    "SEO, 크로스브라우징, 모바일 동등성, 공공 웹 품질 기준을 spec에 어떤 값으로 남길 것인가?",
                     "공통컴포넌트, 공통 자산, parity/rollback 중 어느 축이 현재 저장소에서 가장 중요한가?",
                     "공공 UI, 접근성, 운영 반영 절차를 어떤 체크리스트와 prompt로 고정할 것인가?",
                 ],
@@ -1781,6 +1961,16 @@ def normalize_spec(spec: dict) -> dict:
     normalized["constraintMode"] = normalize_constraint_mode(normalized.get("constraintMode"))
     normalized["organizationProfile"] = normalize_organization_profile(normalized.get("organizationProfile"))
     normalized["hardConstraints"] = normalize_hard_constraints(normalized.get("hardConstraints"))
+    normalized["frontendArchitecturePolicy"] = normalize_frontend_architecture_policy(
+        normalized.get("frontendArchitecturePolicy"),
+        str(normalized.get("projectFamily") or ""),
+        normalized["organizationProfile"],
+    )
+    normalized["publicWebConstraints"] = normalize_public_web_constraints(
+        normalized.get("publicWebConstraints"),
+        normalized["organizationProfile"],
+        normalized["frontendArchitecturePolicy"],
+    )
     derived = derive_agent_coordination(normalized)
     for key, value in derived.items():
         if key not in normalized or not normalized.get(key):
@@ -1795,6 +1985,10 @@ def choose_scaffold_plan(spec: dict) -> dict:
     constraint_reasons = scaffold_constraint_reasons(spec)
     constraint_reason_text = "; ".join(constraint_reasons)
 
+    if family == "web-app" and language == "java" and "egovframe" in framework:
+        if constraint_reasons:
+            return {"profile": None, "supportLevel": "docs-only", "reason": constraint_reason_text}
+        return {"profile": "java-egov-web", "supportLevel": "supported", "reason": ""}
     if family == "web-app" and language == "typescript" and "react" in framework:
         if constraint_reasons:
             return {"profile": None, "supportLevel": "docs-only", "reason": constraint_reason_text}
@@ -1811,10 +2005,18 @@ def choose_scaffold_plan(spec: dict) -> dict:
         if constraint_reasons:
             return {"profile": None, "supportLevel": "docs-only", "reason": constraint_reason_text}
         return {"profile": "java-spring-service", "supportLevel": "supported", "reason": ""}
+    if family == "backend-service" and language == "java" and "egovframe" in framework:
+        if constraint_reasons:
+            return {"profile": None, "supportLevel": "docs-only", "reason": constraint_reason_text}
+        return {"profile": "java-egov-service", "supportLevel": "supported", "reason": ""}
     if family == "batch-worker" and language == "java" and "spring" in framework:
         if constraint_reasons:
             return {"profile": None, "supportLevel": "docs-only", "reason": constraint_reason_text}
         return {"profile": "java-spring-batch", "supportLevel": "supported", "reason": ""}
+    if family == "batch-worker" and language == "java" and "egovframe" in framework:
+        if constraint_reasons:
+            return {"profile": None, "supportLevel": "docs-only", "reason": constraint_reason_text}
+        return {"profile": "java-egov-batch", "supportLevel": "supported", "reason": ""}
     if family == "receiver-integration" and language == "java" and "spring" in framework:
         if constraint_reasons:
             return {"profile": None, "supportLevel": "docs-only", "reason": constraint_reason_text}
@@ -1851,10 +2053,16 @@ def derive_main_class_name(spec: dict) -> str:
     base = slug_to_pascal(spec.get("projectName") or spec["repositoryName"])
     family = spec["projectFamily"]
     if family == "batch-worker":
+        if base.lower().endswith("batch"):
+            return f"{base}Application"
         return f"{base}BatchApplication"
     if family == "receiver-integration":
+        if base.lower().endswith("receiver"):
+            return f"{base}Application"
         return f"{base}ReceiverApplication"
     if family == "library-tooling":
+        if base.lower().endswith("tooling"):
+            return f"{base}Application"
         return f"{base}ToolingApplication"
     return f"{base}Application"
 
@@ -1902,7 +2110,12 @@ def build_precommit_config(spec: dict) -> dict:
     framework = str(spec.get("framework", "")).lower()
 
     if family == "web-app":
-        config["presetProfile"] = "web-app"
+        if language == "java":
+            config["presetProfile"] = "web-app-java"
+            config["runLintOnHook"] = False
+            config["runTypecheckOnHook"] = False
+        else:
+            config["presetProfile"] = "web-app"
     elif family == "pwa":
         config["presetProfile"] = "pwa"
     elif family == "backend-service":
@@ -1986,6 +2199,12 @@ def write_root_readme(
 ) -> None:
     coordination_mode = derive_coordination_mode(spec)
     organization_profile = spec.get("organizationProfile", "none")
+    frontend_architecture_policy = spec.get("frontendArchitecturePolicy", "not-applicable")
+    public_web_constraints = normalize_public_web_constraints(
+        spec.get("publicWebConstraints"),
+        organization_profile,
+        frontend_architecture_policy,
+    )
     starter_command = "python3 scripts/show_start_path.py"
     if coordination_mode["mode"] == "lite":
         next_steps = [
@@ -2028,6 +2247,7 @@ def write_root_readme(
 - Constraint mode: `{spec.get('constraintMode', 'recommended-baseline')}`
 - Repository mode: `{spec['repositoryMode']}`
 - Runtime roles: `{', '.join(spec['runtimeRoles'])}`
+- Frontend architecture policy: `{frontend_architecture_policy}`
 - Language / framework: `{spec['language']} / {spec['framework']}`
 - Build tool: `{spec['buildTool']}`
 - Test tool: `{spec['testTool']}`
@@ -2035,6 +2255,7 @@ def write_root_readme(
 - Startup mode: `{spec['startupMode']}`
 - Logging mode: `{spec['loggingMode']}`
 - Target environments: `{', '.join(spec['targetEnvironments'])}`
+{f"- Public web constraints: SEO `{public_web_constraints['seoSensitivity']}`, page delivery `{public_web_constraints['pageDeliveryPolicy']}`, AJAX `{public_web_constraints['ajaxPolicy']}`" if organization_profile == "egov-public-sector" and frontend_architecture_policy != "not-applicable" else ""}
 - Required agent roles: `{', '.join(spec['requiredAgentRoles'])}`
 - Optional agent roles: `{', '.join(spec['optionalAgentRoles'])}`
 - Scaffold profile: `{scaffold_profile or 'docs-only'}`
@@ -2093,6 +2314,12 @@ python3 scripts/show_start_path.py \
 def write_repo_local_overrides(target_dir: Path, spec: dict, refinement_manifest: dict) -> None:
     exceptions = spec.get("exceptions", [])
     high_priority_modules = refinement_manifest["summary"]["highPriorityModuleIds"]
+    frontend_architecture_policy = spec.get("frontendArchitecturePolicy", "not-applicable")
+    public_web_constraints = normalize_public_web_constraints(
+        spec.get("publicWebConstraints"),
+        spec.get("organizationProfile", "none"),
+        frontend_architecture_policy,
+    )
     lines = [
         "# Repo-Local Overrides",
         "",
@@ -2104,6 +2331,7 @@ def write_repo_local_overrides(target_dir: Path, spec: dict, refinement_manifest
         f"- Project family: `{spec['projectFamily']}`",
         f"- Constraint mode: `{spec.get('constraintMode', 'recommended-baseline')}`",
         f"- Runtime roles: `{', '.join(spec['runtimeRoles'])}`",
+        f"- Frontend architecture policy: `{frontend_architecture_policy}`",
         f"- Language / framework: `{spec['language']} / {spec['framework']}`",
         f"- Build tool: `{spec['buildTool']}`",
         f"- Test tool: `{spec['testTool']}`",
@@ -2125,6 +2353,23 @@ def write_repo_local_overrides(target_dir: Path, spec: dict, refinement_manifest
     lines.extend(fixed_constraint_lines)
     if hard_constraints["notes"]:
         lines.append("- Notes: " + ", ".join(hard_constraints["notes"]))
+    if spec.get("organizationProfile", "none") == "egov-public-sector" and frontend_architecture_policy != "not-applicable":
+        lines.extend(
+            [
+                "",
+                "## Public Web Constraints",
+                "",
+                f"- SEO sensitivity: `{public_web_constraints['seoSensitivity']}`",
+                f"- Page delivery policy: `{public_web_constraints['pageDeliveryPolicy']}`",
+                f"- AJAX policy: `{public_web_constraints['ajaxPolicy']}`",
+                f"- Cross-browser parity required: `{public_web_constraints['crossBrowserParityRequired'] if public_web_constraints['crossBrowserParityRequired'] is not None else '-'}`",
+                f"- Mobile parity required: `{public_web_constraints['mobileParityRequired'] if public_web_constraints['mobileParityRequired'] is not None else '-'}`",
+                f"- Legacy browser support: `{public_web_constraints['legacyBrowserSupport']}`",
+                f"- Frontend framework allowed: `{', '.join(public_web_constraints['frontendFrameworkAllowed']) or '-'}`",
+            ]
+        )
+        if public_web_constraints["notes"]:
+            lines.append("- Public web notes: " + ", ".join(public_web_constraints["notes"]))
     lines.extend(
         [
             "",
@@ -2315,6 +2560,12 @@ def write_generation_artifacts(
         "projectFamily": spec["projectFamily"],
         "template": template_name,
         "organizationProfile": spec.get("organizationProfile", "none"),
+        "frontendArchitecturePolicy": spec.get("frontendArchitecturePolicy", "not-applicable"),
+        "publicWebConstraints": normalize_public_web_constraints(
+            spec.get("publicWebConstraints"),
+            spec.get("organizationProfile", "none"),
+            spec.get("frontendArchitecturePolicy", "not-applicable"),
+        ),
         "scaffoldProfile": scaffold_profile,
         "supportLevel": support_level,
         "scaffoldSupportReason": support_reason,

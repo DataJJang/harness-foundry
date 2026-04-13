@@ -1,0 +1,73 @@
+{
+  "repositoryName": "egov-batch",
+  "projectName": "eGov Batch",
+  "projectPurpose": "Provide a test public-sector batch starter based on eGovFrame batch and MyBatis.",
+  "projectFamily": "batch-worker",
+  "projectNature": "prototype",
+  "organizationProfile": "egov-public-sector",
+  "constraintMode": "recommended-baseline",
+  "hardConstraints": {
+    "operatingEnvironment": "",
+    "operatingSystemVersion": "",
+    "runtimeVersionPolicy": "",
+    "frameworkVersionPolicy": "",
+    "containerAllowed": null,
+    "blockCurrentBaselineScaffold": false,
+    "notes": []
+  },
+  "repositoryMode": "single-repo",
+  "targetUsers": [
+    "operators"
+  ],
+  "targetPlatforms": [
+    "server"
+  ],
+  "runtimeRoles": [
+    "batch"
+  ],
+  "frontendArchitecturePolicy": "not-applicable",
+  "publicWebConstraints": {
+    "seoSensitivity": "not-applicable",
+    "pageDeliveryPolicy": "not-applicable",
+    "ajaxPolicy": "not-applicable",
+    "crossBrowserParityRequired": null,
+    "mobileParityRequired": null,
+    "legacyBrowserSupport": "not-applicable",
+    "frontendFrameworkAllowed": [],
+    "notes": []
+  },
+  "language": "Java",
+  "runtimeVersion": "17",
+  "framework": "eGovFrame 4.3 Batch + MyBatis",
+  "buildTool": "Maven",
+  "testTool": "mvn test",
+  "datastore": "MariaDB",
+  "cache": "없음",
+  "deploymentType": "VM",
+  "startupMode": "scheduled-job",
+  "loggingMode": "file",
+  "targetOs": [
+    "Linux"
+  ],
+  "securityProfile": "internal-auth",
+  "packageName": "com.example.egovbatch",
+  "targetEnvironments": [
+    "local",
+    "dev"
+  ],
+  "externalIntegrations": [
+    "scheduler",
+    "database"
+  ],
+  "dbEngine": "MariaDB 10.x",
+  "schemaOwnership": "shared",
+  "migrationPath": "db/migration",
+  "baseDocumentSet": [
+    "README",
+    "build-guide",
+    "test-plan",
+    "operations-manual",
+    "impact-analysis"
+  ],
+  "exceptions": []
+}

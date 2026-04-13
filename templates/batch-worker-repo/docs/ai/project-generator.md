@@ -50,12 +50,17 @@ python3 source/scripts/generate_project.py \
 ### Runnable or near-runnable scaffold
 
 - `web-app` + `TypeScript` + `React`
+- `web-app` + `Java` + `eGovFrame 4.3 JSP/Spring MVC`
 - `pwa` + `TypeScript` + `React`
 - `mockup-local`
 - `backend-service` + `Java` + `Spring Boot`
+- `backend-service` + `Java` + `eGovFrame 4.3 REST + MyBatis`
 - `batch-worker` + `Java` + `Spring Boot`
+- `batch-worker` + `Java` + `eGovFrame 4.3 Batch + MyBatis`
 - `receiver-integration` + `Java` + `Spring Boot`
 - `library-tooling` + `TypeScript` 또는 `Java`
+
+`organizationProfile = egov-public-sector`인 `web-app`도 `frontendArchitecturePolicy = separated-frontend-api`면 현재는 `TypeScript + React` scaffold를 그대로 쓸 수 있다.
 
 ### Structure-first scaffold
 
@@ -69,10 +74,13 @@ python3 source/scripts/generate_project.py \
 ## 5.1 scaffold profile 이름
 
 - `web-react-vite`
+- `java-egov-web`
 - `pwa-react-vite`
 - `mockup-local-static`
 - `java-spring-service`
+- `java-egov-service`
 - `java-spring-batch`
+- `java-egov-batch`
 - `java-spring-receiver`
 - `typescript-library-tooling`
 - `java-library-tooling`

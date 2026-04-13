@@ -21,11 +21,11 @@
 | projectFamily | 기본 템플릿 | 기본 문서 세트 | 기본 명령 기준 |
 | --- | --- | --- | --- |
 | `game` | `templates/game-repo` | bootstrap, build-guide, test-plan, ops or deployment when needed | engine build, validation, smoke |
-| `web-app` | `templates/web-app-repo` | bootstrap, build-guide, test-plan | npm build, UI smoke |
+| `web-app` | `templates/web-app-repo` | bootstrap, build-guide, test-plan | npm build, UI smoke, 또는 Maven/JSP smoke |
 | `pwa` | `templates/pwa-repo` | bootstrap, build-guide, test-plan, deployment-checklist | npm build, offline and install smoke |
 | `mobile-app` | `templates/mobile-app-repo` | bootstrap, build-guide, test-plan, deployment-checklist | app build, device smoke |
-| `backend-service` | `templates/backend-service-repo` | bootstrap, build-guide, test-plan, deployment-checklist, operations-manual | gradle compile and test, API smoke |
-| `batch-worker` | `templates/batch-worker-repo` | bootstrap, build-guide, test-plan, operations-manual | gradle compile and test, job smoke |
+| `backend-service` | `templates/backend-service-repo` | bootstrap, build-guide, test-plan, deployment-checklist, operations-manual | gradle 또는 maven compile/test, API smoke |
+| `batch-worker` | `templates/batch-worker-repo` | bootstrap, build-guide, test-plan, operations-manual | gradle 또는 maven compile/test, job smoke |
 | `receiver-integration` | `templates/receiver-integration-repo` | bootstrap, build-guide, test-plan, operations-manual | gradle compile and test, payload smoke |
 | `mockup-local` | `templates/mockup-local-repo` | bootstrap, build-guide, test-plan | local preview and walkthrough |
 | `library-tooling` | `templates/library-tooling-repo` | bootstrap, build-guide, test-plan | package build and sample invocation |
@@ -39,20 +39,27 @@
 
 `egov-public-sector`는 별도 family가 아니다. 즉, `web-app`, `backend-service`, `batch-worker` 같은 공통 family를 고른 뒤 공공 프로젝트에 필요한 문서와 refinement만 추가로 활성화한다.
 
+공공 `web-app`은 추가로 `frontendArchitecturePolicy`를 함께 기록한다. 즉 `egov-public-sector`는 overlay이고, JSP 여부나 FE/BE 분리 여부는 RFP와 `frontendArchitecturePolicy`가 결정한다.
+
 ## 3.1 기본 scaffold profile 매핑
 
 | projectFamily | language / framework | scaffold profile | 지원 수준 |
 | --- | --- | --- | --- |
 | `web-app` | `TypeScript + React` | `web-react-vite` | supported |
+| `web-app` | `Java + eGovFrame 4.3 JSP/Spring MVC` | `java-egov-web` | supported |
 | `pwa` | `TypeScript + React` | `pwa-react-vite` | supported |
 | `mockup-local` | 경량 정적 mockup | `mockup-local-static` | supported |
 | `backend-service` | `Java + Spring Boot` | `java-spring-service` | supported |
+| `backend-service` | `Java + eGovFrame 4.3 REST + MyBatis` | `java-egov-service` | supported |
 | `batch-worker` | `Java + Spring Boot` | `java-spring-batch` | supported |
+| `batch-worker` | `Java + eGovFrame 4.3 Batch + MyBatis` | `java-egov-batch` | supported |
 | `receiver-integration` | `Java + Spring Boot` | `java-spring-receiver` | supported |
 | `library-tooling` | `TypeScript` | `typescript-library-tooling` | supported |
 | `library-tooling` | `Java` | `java-library-tooling` | supported |
 | `game` | `C# + Unity` | `unity-game` | structure-only |
 | `mobile-app` | `Dart + Flutter` | `flutter-mobile` | structure-only |
+
+`organizationProfile = egov-public-sector`이고 `projectFamily = web-app`이라도 `frontendArchitecturePolicy = separated-frontend-api`면 현재는 `TypeScript + React` 조합이 `web-react-vite`로 연결된다. 즉 overlay와 scaffold 매핑은 분리해서 본다.
 
 ## 4. 하위 역할 추가 매핑
 

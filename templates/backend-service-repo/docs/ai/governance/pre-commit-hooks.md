@@ -34,7 +34,7 @@ python3 scripts/install_git_hooks.py
 - Web/app 저장소:
   - `package.json`과 staged file을 보고 preset profile에 맞는 `lint`, `typecheck`, `build`, `test` 중 가능한 명령을 고른다.
 - Java 저장소:
-  - `gradlew`와 staged file을 보고 preset profile에 맞는 `./gradlew compileJava`, `./gradlew build`, `./gradlew test`를 고른다.
+  - `gradlew` 또는 `pom.xml`과 staged file을 보고 preset profile에 맞는 `./gradlew compileJava`, `./gradlew test`, `mvn compile`, `mvn test`를 고른다.
 - Flutter 저장소:
   - `pubspec.yaml`과 staged file을 보고 `flutter analyze`, `flutter test` 또는 `dart analyze`, `dart test`를 고른다.
 - Unity 저장소:
@@ -71,6 +71,7 @@ python3 scripts/install_git_hooks.py
 권장 preset은 아래와 같다.
 
 - `web-app`
+- `web-app-java`
 - `pwa`
 - `backend-service`
 - `batch-worker`

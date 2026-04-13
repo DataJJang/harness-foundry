@@ -26,22 +26,32 @@
   "runtimeRoles": [
     "frontend"
   ],
-  "language": "TypeScript",
-  "runtimeVersion": "22 LTS",
-  "framework": "React",
-  "buildTool": "npm",
-  "testTool": "npm test",
+  "frontendArchitecturePolicy": "jsp-mvc",
+  "publicWebConstraints": {
+    "seoSensitivity": "high",
+    "pageDeliveryPolicy": "mpa-required",
+    "ajaxPolicy": "core-sections-only",
+    "crossBrowserParityRequired": true,
+    "mobileParityRequired": true,
+    "legacyBrowserSupport": "rfp-dependent",
+    "frontendFrameworkAllowed": [],
+    "notes": []
+  },
+  "language": "Java",
+  "runtimeVersion": "17",
+  "framework": "eGovFrame 4.3 JSP/Spring MVC",
+  "buildTool": "Maven",
+  "testTool": "mvn test",
   "datastore": "없음",
   "cache": "없음",
-  "deploymentType": "static-hosting",
-  "startupMode": "SPA",
-  "loggingMode": "console",
+  "deploymentType": "VM",
+  "startupMode": "server-rendered-webapp",
+  "loggingMode": "file",
   "targetOs": [
-    "Windows",
-    "macOS",
     "Linux"
   ],
-  "securityProfile": "없음",
+  "securityProfile": "session",
+  "packageName": "com.example.sampleegovpublicwebapp",
   "targetEnvironments": [
     "local",
     "dev"

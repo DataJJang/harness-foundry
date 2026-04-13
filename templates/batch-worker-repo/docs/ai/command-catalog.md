@@ -8,7 +8,7 @@
 
 - 명령은 실제 저장소의 manifest를 source of truth로 삼는다.
 - Web/app 계열은 `package.json`, `pubspec.yaml`, repo-local scripts, or engine docs
-- Java 계열은 `build.gradle`
+- Java 계열은 `build.gradle`, `pom.xml`, wrapper script 중 실제 manifest를 본다
 - Unity 계열은 Unity version docs, project settings, editor method, or repo-local scripts
 - refinement 중에 기본값을 유지하거나 예외를 허용한 이유는 `docs/ai/repo-local-overrides.md`에 남긴다.
 - commit 전 빠른 검사는 `.agent-base/pre-commit-config.json`과 `scripts/precommit_check.py`를 함께 본다.
@@ -61,12 +61,12 @@
 | 프로젝트 패밀리 | Build | Compile | Test | Smoke | Deploy-check |
 | --- | --- | --- | --- | --- | --- |
 | `game` | repo-local engine build or export | editor or compile validation | editmode/playmode or validation method | boot scene, core loop, or main scene validation | engine version, platform target, asset pipeline check |
-| `web-app` | `npm install`, `npm run build` | build가 compile 역할을 겸할 수 있음 | `npm test` 또는 repo-local test command | 핵심 라우트 렌더, API base URL 확인 | env 파일, 정적 자산, API endpoint 연결 확인 |
+| `web-app` | `npm install`, `npm run build` 또는 `mvn package` | build가 compile 역할을 겸하거나 `mvn compile`을 별도로 둔다 | `npm test`, `mvn test`, 또는 repo-local test command | 핵심 라우트 렌더, 첫 JSP/화면 또는 API base URL 확인 | env 파일, 정적 자산, WAS 설정, API endpoint 연결 확인 |
 | `pwa` | `npm install`, `npm run build` | build가 compile 역할을 겸할 수 있음 | `npm test` 또는 repo-local test command | offline, installability, 핵심 라우트 확인 | env 파일, manifest, service worker, API endpoint 확인 |
 | `mobile-app` | repo-local app build | repo-local compile | repo-local test | simulator or device smoke | signing, target store, backend endpoint 확인 |
-| `backend-service` | `./gradlew build` 또는 repo-local build | `./gradlew compileJava` | `./gradlew test` | 핵심 API 1건 호출, health 또는 auth 경로 확인 | profile, DB, external API, security key, DB verification query 확인 |
-| `batch-worker` | `./gradlew build` 또는 repo-local build | `./gradlew compileJava` | `./gradlew test` | 핵심 job 진입 또는 validation method 확인 | scheduler enable flag, DB, SQL, 외부 토큰, DB verification query 확인 |
-| `receiver-integration` | `./gradlew build` 또는 repo-local build | `./gradlew compileJava` | `./gradlew test` | 샘플 payload 수신 또는 parser 흐름 확인 | ingress 설정, broker/port, publish 대상, retry 로그, DB verification query 확인 |
+| `backend-service` | `./gradlew build`, `mvn package`, 또는 repo-local build | `./gradlew compileJava` 또는 `mvn compile` | `./gradlew test` 또는 `mvn test` | 핵심 API 1건 호출, health 또는 auth 경로 확인 | profile, DB, external API, security key, DB verification query 확인 |
+| `batch-worker` | `./gradlew build`, `mvn package`, 또는 repo-local build | `./gradlew compileJava` 또는 `mvn compile` | `./gradlew test` 또는 `mvn test` | 핵심 job 진입 또는 validation method 확인 | scheduler enable flag, DB, SQL, 외부 토큰, DB verification query 확인 |
+| `receiver-integration` | `./gradlew build`, `mvn package`, 또는 repo-local build | `./gradlew compileJava` 또는 `mvn compile` | `./gradlew test` 또는 `mvn test` | 샘플 payload 수신 또는 parser 흐름 확인 | ingress 설정, broker/port, publish 대상, retry 로그, DB verification query 확인 |
 | `mockup-local` | local preview build or repo-local command | optional | repo-local smoke test | local route or screen flow 확인 | local env only 여부와 범위 확인 |
 | `library-tooling` | package or build artifact command | compile command | unit test or package smoke | sample invocation or CLI smoke | runtime dependency and install path 확인 |
 

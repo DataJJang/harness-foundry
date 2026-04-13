@@ -42,22 +42,28 @@ CLI는 아래 순서로 질문한다.
   - `none`
   - `egov-public-sector`
 7. 런타임 역할
-8. 운영 제약 모드
+8. 공공 `web-app`이면 `frontendArchitecturePolicy`
+  - `jsp-mvc`
+  - `separated-frontend-api`
+  - `mpa-plus-ajax`
+  - `undecided`
+9. 운영 제약 모드
   - `recommended-baseline`
   - `fixed-target`
   - `legacy-maintenance`
-9. 입력 방식 선택
+10. 입력 방식 선택
   - `quick-start`
   - `guided-review`
   - `full-detail`
-10. `quick-start`면 추천 baseline을 보여주고 대부분의 값을 자동 채운다.
-11. `fixed-target` 또는 `legacy-maintenance`면 고정 운영 환경, OS, runtime/framework policy, container 허용 여부를 먼저 확인한다.
-12. `guided-review` 또는 `full-detail`이면 저장소 구성 방식부터 세부 항목을 순서대로 확인한다.
-13. DB 관련 추가 항목
-14. 기본 문서 세트
-15. 추가 예외/메모
-16. output root
-17. spec 저장 경로
+11. `quick-start`면 추천 baseline을 보여주고 대부분의 값을 자동 채운다.
+12. `fixed-target` 또는 `legacy-maintenance`면 고정 운영 환경, OS, runtime/framework policy, container 허용 여부를 먼저 확인한다.
+13. `guided-review` 또는 `full-detail`이면 저장소 구성 방식부터 세부 항목을 순서대로 확인한다.
+14. `organizationProfile = egov-public-sector`이고 `web-app` 또는 `pwa`면 `publicWebConstraints`를 함께 확인할 수 있다.
+15. DB 관련 추가 항목
+16. 기본 문서 세트
+17. 추가 예외/메모
+18. output root
+19. spec 저장 경로
 
 핵심 의도는 `최종 spec에는 값이 있어야 하지만, 초기 인터뷰에서 사용자가 모든 값을 같은 무게로 직접 입력하지는 않아도 된다`는 점이다.
 
@@ -69,6 +75,7 @@ CLI는 아래를 만든다.
 - spec 옆 `*.refinement.json`
 - spec 옆 `*.refinement-status.json`
 - `organizationProfile` 기반 overlay 문서 라우팅
+- `frontendArchitecturePolicy`, `publicWebConstraints` 정규화
 - 자동 파생된 `requiredAgentRoles`, `optionalAgentRoles`, `roleSpecializations`, `agentWorkflowOrder`
 - 선택된 template 이름
 - 선택된 scaffold profile 이름
@@ -89,6 +96,7 @@ spec은 `.agent-base/project-generation-spec.json`으로도 생성 저장소 안
 - Java 계열은 `packageName`을 반드시 확정해야 한다.
 - DB를 소유하는 저장소는 `dbEngine`, `schemaOwnership`, `migrationPath`를 함께 기록해야 한다.
 - quick-start baseline은 일반적인 로컬 시작 경로를 위한 기본값이다. production, rollout, shared DB 같은 조건이 있으면 `guided-review` 또는 `full-detail`로 전환하는 편이 안전하다.
+- `organizationProfile = egov-public-sector`인 `web-app`은 `organizationProfile`만으로 JSP를 고정하지 않는다. 대신 `frontendArchitecturePolicy`를 먼저 확인하고, 미정이면 quick-start 대신 `guided-review`로 올린다.
 - `fixed-target` 또는 `legacy-maintenance`는 baseline 추천보다 실제 운영 제약을 우선한다.
 - 이 경우 CLI는 quick-start를 그대로 유지하지 않고 최소 `guided-review`로 올려 runtime/framework/deployment를 직접 확인한다.
 - 현재 runnable scaffold가 그 제약을 만족하지 못하면 generator는 실패하지 않고 `docs-only`로 강등하며, 이유를 summary와 generation manifest에 남긴다.
