@@ -1228,6 +1228,7 @@ def derive_refinement_manifest(spec: dict, scaffold_profile: str | None, support
                 ],
                 recommended_outputs=[
                     "docs/ai/org-specific/egov-public-sector-guide.md",
+                    "docs/ai/org-specific/egov-delivery-devops-scm-guide.md",
                     "checklists/public-sector-ui-review.md",
                     "compatibility matrix or parity validation note",
                 ],

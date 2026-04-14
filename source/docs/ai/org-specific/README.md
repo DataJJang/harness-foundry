@@ -19,6 +19,7 @@
 
 - `docs/ai/org-specific/egov-public-sector-guide.md`
 - `docs/ai/org-specific/egov-new-project-playbook.md`
+- `docs/ai/org-specific/egov-delivery-devops-scm-guide.md`
 - `docs/ai/prompts/org-specific/egov-public-sector/README.md`
 - `checklists/public-sector-ui-review.md`
 

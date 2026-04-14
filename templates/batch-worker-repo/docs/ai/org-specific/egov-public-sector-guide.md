@@ -15,7 +15,7 @@
 - Spring MVC, JSP, MyBatis, 공통컴포넌트, 운영 배치가 섞인 legacy brownfield
 - 최신 baseline보다 실제 운영 환경 제약이 더 강한 공공 유지보수 프로젝트
 
-신규 구축을 실제로 시작할 때는 [`egov-new-project-playbook.md`](./egov-new-project-playbook.md)를 같이 보는 편이 좋다.
+신규 구축을 실제로 시작할 때는 [`egov-new-project-playbook.md`](./egov-new-project-playbook.md)와 [`egov-delivery-devops-scm-guide.md`](./egov-delivery-devops-scm-guide.md)를 같이 보는 편이 좋다.
 
 ## 3. 기본 원칙
 
@@ -72,6 +72,17 @@
 - `coordination mode`
   - 작은 PoC가 아니면 보통 `Coordinated`부터 시작
 
+## 5-1. DevOps / 형상관리 해석 기준
+
+- 공식 eGovFrame 자료에는 형상관리, CI, 배포 가이드가 실제로 존재한다.
+- 다만 축은 `SVN`, `Maven`, `Jenkins`, `Nexus`, `Docker`, `MSA/Kubernetes`가 함께 섞여 있다.
+- 따라서 공공 프로젝트에서는 아래 순서로 해석하는 편이 안전하다.
+  - 과업지시서와 운영기관 표준
+  - 실제 운영환경 제약
+  - 공식 eGovFrame 레퍼런스
+  - 팀 선호 도구
+- 세부 판단은 [`egov-delivery-devops-scm-guide.md`](./egov-delivery-devops-scm-guide.md)를 따른다.
+
 ## 6. adoption 권장값
 
 기존 전자정부 저장소는 아래 순서로 시작하는 편이 안전하다.
@@ -99,6 +110,7 @@
   - 전자정부 버전, 구형 WAS/JDK, 기관 표준 제약
 - `data-and-schema`
   - 기관 DB naming, COMMENT, migration ownership, 검증 SQL
+- `delivery-and-rollout`에서는 Git/SVN, CI 서버, artifact 형식, 반영 경로까지 같이 본다.
 
 ## 8. KRDS / UI·UX / 접근성 기준
 

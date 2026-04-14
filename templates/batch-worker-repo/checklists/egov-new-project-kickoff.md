@@ -7,6 +7,7 @@
 - [ ] 신규 구축이라도 발주기관 운영 제약이 고정돼 있으면 `constraintMode`를 `fixed-target` 또는 `legacy-maintenance`로 잡았다
 - [ ] `docs/ai/org-specific/egov-public-sector-guide.md`를 읽었다
 - [ ] `docs/ai/org-specific/egov-new-project-playbook.md`를 읽었다
+- [ ] `docs/ai/org-specific/egov-delivery-devops-scm-guide.md`를 읽었다
 - [ ] `.agent-base/context-manifest.json`과 `.agent-base/refinement-manifest.json`을 확인했다
 
 ## 2. 공통 산출물 고정
@@ -20,6 +21,16 @@
   - 공통 JS/CSS
   - 공통 코드 테이블
 - [ ] 반영 순서와 rollback 순서를 대략이라도 정했다
+
+## 2-1. 형상관리 / CI / 배포 기준
+
+- [ ] source of truth 저장소가 `Git`, `SVN`, `혼합` 중 무엇인지 정했다
+- [ ] 기본 브랜치와 release/tag 기준을 정했다
+- [ ] CI 도구가 `Jenkins`, `GitHub Actions`, `GitLab CI`, `수동` 중 무엇인지 정했다
+- [ ] build 결과물 형식이 `war`, `jar`, `docker image`, `정적 번들` 중 무엇인지 정했다
+- [ ] artifact 저장소 또는 반입 경로를 정했다
+- [ ] 운영 반영 주체와 승인 주체를 정했다
+- [ ] smoke owner와 rollback owner를 정했다
 
 ## 3. Front-end 착수 전
 

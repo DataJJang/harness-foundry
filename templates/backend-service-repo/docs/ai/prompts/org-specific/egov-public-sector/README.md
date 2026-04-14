@@ -24,4 +24,4 @@
 - 이 디렉토리의 문서는 공통 규칙을 대체하지 않고, 공공 프로젝트용 overlay만 제공한다.
 - 별도 family를 만들기보다 공통 family + `constraintMode` + migration/parity 문서 조합으로 푼다.
 
-신규 공공 프로젝트에서 `web-app`, `backend-service`, `batch-worker`를 함께 시작한다면 `egov-new-project-kickoff.md`와 `docs/ai/org-specific/egov-new-project-playbook.md`를 같이 쓰는 편이 좋다.
+신규 공공 프로젝트에서 `web-app`, `backend-service`, `batch-worker`를 함께 시작한다면 `egov-new-project-kickoff.md`, `docs/ai/org-specific/egov-new-project-playbook.md`, `docs/ai/org-specific/egov-delivery-devops-scm-guide.md`를 같이 쓰는 편이 좋다.

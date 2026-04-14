@@ -24,6 +24,7 @@
 
 - [`../../../checklists/egov-new-project-kickoff.md`](../../../checklists/egov-new-project-kickoff.md)
 - [`../prompts/org-specific/egov-public-sector/egov-new-project-kickoff.md`](../prompts/org-specific/egov-public-sector/egov-new-project-kickoff.md)
+- [`./egov-delivery-devops-scm-guide.md`](./egov-delivery-devops-scm-guide.md)
 
 ## 3. 기본 원칙
 
@@ -76,6 +77,7 @@
 5. `docs/ai/architecture-map.md` 초안을 만든다.
 6. 공공 overlay 기준 문서를 함께 읽는다.
   - [`egov-public-sector-guide.md`](./egov-public-sector-guide.md)
+  - [`egov-delivery-devops-scm-guide.md`](./egov-delivery-devops-scm-guide.md)
   - [`../../../checklists/public-sector-ui-review.md`](../../../checklists/public-sector-ui-review.md)
 
 공통으로 가장 먼저 확정해야 할 refinement는 보통 아래다.
@@ -254,12 +256,21 @@
 - 다만 배치가 신규 테이블/상태값을 먼저 준비해야 하면 `backend + batch`를 먼저 잠그고 프런트를 붙이는 편이 낫다.
 - rollback 시 어떤 프로젝트부터 되돌릴지 미리 정한다.
 
+### 형상관리 / CI / 반입 경로
+
+- source of truth 저장소가 `Git`, `SVN`, `혼합` 중 무엇인지 정한다.
+- CI 서버가 `Jenkins`, `GitHub Actions`, `GitLab CI`, `수동` 중 무엇인지 정한다.
+- 반입 artifact가 `war`, `jar`, `docker image`, `정적 번들` 중 무엇인지 정한다.
+- 운영팀이 직접 반영하는지, 파이프라인이 자동 반영하는지 정한다.
+- smoke owner와 rollback owner를 정한다.
+
 ## 10. 신규 전자정부 프로젝트 권장 진행 순서
 
 ### 단계 1. bootstrap 직후
 
 - spec 검토
 - constraint 검토
+- SCM/CI/CD 기준 검토
 - command-catalog 보정
 - architecture-map 초안
 - refinement high-priority 정리
@@ -269,6 +280,7 @@
 - 백엔드 API/DB/보안 기준 고정
 - 프런트 화면 유형/공통 컴포넌트 기준 고정
 - 배치 job/scheduler/운영 기준 고정
+- 형상관리, CI, artifact, 반입 절차 기준 고정
 - 예외를 `repo-local-overrides.md`에 기록
 
 ### 단계 3. 첫 실행 기준 마련
@@ -289,6 +301,7 @@
 - `docs/ai/command-catalog.md`
 - `docs/ai/architecture-map.md`
 - `docs/ai/repo-local-overrides.md`
+- 필요 시 `docs/ai/governance/git-workflow.md`
 - 필요 시 `docs/ai/compatibility-matrix.md`
 - 필요 시 `docs/ai/operations-manual.md`
 - 필요 시 `docs/ai/parity-validation.md`

@@ -8,8 +8,9 @@
 1. `AGENTS.md`
 2. `docs/ai/start-bootstrap.md`
 3. `docs/ai/org-specific/egov-public-sector-guide.md`
-4. `docs/ai/org-specific/egov-new-project-playbook.md`
-5. `checklists/egov-new-project-kickoff.md`
+4. `docs/ai/org-specific/egov-delivery-devops-scm-guide.md`
+5. `docs/ai/org-specific/egov-new-project-playbook.md`
+6. `checklists/egov-new-project-kickoff.md`
 
 이후 아래 원칙으로 진행하라.
 
@@ -25,6 +26,8 @@
 - KRDS 또는 기관 UI/UX 기준 적용 여부
 - frontend 전달 방식이 JSP/Spring MVC 고정인지, FE/BE 분리 허용인지, MPA 우선 + 일부 AJAX인지
 - 전자정부프레임워크 버전, WAS, JDK, OS 같은 고정 운영 제약 여부
+- 형상관리 기준이 `Git`, `SVN`, `혼합` 중 무엇인지
+- CI/CD와 artifact 반입 기준이 `Jenkins`, `GitHub Actions`, `수동 반입`, `Docker/Kubernetes` 중 무엇인지
 - DB ownership과 batch 운영 여부
 - 공통 코드, 공통 JS/CSS, 공통 메시지, 공통 코드 테이블 같은 공통 자산 존재 여부
 - 신규처럼 보여도 기존 기관 산출물/운영 절차를 따라야 하는지
@@ -46,6 +49,7 @@
 ```text
 `source/AGENTS.md`, `source/docs/ai/start-bootstrap.md`,
 `source/docs/ai/org-specific/egov-public-sector-guide.md`,
+`source/docs/ai/org-specific/egov-delivery-devops-scm-guide.md`,
 `source/docs/ai/org-specific/egov-new-project-playbook.md`,
 `source/checklists/egov-new-project-kickoff.md`
 를 읽고,
@@ -56,6 +60,9 @@
 먼저 확정해야 할 공통 항목과
 frontend / backend / batch별 착수 전 작업,
 그리고 세 프로젝트를 함께 맞춰야 할 통합 기준을 정리해줘.
+
+형상관리, CI/CD, artifact 반입, 배포/rollback 기준도
+RFP와 운영환경 제약 기준으로 먼저 잠가줘.
 
 최신 baseline보다 기관 운영 제약이 우선이면 그 기준을 먼저 잠그고,
 필요하면 `constraintMode = fixed-target` 또는 `legacy-maintenance`도 제안해줘.
